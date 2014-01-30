@@ -9,6 +9,15 @@
 #ifndef objv_objv_private_h
 #define objv_objv_private_h
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
+    
+    
+    
+#ifdef __cplusplus
+}
+#endif
 
 #endif

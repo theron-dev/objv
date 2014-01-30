@@ -9,6 +9,18 @@
 #ifndef objv_objv_log_h
 #define objv_objv_log_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
+    
+    void objv_log(const char * format,...);
+    
+    void objv_vlog(const char * format,va_list va);
+    
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif
