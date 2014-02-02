@@ -13,6 +13,9 @@
 #include "objv.h"
 #include "objv_dispatch.h"
 #include "objv_hash_map.h"
+#include "objv_autorelease.h"
+
+#define DEFAULT_MAX_THREAD_COUNT    20
 
 OBJV_KEY_IMP(DispatchQueue)
 
@@ -20,21 +23,15 @@ OBJV_KEY_IMP(DispatchQueue)
 static void objv_dispatch_queue_method_dealloc (objv_class_t * clazz
                                                 , objv_object_t * object){
     
-    objv_dispatch_queue_t * dispatch = (objv_dispatch_queue_t *) object;
+    objv_dispatch_queue_t * queue = (objv_dispatch_queue_t *) object;
     
-    for(int i=0;i<dispatch->dispatchs->length;i++){
-        objv_dispatch_cancelAllTasks((objv_dispatch_t *) objv_array_objectAt(dispatch->dispatchs, i));
+    for(int i=0;i<queue->dispatchs->length;i++){
+        objv_dispatch_cancelAllTasks((objv_dispatch_t *) objv_array_objectAt(queue->dispatchs, i));
     }
     
-    objv_object_release((objv_object_t *) dispatch->dispatchs);
+    objv_object_release((objv_object_t *) queue->dispatchs);
     
-    objv_mutex_lock(& dispatch->tasks_mutex);
-    
-    objv_object_release((objv_object_t *) dispatch->tasks);
-    
-    objv_mutex_unlock(& dispatch->tasks_mutex);
-
-    objv_mutex_destroy(& dispatch->tasks_mutex);
+    objv_object_release((objv_object_t *) queue->dispatch);
     
     if(clazz->superClass){
         objv_object_dealloc(clazz->superClass, object);
@@ -56,12 +53,10 @@ objv_dispatch_queue_t * objv_dispatch_queue_alloc(objv_zone_t * zone,const char 
     
     objv_dispatch_queue_t * dispatch = (objv_dispatch_queue_t *) objv_object_alloc(zone, &objv_dispatch_queue_class);
     
-    objv_mutex_init(& dispatch->tasks_mutex);
-    
-    dispatch->tasks = objv_array_alloc(zone, 20);
     dispatch->dispatchs = objv_array_alloc(zone, 20);
     dispatch->threadCount = 0;
     dispatch->maxThreadCount = maxThreadCount;
+    dispatch->dispatch = (objv_dispatch_t *) objv_object_retain( (objv_object_t *) objv_dispatch_get_current() );
     
     return dispatch;
 }
@@ -76,6 +71,9 @@ typedef struct _objv_dispatch_queue_task_t{
     objv_dispatch_task_t * task;
     objv_dispatch_t * dispatch;
     objv_boolean_t removed;
+    objv_boolean_t canceled;
+    objv_boolean_t added;
+    objv_boolean_t canceledAll;
 } objv_dispatch_queue_task_t;
 
 
@@ -102,8 +100,22 @@ static void objv_dispatch_queue_task_method_run (objv_class_t * clazz
     
     objv_dispatch_queue_t * queue = task->queue;
     
-    if(task->removed){
+    if(task->added){
         
+        objv_dispatch_queue_addTask(queue, task->task);
+        
+    }
+    else if(task->canceled){
+        
+        objv_dispatch_queue_cancelTask(queue, task->task);
+        
+    }
+    else if(task->canceledAll){
+        
+        objv_dispatch_queue_cancelAllTasks(queue);
+        
+    }
+    else if(task->removed){
         
         objv_array_remove(queue->dispatchs, (objv_object_t *) task->dispatch);
         
@@ -119,10 +131,8 @@ static void objv_dispatch_queue_task_method_run (objv_class_t * clazz
         
         objv_mutex_unlock(&task->dispatch->mutex);
         
-        objv_object_release(object);
-        
     }
-    else{
+    else if(task->dispatch) {
         objv_array_add(queue->dispatchs, (objv_object_t *) task->dispatch);
     }
 }
@@ -144,7 +154,11 @@ objv_class_t objv_dispatch_queue_task_class = {OBJV_KEY(DispatchQueueTask)
 
 static void * objv_dispatch_queue_thread(void * userInfo){
     
+    objv_autorelease_pool_push();
+    
     objv_dispatch_queue_task_t * task = (objv_dispatch_queue_task_t *) userInfo;
+    
+    objv_dispatch_queue_t * queue = task->queue;
     
     objv_dispatch_t * dispatch = objv_dispatch_get_current();
     
@@ -152,100 +166,116 @@ static void * objv_dispatch_queue_thread(void * userInfo){
     
     objv_dispatch_addTask(dispatch, task->task);
     
-    objv_dispatch_addTask(objv_dispatch_get_main(), (objv_dispatch_task_t *) task);
+    objv_object_release((objv_object_t *)task->task);
     
-    objv_timeinval_t keepAlive = 0,t;
+    task->task = NULL;
     
-    while (keepAlive < 20) {
+    objv_dispatch_addTask(queue->dispatch, (objv_dispatch_task_t *) task);
+ 
+    while (dispatch->idleTimeinval < 20) {
         
-        t = objv_dispatch_run(dispatch);
+        objv_autorelease_pool_push();
         
-        if(t < 0.02){
-            usleep(200);
-            keepAlive += 0.2;
-        }
-        else{
-            keepAlive = 0;
-        }
+        objv_dispatch_run(dispatch,0.02);
+        
+        objv_autorelease_pool_pop();
     }
     
     task->removed = objv_true;
     
-    objv_dispatch_addTask(objv_dispatch_get_main(), (objv_dispatch_task_t *) task);
+    objv_dispatch_addTask(queue->dispatch, (objv_dispatch_task_t *) task);
+  
+    objv_object_release((objv_object_t *) task);
+    
+    objv_autorelease_pool_pop();
     
     return NULL;
 }
 
-void objv_dispatch_queue_addTask(objv_dispatch_queue_t * dispatch
+void objv_dispatch_queue_addTask(objv_dispatch_queue_t * queue
                                  ,objv_dispatch_task_t * task){
     
-    if(dispatch && task){
+    if(queue && task){
         
-        if(dispatch->maxThreadCount == 0
-           || dispatch->threadCount < dispatch->maxThreadCount){
+        if(queue->dispatch != objv_dispatch_get_current()){
             
-            dispatch->threadCount ++;
+            objv_dispatch_queue_task_t * t = (objv_dispatch_queue_task_t *) objv_object_alloc(queue->base.zone, &objv_dispatch_queue_task_class);
             
-            objv_dispatch_queue_task_t * t = (objv_dispatch_queue_task_t *) objv_object_alloc(dispatch->base.zone, &objv_dispatch_queue_task_class);
+            t->queue = (objv_dispatch_queue_t *) objv_object_retain((objv_object_t *)queue);
+            t->task = (objv_dispatch_task_t *) objv_object_retain((objv_object_t *) task);
+            t->added = objv_true;
             
-            t->queue = (objv_dispatch_queue_t *) objv_object_retain((objv_object_t *)dispatch);
+            objv_dispatch_addTask(queue->dispatch, (objv_dispatch_task_t *)t);
+            
+            objv_object_release((objv_object_t *) t);
+            
+            return;
+        }
+        
+        objv_dispatch_t * disp = NULL, * p;
+        
+        for(int i=0;i<queue->dispatchs->length;i++){
+            
+            p = (objv_dispatch_t *) objv_array_objectAt(queue->dispatchs, i);
+            
+            if(disp == NULL){
+                disp = p;
+            }
+            else if(p->idleTimeinval > disp->idleTimeinval){
+                disp = p;
+            }
+        }
+
+        
+        if((disp == NULL || disp->idleTimeinval == 0.0)
+           && (queue->maxThreadCount == 0
+               || queue->threadCount < queue->maxThreadCount)){
+            
+            queue->threadCount ++;
+            
+            objv_dispatch_queue_task_t * t = (objv_dispatch_queue_task_t *) objv_object_alloc(queue->base.zone, &objv_dispatch_queue_task_class);
+            
+            t->queue = (objv_dispatch_queue_t *) objv_object_retain((objv_object_t *)queue);
             t->task = (objv_dispatch_task_t *) objv_object_retain((objv_object_t *) task);
             
             objv_thread_create(objv_dispatch_queue_thread, t);
         
         }
+        else if(disp){
+            
+            objv_dispatch_addTask(disp, task);
+        
+        }
         else{
-            
-            objv_dispatch_t * disp = NULL, * p;
-            int length = 0;
-            
-            for(int i=0;i<dispatch->dispatchs->length;i++){
-                
-                p = (objv_dispatch_t *) objv_array_objectAt(dispatch->dispatchs, i);
-                
-                if(disp == NULL){
-                    disp = p;
-                    length = objv_dispatch_tasks_count(disp);
-                }
-                else if(objv_dispatch_tasks_count(p) < length){
-                    disp = p;
-                    length = objv_dispatch_tasks_count(p);
-                }
-            }
-            
-            if(disp){
-                
-                objv_dispatch_addTask(disp, task);
-                
-            }
-            else{
-                
-                objv_mutex_lock(& dispatch->tasks_mutex);
-                
-                objv_array_add(dispatch->tasks,(objv_object_t *)task);
-                
-                objv_mutex_unlock(& dispatch->tasks_mutex);
-
-            }
+            assert(0);
         }
     }
 }
 
-void objv_dispatch_queue_cancelTask(objv_dispatch_queue_t * dispatch
+void objv_dispatch_queue_cancelTask(objv_dispatch_queue_t * queue
                                     ,objv_dispatch_task_t * task){
-    if(dispatch && task){
+    if(queue && task){
         
-        objv_mutex_lock(& dispatch->tasks_mutex);
-        
-        objv_array_remove(dispatch->tasks,(objv_object_t *)task);
-        
-        objv_mutex_unlock(& dispatch->tasks_mutex);
+        if(queue->dispatch != objv_dispatch_get_current()){
+            
+            objv_dispatch_queue_task_t * t = (objv_dispatch_queue_task_t *) objv_object_alloc(queue->base.zone, &objv_dispatch_queue_task_class);
+            
+            t->queue = (objv_dispatch_queue_t *) objv_object_retain((objv_object_t *)queue);
+            t->task = (objv_dispatch_task_t *) objv_object_retain((objv_object_t *) task);
+            t->canceled = objv_true;
+            
+            objv_dispatch_addTask(queue->dispatch, (objv_dispatch_task_t *)t);
+            
+            objv_object_release((objv_object_t *) t);
+            
+            return;
+        }
         
         objv_dispatch_t * p;
         
-        for(int i=0;i<dispatch->dispatchs->length;i++){
+        for(int i=0;i<queue->dispatchs->length;i++){
             
-            p = (objv_dispatch_t *) objv_array_objectAt(dispatch->dispatchs, i);
+            p = (objv_dispatch_t *) objv_array_objectAt(queue->dispatchs, i);
             
             objv_dispatch_cancelTask(p, task);
         
@@ -254,21 +284,29 @@ void objv_dispatch_queue_cancelTask(objv_dispatch_queue_t * dispatch
     }
 }
 
-void objv_dispatch_queue_cancelAllTasks(objv_dispatch_queue_t * dispatch){
+void objv_dispatch_queue_cancelAllTasks(objv_dispatch_queue_t * queue){
     
-    if(dispatch){
+    if(queue){
         
-        objv_mutex_lock(& dispatch->tasks_mutex);
-        
-        objv_array_clear(dispatch->tasks);
-        
-        objv_mutex_unlock(& dispatch->tasks_mutex);
+        if(queue->dispatch != objv_dispatch_get_current()){
+            
+            objv_dispatch_queue_task_t * t = (objv_dispatch_queue_task_t *) objv_object_alloc(queue->base.zone, &objv_dispatch_queue_task_class);
+            
+            t->queue = (objv_dispatch_queue_t *) objv_object_retain((objv_object_t *)queue);
+            t->canceledAll = objv_true;
+            
+            objv_dispatch_addTask(queue->dispatch, (objv_dispatch_task_t *)t);
+            
+            objv_object_release((objv_object_t *) t);
+            
+            return;
+        }
       
         objv_dispatch_t * p;
         
-        for(int i=0;i<dispatch->dispatchs->length;i++){
+        for(int i=0;i<queue->dispatchs->length;i++){
             
-            p = (objv_dispatch_t *) objv_array_objectAt(dispatch->dispatchs, i);
+            p = (objv_dispatch_t *) objv_array_objectAt(queue->dispatchs, i);
             
             objv_dispatch_cancelAllTasks(p);
             
@@ -276,4 +314,15 @@ void objv_dispatch_queue_cancelAllTasks(objv_dispatch_queue_t * dispatch){
         
     }
     
+}
+
+objv_dispatch_queue_t * objv_dispatch_queue_default(){
+    
+    static objv_dispatch_queue_t * queue = NULL;
+    
+    if(queue == NULL){
+        queue = objv_dispatch_queue_alloc(NULL, "default", DEFAULT_MAX_THREAD_COUNT);
+    }
+    
+    return queue;
 }

@@ -14,6 +14,17 @@
 #include "objv_dispatch.h"
 #include "objv_log.h"
 
+OBJV_KEY_DEC(AutoreleaseTask)
+OBJV_KEY_DEC(AutoreleasePool)
+
+typedef struct _objv_autorelease_pool_t {
+    objv_object_t base;
+    objv_object_t ** objects;
+    int size;
+    int length;
+    struct _objv_autorelease_pool_t * parent;
+} objv_autorelease_pool_t;
+
 OBJV_KEY_IMP(AutoreleaseTask)
 OBJV_KEY_IMP(AutoreleasePool)
 
@@ -93,7 +104,7 @@ static objv_method_t objv_autorelease_pool_methods[] = {
     {OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_autorelease_pool_methods_dealloc}
 };
 
-objv_class_t objv_autorelease_pool_class = {OBJV_KEY(AutoreleasePool),& objv_object_class
+static objv_class_t objv_autorelease_pool_class = {OBJV_KEY(AutoreleasePool),& objv_object_class
     ,objv_autorelease_pool_methods,sizeof(objv_autorelease_pool_methods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(objv_autorelease_pool_t)
@@ -116,17 +127,20 @@ objv_autorelease_pool_t * objv_autorelease_pool_get_current(){
     return objv_thread_key_value(autorelease_pool_key);
 }
 
-objv_autorelease_pool_t * objv_autorelease_pool_alloc(objv_zone_t * zone){
+
+void objv_autorelease_pool_push(){
     
-    objv_autorelease_pool_t * pool = (objv_autorelease_pool_t *) objv_object_alloc(zone, &objv_autorelease_pool_class);
+    objv_autorelease_pool_t * pool = (objv_autorelease_pool_t *) objv_object_alloc(NULL, &objv_autorelease_pool_class);
     
     pool->parent = objv_autorelease_pool_get_current();
     
     objv_thread_key_setValue(autorelease_pool_key, pool);
     
-    return pool;
 }
 
+void objv_autorelease_pool_pop(){
+    objv_object_release((objv_object_t *)objv_autorelease_pool_get_current());
+}
 
 
 objv_object_t * objv_object_autorelease(objv_object_t * object){

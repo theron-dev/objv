@@ -117,6 +117,7 @@ extern "C" {
     typedef struct _objv_object_t {
         objv_class_t * READONLY isa;
         objv_zone_t * READONLY zone;
+        objv_mutex_t READONLY mutex;
         int READONLY retainCount;
     } objv_object_t;
    
@@ -128,9 +129,11 @@ extern "C" {
     
     objv_object_t * objv_object_retain(objv_object_t * object);
     
-   
     void objv_object_release(objv_object_t * object);
     
+    void objv_object_lock(objv_object_t * object);
+    
+    void objv_object_unlock(objv_object_t * object);
     
     objv_boolean_t objv_object_isKindOfClass(objv_object_t * object,objv_class_t * ofClass);
     

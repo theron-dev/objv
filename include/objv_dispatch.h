@@ -20,10 +20,12 @@ extern "C" {
     OBJV_KEY_DEC(DispatchDelayTask)
     OBJV_KEY_DEC(Dispatch)
     OBJV_KEY_DEC(run)
-    OBJV_KEY_DEC(action)
     
     typedef struct _objv_dispatch_task_t {
         objv_object_t base;
+        objv_boolean_t READONLY canceled;
+        objv_timeinval_t READONLY start;
+        objv_timeinval_t delay;
     } objv_dispatch_task_t;
 
     typedef void ( * objv_dispatch_task_method_run_t) (objv_class_t * clazz,objv_object_t * object);
@@ -32,33 +34,20 @@ extern "C" {
     
     extern objv_class_t objv_dispatch_task_class;
     
-    
-    typedef void ( * objv_dispatch_delay_task_method_action_t) (objv_class_t * clazz,objv_object_t * object);
-    
-    typedef struct _objv_dispatch_delay_task_t {
-        objv_dispatch_task_t base;
-        objv_timeinval_t start;
-        objv_timeinval_t delay;
-    } objv_dispatch_delay_task_t;
-    
-    objv_dispatch_delay_task_t * objv_dispatch_delay_task_alloc(objv_zone_t * zone,objv_timeinval_t delay);
-    
-    void objv_dispatch_delay_task_action(objv_class_t * clazz,objv_dispatch_delay_task_t * task);
-    
-    extern objv_class_t objv_dispatch_delay_task_class;
-    
     typedef struct _objv_dispatch_t {
         objv_object_t base;
-        const char * name;
-        objv_array_t * tasks;
-        objv_mutex_t mutex;
+        const char * READONLY name;
+        objv_array_t * READONLY tasks;
+        objv_mutex_t READONLY mutex;
+        objv_waiter_t READONLY waiter;
+        objv_timeinval_t READONLY idleTimeinval;
     } objv_dispatch_t;
     
     extern objv_class_t objv_dispatch_class;
  
     objv_dispatch_t * objv_dispatch_alloc(objv_zone_t * zone,const char * name);
     
-    objv_timeinval_t objv_dispatch_run(objv_dispatch_t * dispatch);
+    int objv_dispatch_run(objv_dispatch_t * dispatch,objv_timeinval_t timeout);
 
     void objv_dispatch_addTask(objv_dispatch_t * dispatch,objv_dispatch_task_t * task);
     
@@ -74,14 +63,12 @@ extern "C" {
     
     void objv_dispatch_set_main(objv_dispatch_t * dispatch);
     
-    
     OBJV_KEY_DEC(DispatchQueue)
     
     typedef struct _objv_dispatch_queue_t {
         objv_object_t base;
         const char * name;
-        objv_array_t * READONLY tasks;
-        objv_mutex_t READONLY tasks_mutex;
+        objv_dispatch_t * READONLY dispatch;
         objv_array_t * READONLY dispatchs;
         unsigned int READONLY maxThreadCount;
         unsigned int READONLY threadCount;
@@ -91,13 +78,15 @@ extern "C" {
     
     objv_dispatch_queue_t * objv_dispatch_queue_alloc(objv_zone_t * zone,const char * name,unsigned int maxThreadCount);
     
-    void objv_dispatch_queue_addTask(objv_dispatch_queue_t * dispatch
+    void objv_dispatch_queue_addTask(objv_dispatch_queue_t * queue
                                      ,objv_dispatch_task_t * task);
     
-    void objv_dispatch_queue_cancelTask(objv_dispatch_queue_t * dispatch
+    void objv_dispatch_queue_cancelTask(objv_dispatch_queue_t * queue
                                         ,objv_dispatch_task_t * task);
     
-    void objv_dispatch_queue_cancelAllTasks(objv_dispatch_queue_t * dispatch);
+    void objv_dispatch_queue_cancelAllTasks(objv_dispatch_queue_t * queue);
+    
+    objv_dispatch_queue_t * objv_dispatch_queue_default();
     
 #ifdef __cplusplus
 }

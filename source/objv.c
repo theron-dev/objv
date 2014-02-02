@@ -259,6 +259,8 @@ objv_object_t * objv_object_alloc(objv_zone_t * zone,objv_class_t * clazz){
         obj->zone = zone;
         obj->retainCount = 1;
         
+        objv_mutex_init(& obj->mutex);
+        
         return obj;
 
     }
@@ -269,7 +271,14 @@ objv_object_t * objv_object_alloc(objv_zone_t * zone,objv_class_t * clazz){
 objv_object_t * objv_object_retain(objv_object_t * object){
     
     if(object){
+        
+        objv_mutex_lock(& object->mutex);
+        
+        assert(object->retainCount > 0);
+        
         object->retainCount ++;
+        
+        objv_mutex_unlock(& object->mutex);
     }
     
     return object;
@@ -280,16 +289,45 @@ void objv_object_release(objv_object_t * object){
     
     if(object){
         
+        objv_mutex_lock(& object->mutex);
+        
         assert(object->retainCount > 0);
         
-        if( -- object->retainCount ==0){
+        object->retainCount -- ;
+        
+        int dodealloc = object->retainCount == 0;
+        
+        objv_mutex_unlock(& object->mutex);
+
+        if( dodealloc ){
             
             objv_object_dealloc(object->isa,object);
+            
+            objv_mutex_destroy(& object->mutex);
             
             objv_zone_free(object->zone, object);
         }
     }
     
+}
+
+void objv_object_lock(objv_object_t * object){
+
+    if(object){
+        
+        objv_mutex_lock(& object->mutex);
+        
+    }
+    
+}
+
+void objv_object_unlock(objv_object_t * object){
+    
+    if(object){
+        
+        objv_mutex_unlock(& object->mutex);
+        
+    }
 }
 
 objv_boolean_t objv_object_isKindOfClass(objv_object_t * object,objv_class_t * ofClass){
@@ -343,7 +381,8 @@ long objv_object_hashCode(objv_class_t * clazz,objv_object_t * object){
 }
 
 
-objv_boolean_t objv_object_equal(objv_class_t * clazz,objv_object_t * object,objv_object_t * value){
+objv_boolean_t objv_object_equal(objv_class_t * clazz,objv_object_t * object
+                                 ,objv_object_t * value){
     
     if(clazz && object){
         

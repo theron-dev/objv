@@ -115,6 +115,20 @@ extern "C" {
         pthread_cond_wait(&waiter->cond, &waiter->mutex);
     }
     
+    static inline int objv_waiter_wait_timeout(objv_waiter_t * waiter,objv_timeinval_t timeout){
+        struct timeval now;
+        struct timespec tm ;
+        
+        gettimeofday(& now, NULL);
+        
+        timeout += now.tv_sec + (double) now.tv_usec / 1000000;
+        
+        tm.tv_sec = (long)timeout ;
+        tm.tv_nsec = (long)((timeout - (long)timeout) * 1000000000);
+        
+        return pthread_cond_timedwait(&waiter->cond, &waiter->mutex, & tm);
+    }
+    
     static inline void objv_waiter_join(objv_waiter_t * waiter){
         pthread_cond_broadcast(&waiter->cond);
     }
