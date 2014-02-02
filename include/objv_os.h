@@ -22,6 +22,8 @@
 #include <pthread.h>
 #endif
 #include <sys/time.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #endif
 
@@ -125,6 +127,55 @@ extern "C" {
         objv_thread_t t = 0;
         pthread_create(&t, NULL, callback, userInfo);
         return t;
+    }
+    
+    typedef int objv_os_file_t;
+    
+    static inline objv_os_file_t objv_os_file_open(const char * path,int flags,mode_t mode){
+        int rc;
+        do{ rc = open(path, flags,mode); } while( rc<0 && errno==EINTR );
+        return rc;
+    }
+    
+    static inline void objv_os_file_close(objv_os_file_t file){
+        int rc;
+        do{ rc = close(file); } while( rc<0 && errno==EINTR );
+    }
+    
+    static inline int objv_os_file_lock(objv_os_file_t file,int op){
+        int rc;
+        do{ rc = flock(file,op); }while( rc<0 && errno==EINTR );
+        return rc;
+    }
+    
+    static inline ssize_t objv_os_file_read(objv_os_file_t file,void * bytes,size_t length){
+        ssize_t rc;
+        do{ rc = read(file, bytes, length); }while( rc<0 && errno==EINTR );
+        return rc;
+    }
+    
+    static inline ssize_t objv_os_file_write(objv_os_file_t file,void * bytes,size_t length){
+        ssize_t rc;
+        do{ rc = write(file, bytes, length); }while( rc<0 && errno==EINTR );
+        return rc;
+    }
+    
+    static inline off_t objv_os_file_seek(objv_os_file_t file,off_t off,int by){
+        return lseek(file, off, by);
+    }
+    
+    typedef int objv_os_socket_t;
+    
+    static inline ssize_t objv_os_socket_read(objv_os_socket_t file,void * bytes,size_t length){
+        ssize_t rc;
+        do{ rc = read(file, bytes, length); }while( rc<0 && errno==EINTR );
+        return rc;
+    }
+    
+    static inline ssize_t objv_os_socket_write(objv_os_socket_t file,void * bytes,size_t length){
+        ssize_t rc;
+        do{ rc = write(file, bytes, length); }while( rc<0 && errno==EINTR );
+        return rc;
     }
     
 #elif defined(TARGET_OS_WIN32)

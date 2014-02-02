@@ -116,6 +116,7 @@
 		11BD79001899409000F028AC = {
 			isa = PBXGroup;
 			children = (
+				11BD7968189C8CBE00F028AC /* vermin */,
 				11BD79211899568A00F028AC /* private */,
 				11BD79151899424700F028AC /* source */,
 				11BD7910189940B300F028AC /* include */,
@@ -190,6 +191,14 @@
 				11BD794B189A5F6400F028AC /* objvtest.1 */,
 			);
 			path = objvtest;
+			sourceTree = "<group>";
+		};
+		11BD7968189C8CBE00F028AC /* vermin */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = vermin;
+			path = ../vermin;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -447,6 +456,7 @@
 				11BD790F1899409000F028AC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		11BD794D189A5F6400F028AC /* Build configuration list for PBXNativeTarget "objvtest" */ = {
 			isa = XCConfigurationList;
@@ -455,6 +465,7 @@
 				11BD794F189A5F6400F028AC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
