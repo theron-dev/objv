@@ -46,7 +46,7 @@ void objv_mbuf_formatv(objv_mbuf_t * mbuf,const char * format,va_list va){
     char text[NUMBER_SIZE];
     char fmt[NUMBER_SIZE];
     char * p = (char *) format;
-    int s = 0,tIndex = 0,fIndex = 0;
+    int s = 0,fIndex = 0,len;
     union {
         int intValue;
         long longValue;
@@ -63,7 +63,7 @@ void objv_mbuf_formatv(objv_mbuf_t * mbuf,const char * format,va_list va){
             
             if(*p == '%'){
                 s = 1;
-                tIndex = fIndex = 0;
+                fIndex = 0;
                 assert(fIndex + 2 < NUMBER_SIZE);
                 fmt[fIndex ++] = * p;
             }
@@ -72,11 +72,7 @@ void objv_mbuf_formatv(objv_mbuf_t * mbuf,const char * format,va_list va){
             }
         }
         else {
-            if((*p >= '0' && *p <= '9') || *p == '.' || *p == '-' || *p == '+'){
-                assert(fIndex + 2 < NUMBER_SIZE);
-                fmt[fIndex ++] = * p;
-            }
-            else if( *p == '@'){
+            if( *p == '@'){
                 {
                     objv_string_t * v = objv_object_stringValue(va_arg(va, objv_object_t *), NULL);
                     if(v){
@@ -93,16 +89,18 @@ void objv_mbuf_formatv(objv_mbuf_t * mbuf,const char * format,va_list va){
                     
                     if(p[-1] == 'l' && p[-2] == 'l'){
                         value.longLongValue = va_arg(va, long long);
-                        snprintf(text, sizeof(text),fmt,value.longLongValue);
+                        len = snprintf(text, sizeof(text),fmt,value.longLongValue);
                     }
                     else if(p[-1] == 'l'){
                         value.longValue = va_arg(va, long);
-                        snprintf(text, sizeof(text),fmt,value.longValue);
+                        len = snprintf(text, sizeof(text),fmt,value.longValue);
                     }
                     else {
                         value.intValue = va_arg(va, int);
-                        snprintf(text, sizeof(text),fmt,value.intValue);
+                        len = snprintf(text, sizeof(text),fmt,value.intValue);
                     }
+                    
+                    objv_mbuf_append(mbuf, text, len);
                     
                     s = 0;
                 }
@@ -115,16 +113,18 @@ void objv_mbuf_formatv(objv_mbuf_t * mbuf,const char * format,va_list va){
                     
                     if(p[-1] == 'l' && p[-2] == 'l'){
                         value.ulongLongValue = va_arg(va,unsigned long long);
-                        snprintf(text, sizeof(text),fmt,value.ulongLongValue);
+                        len = snprintf(text, sizeof(text),fmt,value.ulongLongValue);
                     }
                     else if(p[-1] == 'l'){
                         value.ulongValue = va_arg(va,unsigned long);
-                        snprintf(text, sizeof(text),fmt,value.ulongValue);
+                        len = snprintf(text, sizeof(text),fmt,value.ulongValue);
                     }
                     else {
                         value.uintValue = va_arg(va,unsigned int);
-                        snprintf(text, sizeof(text),fmt,value.uintValue);
+                        len = snprintf(text, sizeof(text),fmt,value.uintValue);
                     }
+                    
+                    objv_mbuf_append(mbuf, text, len);
                     
                     s = 0;
                 }
@@ -136,7 +136,9 @@ void objv_mbuf_formatv(objv_mbuf_t * mbuf,const char * format,va_list va){
                     fmt[fIndex] = 0;
                     
                     value.uintValue = va_arg(va,unsigned int);
-                    snprintf(text, sizeof(text),fmt,value.uintValue);
+                    len = snprintf(text, sizeof(text),fmt,value.uintValue);
+                    
+                    objv_mbuf_append(mbuf, text, len);
                     
                     s = 0;
                 }
@@ -148,7 +150,9 @@ void objv_mbuf_formatv(objv_mbuf_t * mbuf,const char * format,va_list va){
                     fmt[fIndex] = 0;
                     
                     value.uintValue = va_arg(va,unsigned int);
-                    snprintf(text, sizeof(text),fmt,value.uintValue);
+                    len = snprintf(text, sizeof(text),fmt,value.uintValue);
+                    
+                    objv_mbuf_append(mbuf, text, len);
                     
                     s = 0;
                 }
@@ -160,7 +164,9 @@ void objv_mbuf_formatv(objv_mbuf_t * mbuf,const char * format,va_list va){
                     fmt[fIndex] = 0;
                     
                     value.doubleValue = va_arg(va,double);
-                    snprintf(text, sizeof(text),fmt,value.doubleValue);
+                    len = snprintf(text, sizeof(text),fmt,value.doubleValue);
+                    
+                    objv_mbuf_append(mbuf, text, len);
                     
                     s = 0;
                 }
@@ -180,7 +186,8 @@ void objv_mbuf_formatv(objv_mbuf_t * mbuf,const char * format,va_list va){
                 }
             }
             else{
-                assert(0);
+                assert(fIndex + 2 < NUMBER_SIZE);
+                fmt[fIndex ++] = * p;
             }
         }
         

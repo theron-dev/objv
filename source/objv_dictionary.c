@@ -12,6 +12,7 @@
 #include "objv_os.h"
 #include "objv.h"
 #include "objv_dictionary.h"
+#include "objv_autorelease.h"
 
 OBJV_KEY_IMP(Dictionary)
 
@@ -95,7 +96,7 @@ objv_dictionary_t * objv_dictionary_alloc(objv_zone_t * zone,unsigned int capaci
 }
 
 objv_dictionary_t * objv_dictionary_new(objv_zone_t * zone,unsigned int capacity){
-    return (objv_dictionary_t *) objv_object_retain((objv_object_t *) objv_dictionary_alloc(zone,capacity));
+    return (objv_dictionary_t *) objv_object_autorelease((objv_object_t *) objv_dictionary_alloc(zone,capacity));
 }
 
 void objv_dictionary_setValue(objv_dictionary_t * dictionary,objv_object_t * key, objv_object_t * value){

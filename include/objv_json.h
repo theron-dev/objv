@@ -18,9 +18,9 @@ extern "C" {
 #include "objv.h"
 #include "objv_string.h"
     
-    void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_t * mbuf);
+    void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_t * mbuf,objv_boolean_t foramtted);
     
-    objv_string_t * objv_json_encode(objv_zone_t * zone,objv_object_t * object);
+    objv_string_t * objv_json_encode(objv_zone_t * zone,objv_object_t * object,objv_boolean_t foramtted);
     
     objv_object_t * objv_json_decode(objv_zone_t * zone,const char * text);
     

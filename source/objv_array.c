@@ -11,6 +11,7 @@
 #include "objv_os.h"
 #include "objv.h"
 #include "objv_array.h"
+#include "objv_autorelease.h"
 
 OBJV_KEY_IMP(Array)
 
@@ -65,7 +66,7 @@ objv_array_t * objv_array_alloc(objv_zone_t * zone,unsigned int capacity){
 }
 
 objv_array_t * objv_array_new(objv_zone_t * zone,unsigned int capacity){
-    return (objv_array_t *) objv_object_retain((objv_object_t *) objv_array_alloc(zone,capacity));
+    return (objv_array_t *) objv_object_autorelease((objv_object_t *) objv_array_alloc(zone,capacity));
 }
 
 objv_array_t * objv_array_alloc_copy(objv_zone_t * zone,objv_array_t * array){

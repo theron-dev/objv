@@ -228,7 +228,7 @@ objv_boolean_t objv_class_isKindOfClass(objv_class_t * clazz,objv_class_t * ofCl
     
     objv_class_t * c = clazz;
     
-    while (c && c != ofClass) {
+    while (c) {
         if(c == ofClass){
             return objv_true;
         }
@@ -238,8 +238,6 @@ objv_boolean_t objv_class_isKindOfClass(objv_class_t * clazz,objv_class_t * ofCl
     
     return objv_false;
 }
-
-
 
 objv_object_t * objv_object_alloc(objv_zone_t * zone,objv_class_t * clazz){
 
@@ -260,7 +258,7 @@ objv_object_t * objv_object_alloc(objv_zone_t * zone,objv_class_t * clazz){
         obj->retainCount = 1;
         
         objv_mutex_init(& obj->mutex);
-        
+
         return obj;
 
     }
@@ -306,6 +304,7 @@ void objv_object_release(objv_object_t * object){
             objv_mutex_destroy(& object->mutex);
             
             objv_zone_free(object->zone, object);
+            
         }
     }
     

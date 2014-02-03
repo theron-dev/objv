@@ -13,7 +13,14 @@
 #include "objv_array.h"
 #include "objv_dictionary.h"
 
-void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_t * mbuf){
+static void inline objv_json_encode_mbuf_level_space(objv_mbuf_t * mbuf,int level){
+    while(level > 0){
+        objv_mbuf_append(mbuf,"\t",1);
+        level --;
+    }
+}
+
+static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * object,objv_mbuf_t * mbuf,objv_boolean_t foramtted,int level){
     
     if(object == NULL){
         objv_mbuf_format(mbuf,"null");
@@ -26,11 +33,27 @@ void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_
             
             objv_mbuf_append(mbuf,"[",1);
         
+            if(foramtted && a->length >0){
+                objv_mbuf_append(mbuf,"\n",1);
+            }
+            
             for(i = 0;i< a->length;i++){
+                if(foramtted){
+                    objv_json_encode_mbuf_level_space(mbuf,level + 1);
+                }
                 if( i != 0){
                     objv_mbuf_append(mbuf,",",1);
                 }
-                objv_json_encode_mbuf(zone,objv_array_objectAt(a,i),mbuf);
+                
+                objv_json_encode_mbuf_level(zone,objv_array_objectAt(a,i),mbuf,foramtted,level + 1);
+                
+                if(foramtted){
+                    objv_mbuf_append(mbuf,"\n",1);
+                }
+            }
+            
+            if(foramtted && a->length >0){
+                objv_json_encode_mbuf_level_space(mbuf,level);
             }
             
             objv_mbuf_append(mbuf,"]",1);
@@ -46,7 +69,15 @@ void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_
             
             objv_mbuf_append(mbuf,"{",1);
         
+            if(foramtted && c >0){
+                objv_mbuf_append(mbuf,"\n",1);
+            }
+            
             for (i = 0; i < c; i ++) {
+                
+                if(foramtted){
+                    objv_json_encode_mbuf_level_space(mbuf,level + 1);
+                }
                 
                 if( i != 0){
                     objv_mbuf_append(mbuf,",",1);
@@ -54,13 +85,21 @@ void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_
                 
                 key = objv_object_stringValue(objv_dictionary_keyAt(d,i),NULL);
                 
-                objv_json_encode_mbuf(zone,(objv_object_t *) key,mbuf);
+                objv_json_encode_mbuf_level(zone,(objv_object_t *) key,mbuf,foramtted,level + 1);
                 
                 objv_mbuf_append(mbuf,":",1);
                 
                 v = objv_dictionary_valueAt(d,i);
                 
-                objv_json_encode_mbuf(zone,v,mbuf);
+                objv_json_encode_mbuf_level(zone,v,mbuf,foramtted,level + 1);
+                
+                if(foramtted){
+                    objv_mbuf_append(mbuf,"\n",1);
+                }
+            }
+            
+            if(foramtted && c >0){
+                objv_json_encode_mbuf_level_space(mbuf,level);
             }
             
             objv_mbuf_append(mbuf,"}",1);
@@ -172,6 +211,10 @@ void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_
     
             objv_mbuf_append(mbuf,"{",1);
             
+            if(foramtted){
+                objv_mbuf_append(mbuf,"\n",1);
+            }
+            
             while(clazz){
                 
                 p = clazz->propertys;
@@ -183,6 +226,10 @@ void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_
                         
                         if(p->type == & objv_type_int){
                             
+                            if(foramtted){
+                                objv_json_encode_mbuf_level_space(mbuf,level + 1);
+                            }
+                            
                             if( i != 0){
                                 objv_mbuf_append(mbuf,",",1);
                             }
@@ -192,8 +239,17 @@ void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_
                             objv_mbuf_format(mbuf,"%d", (* (objv_object_property_intValue_t)p->getter->impl)(clazz,object));
                             
                             i ++;
+                            
+                            if(foramtted){
+                                objv_mbuf_append(mbuf,"\n",1);
+                            }
+
                         }
                         else if(p->type == & objv_type_uint){
+                            
+                            if(foramtted){
+                                objv_json_encode_mbuf_level_space(mbuf,level + 1);
+                            }
                             
                             if( i != 0){
                                 objv_mbuf_append(mbuf,",",1);
@@ -205,8 +261,18 @@ void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_
                             
                             i ++;
                             
+                            if(foramtted){
+                                objv_mbuf_append(mbuf,"\n",1);
+                            }
+
                         }
                         else if(p->type == & objv_type_long){
+                            
+                            if(foramtted){
+                                objv_json_encode_mbuf_level_space(mbuf,level + 1);
+                            }
+                
+                            
                             if( i != 0){
                                 objv_mbuf_append(mbuf,",",1);
                             }
@@ -216,8 +282,18 @@ void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_
                             objv_mbuf_format(mbuf,"%ld", (* (objv_object_property_longValue_t)p->getter->impl)(clazz,object));
                             
                             i ++;
+                            
+                            if(foramtted){
+                                objv_mbuf_append(mbuf,"\n",1);
+                            }
+
                         }
                         else if(p->type == & objv_type_ulong){
+                            
+                            if(foramtted){
+                                objv_json_encode_mbuf_level_space(mbuf,level + 1);
+                            }
+                            
                             if( i != 0){
                                 objv_mbuf_append(mbuf,",",1);
                             }
@@ -227,8 +303,18 @@ void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_
                             objv_mbuf_format(mbuf,"%lu", (* (objv_object_property_ulongValue_t)p->getter->impl)(clazz,object));
                             
                             i ++;
+                            
+                            if(foramtted){
+                                objv_mbuf_append(mbuf,"\n",1);
+                            }
+
                         }
                         else if(p->type == & objv_type_longLong){
+                            
+                            if(foramtted){
+                                objv_json_encode_mbuf_level_space(mbuf,level + 1);
+                            }
+                            
                             if( i != 0){
                                 objv_mbuf_append(mbuf,",",1);
                             }
@@ -238,8 +324,18 @@ void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_
                             objv_mbuf_format(mbuf,"%lld", (* (objv_object_property_longLongValue_t)p->getter->impl)(clazz,object));
                             
                             i ++;
+                            
+                            if(foramtted){
+                                objv_mbuf_append(mbuf,"\n",1);
+                            }
+
                         }
                         else if(p->type == & objv_type_ulongLong){
+                            
+                            if(foramtted){
+                                objv_json_encode_mbuf_level_space(mbuf,level + 1);
+                            }
+                            
                             if( i != 0){
                                 objv_mbuf_append(mbuf,",",1);
                             }
@@ -249,8 +345,17 @@ void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_
                             objv_mbuf_format(mbuf,"%llu", (* (objv_object_property_ulongLongValue_t)p->getter->impl)(clazz,object));
                             
                             i ++;
+                            
+                            if(foramtted){
+                                objv_mbuf_append(mbuf,"\n",1);
+                            }
+
                         }
                         else if(p->type == & objv_type_float){
+                            
+                            if(foramtted){
+                                objv_json_encode_mbuf_level_space(mbuf,level + 1);
+                            }
                             
                             if( i != 0){
                                 objv_mbuf_append(mbuf,",",1);
@@ -261,8 +366,18 @@ void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_
                             objv_mbuf_format(mbuf,"%f", (double) (* (objv_object_property_floatValue_t)p->getter->impl)(clazz,object));
                             
                             i ++;
+                            
+                            if(foramtted){
+                                objv_mbuf_append(mbuf,"\n",1);
+                            }
+
                         }
                         else if(p->type == & objv_type_double){
+                            
+                            if(foramtted){
+                                objv_json_encode_mbuf_level_space(mbuf,level + 1);
+                            }
+                            
                             if( i != 0){
                                 objv_mbuf_append(mbuf,",",1);
                             }
@@ -272,8 +387,17 @@ void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_
                             objv_mbuf_format(mbuf,"%lf", (* (objv_object_property_doubleValue_t)p->getter->impl)(clazz,object));
                             
                             i ++;
+                            
+                            if(foramtted){
+                                objv_mbuf_append(mbuf,"\n",1);
+                            }
+
                         }
                         else if(p->type == & objv_type_boolean){
+                            
+                            if(foramtted){
+                                objv_json_encode_mbuf_level_space(mbuf,level + 1);
+                            }
                             
                             if( i != 0){
                                 objv_mbuf_append(mbuf,",",1);
@@ -289,8 +413,17 @@ void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_
                             }
                             
                             i ++;
+                            
+                            if(foramtted){
+                                objv_mbuf_append(mbuf,"\n",1);
+                            }
+
                         }
                         else if(p->type == & objv_type_object){
+                            
+                            if(foramtted){
+                                objv_json_encode_mbuf_level_space(mbuf,level + 1);
+                            }
                             
                             if( i != 0){
                                 objv_mbuf_append(mbuf,",",1);
@@ -298,9 +431,14 @@ void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_
                             
                             objv_mbuf_format(mbuf,"\"%s\":",p->name->name);
                             
-                            objv_json_encode_mbuf(zone,(* (objv_object_property_objectValue_t)p->getter->impl)(clazz,object),mbuf);
+                            objv_json_encode_mbuf_level(zone,(* (objv_object_property_objectValue_t)p->getter->impl)(clazz,object),mbuf,foramtted,level + 1);
                             
                             i ++;
+                            
+                            if(foramtted){
+                                objv_mbuf_append(mbuf,"\n",1);
+                            }
+
                         }
                         
                     }
@@ -312,20 +450,28 @@ void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_
                 clazz = clazz->superClass;
                 
             }
+            
+            if(foramtted ){
+                objv_json_encode_mbuf_level_space(mbuf,level);
+            }
              
             objv_mbuf_append(mbuf,"}",1);
         }
     }
 }
 
-objv_string_t * objv_json_encode(objv_zone_t * zone,objv_object_t * object){
+void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_t * mbuf,objv_boolean_t foramtted){
+    objv_json_encode_mbuf_level(zone,object,mbuf,foramtted,0);
+}
+
+objv_string_t * objv_json_encode(objv_zone_t * zone,objv_object_t * object,objv_boolean_t foramtted){
     
     objv_mbuf_t mbuf;
     objv_string_t * s;
     
     objv_mbuf_init(& mbuf,128);
     
-    objv_json_encode_mbuf(zone,object,& mbuf);
+    objv_json_encode_mbuf(zone,object,& mbuf,foramtted);
     
     s = objv_string_new(zone, objv_mbuf_str(& mbuf));
     
@@ -428,7 +574,8 @@ static objv_string_t * objv_json_decode_key(objv_json_t * json){
     objv_mbuf_t mbuf;
     
     if( * json->p == '\'' || * json->p == '"'){
-        return objv_json_decode_string(json,* json->p);
+        json->p ++;
+        return objv_json_decode_string(json,json->p[-1]);
     }
     else{
         
@@ -529,6 +676,10 @@ static objv_array_t * objv_json_decode_array(objv_json_t * json){
             break;
         }
         
+        if(* json->p == ','){
+            json->p ++;
+        }
+        
         v = objv_json_decode_object(json);
         
         objv_array_add(array,v);
@@ -562,21 +713,21 @@ static objv_value_t * objv_json_decode_value(objv_json_t * json){
     }
     
     if(strcmp(objv_mbuf_str(& mbuf),"null") ==0){
-        v = (objv_value_t *) objv_object_retain((objv_object_t *)objv_value_alloc_nullValue(json->zone));
+        v = (objv_value_t *) objv_object_autorelease((objv_object_t *)objv_value_alloc_nullValue(json->zone));
     }
     else if(strcmp(objv_mbuf_str(& mbuf),"false") ==0){
-        v = (objv_value_t *) objv_object_retain((objv_object_t *)objv_value_alloc_booleanValue(json->zone,objv_false));
+        v = (objv_value_t *) objv_object_autorelease((objv_object_t *)objv_value_alloc_booleanValue(json->zone,objv_false));
     }
     else if(strcmp(objv_mbuf_str(& mbuf),"true") ==0){
-        v = (objv_value_t *) objv_object_retain((objv_object_t *)objv_value_alloc_booleanValue(json->zone,objv_true));
+        v = (objv_value_t *) objv_object_autorelease((objv_object_t *)objv_value_alloc_booleanValue(json->zone,objv_true));
     }
     else {
         dv = atof(objv_mbuf_str(& mbuf));
         if((double)(long long) dv == dv){
-            v = (objv_value_t *) objv_object_retain((objv_object_t *)objv_value_alloc_longLongValue(json->zone,(long long) dv));
+            v = (objv_value_t *) objv_object_autorelease((objv_object_t *)objv_value_alloc_longLongValue(json->zone,(long long) dv));
         }
         else{
-            v = (objv_value_t *) objv_object_retain((objv_object_t *)objv_value_alloc_doubleValue(json->zone,dv));
+            v = (objv_value_t *) objv_object_autorelease((objv_object_t *)objv_value_alloc_doubleValue(json->zone,dv));
         }
     }
     

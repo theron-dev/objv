@@ -30,62 +30,44 @@ OBJV_KEY_IMP(AutoreleasePool)
 
 static objv_thread_key_t autorelease_pool_key = 0;
 
-typedef struct _objv_autorelease_task_t{
-    objv_dispatch_task_t base;
-    objv_object_t * object;
-} objv_autorelease_task_t;
-
-static void objv_autorelease_task_methods_dealloc(objv_class_t * clazz, objv_object_t * obj){
-    
-    objv_autorelease_task_t * task = (objv_autorelease_task_t *) obj;
-    
-    objv_object_release(task->object);
-    
-    if(clazz->superClass){
-        objv_object_dealloc(clazz->superClass,obj);
-    }
-}
-
-static objv_method_t objv_autorelease_task_methods[] = {
-    {OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_autorelease_task_methods_dealloc}
-};
-
-
-static objv_class_t objv_autorelease_task_class = {OBJV_KEY(AutoreleaseTask),& objv_object_class
-    ,objv_autorelease_task_methods,sizeof(objv_autorelease_task_methods) / sizeof(objv_method_t)
-    ,NULL,0
-    ,sizeof(objv_autorelease_task_t)
-    ,NULL,0,0};
-
-objv_autorelease_task_t * objv_autorelease_task_alloc(objv_zone_t * zone,objv_object_t * object){
-    
-    objv_autorelease_task_t * task = (objv_autorelease_task_t *) objv_object_alloc(zone, &objv_autorelease_task_class);
-    
-    task->object = object;
-    
-    return task;
-}
-
 static void objv_autorelease_pool_methods_dealloc(objv_class_t * clazz, objv_object_t * obj){
     
     objv_autorelease_pool_t * pool = (objv_autorelease_pool_t *) obj;
+   
+    objv_object_t ** objects = NULL, ** p;
+    int size = 0,c;
     
-    objv_autorelease_task_t * task;
-    objv_dispatch_t * dispatch = objv_dispatch_get_current();
+    while(pool->length > 0){
+        
+        if(pool->length > size){
+            size = pool->length;
+            if(objects){
+                objects = (objv_object_t **) objv_zone_realloc(obj->zone, objects, size * sizeof(objv_object_t *));
+            }
+            else{
+                objects = (objv_object_t **) objv_zone_malloc(obj->zone, size * sizeof(objv_object_t *));
+            }
+        }
+        
+        memcpy(objects , pool->objects, pool->length * sizeof(objv_object_t *));
+        
+        p = objects;
+        c = pool->length;
+        
+        pool->length = 0;
+        
+        while (c > 0 && p) {
+            
+            objv_object_release( * p);
+            
+            c --;
+            p ++;
+        }
     
-    objv_object_t ** p = pool->objects;
-    int c = pool->length;
+    }
     
-    while (c > 0 && p) {
-        
-        task = objv_autorelease_task_alloc(NULL,* p);
-        
-        objv_dispatch_addTask(dispatch, (objv_dispatch_task_t *)task);
-        
-        objv_object_release((objv_object_t *) task);
-        
-        c --;
-        p ++;
+    if(objects){
+        objv_zone_free(obj->zone, objects);
     }
     
     if(pool->objects){
