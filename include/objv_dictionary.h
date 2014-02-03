@@ -29,6 +29,8 @@ extern "C" {
     
     objv_dictionary_t * objv_dictionary_alloc(objv_zone_t * zone,unsigned int capacity);
     
+    objv_dictionary_t * objv_dictionary_new(objv_zone_t * zone,unsigned int capacity);
+    
     void objv_dictionary_setValue(objv_dictionary_t * dictionary,objv_object_t * key, objv_object_t * value);
     
     objv_object_t * objv_dictionary_value(objv_dictionary_t * dictionary,objv_object_t * key);

@@ -14,6 +14,7 @@
 #include "objv_string.h"
 #include "objv_autorelease.h"
 #include "objv_value.h"
+#include "objv_mbuf.h"
 
 OBJV_KEY_IMP(String)
 
@@ -179,6 +180,28 @@ objv_string_t * objv_string_new(objv_zone_t * zone,const char * UTF8String){
     return (objv_string_t *) objv_object_autorelease( (objv_object_t *) objv_string_alloc(zone, UTF8String));
 }
 
+objv_string_t * objv_string_unicode_alloc(objv_zone_t * zone,unsigned short * unicode,size_t length){
+    
+    objv_string_t * s;
+    
+    objv_mbuf_t mbuf;
+  
+    objv_mbuf_init(& mbuf, length * 2);
+   
+    objv_unicode_to_utf8(unicode,length, & mbuf);
+    
+    s = objv_string_alloc(zone,objv_mbuf_str(& mbuf));
+    
+    objv_mbuf_destroy(& mbuf);
+    
+    return s;
+    
+}
+
+objv_string_t * objv_string_unicode_new(objv_zone_t * zone,unsigned short * unicode,size_t length){
+    return (objv_string_t *) objv_object_autorelease( (objv_object_t *) objv_string_unicode_alloc(zone, unicode,length));
+}
+
 objv_string_t * objv_string_alloc_nocopy(objv_zone_t * zone,const char * UTF8String){
     
     objv_string_t * s = (objv_string_t *) objv_object_alloc(zone,&objv_string_class);
@@ -188,4 +211,48 @@ objv_string_t * objv_string_alloc_nocopy(objv_zone_t * zone,const char * UTF8Str
     s->copyed = objv_false;
     
     return s;
+}
+
+size_t objv_unicode_to_utf8(unsigned short * unicode, size_t length, objv_mbuf_t * mbuf){
+   
+    char c;
+    size_t l = 0;
+    
+    while(length >0){
+        
+        if(* unicode <0x80){
+            c = * unicode;
+            objv_mbuf_append(mbuf, & c, 1);
+            
+            l += 1;
+        }
+        else if( * unicode < 0x800){
+            
+            c = 0xc0 | ( * unicode >> 6);
+            objv_mbuf_append(mbuf, & c, 1);
+            
+            c = 0x80 | ( * unicode & 0x3f);
+            objv_mbuf_append(mbuf, & c, 1);
+            
+            l += 2;
+        }
+        else{
+            
+            c = 0xe0 | ( * unicode >> 12);
+            objv_mbuf_append(mbuf, & c, 1);
+            
+            c = 0x80 | ( (* unicode >> 6) & 0x3f );
+            objv_mbuf_append(mbuf, & c, 1);
+            
+            c = 0x80 | ( * unicode & 0x3f);
+            objv_mbuf_append(mbuf, & c, 1);
+            
+            l += 3;
+        }
+        
+        unicode ++;
+        length --;
+    }
+    
+    return l;
 }

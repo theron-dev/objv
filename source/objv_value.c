@@ -253,6 +253,15 @@ objv_class_t objv_value_class = {OBJV_KEY(Value),& objv_object_class
     ,NULL,0,0};
 
 
+objv_value_t * objv_value_alloc_nullValue(objv_zone_t * zone){
+ 
+    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,&objv_value_class);
+    
+    v->type = & objv_type_void;
+   
+    return v;
+}
+
 objv_value_t * objv_value_alloc_intValue(objv_zone_t * zone,int value){
     
     objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,&objv_value_class);
@@ -854,7 +863,7 @@ int objv_object_intValue(objv_object_t * object,int defaultValue){
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_intValue_t)prop->getter)(c,object,prop);
+            return (* (objv_object_property_intValue_t)prop->getter)(c,object);
             
         }
         
@@ -881,7 +890,7 @@ unsigned int objv_object_uintValue(objv_object_t * object,unsigned int defaultVa
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_uintValue_t)prop->getter)(c,object,prop);
+            return (* (objv_object_property_uintValue_t)prop->getter)(c,object);
             
         }
         
@@ -908,7 +917,7 @@ long objv_object_longValue(objv_object_t * object,long defaultValue){
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_longValue_t)prop->getter)(c,object,prop);
+            return (* (objv_object_property_longValue_t)prop->getter)(c,object);
             
         }
         
@@ -936,7 +945,7 @@ unsigned long objv_object_ulongValue(objv_object_t * object,unsigned long defaul
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_ulongValue_t)prop->getter)(c,object,prop);
+            return (* (objv_object_property_ulongValue_t)prop->getter)(c,object);
             
         }
         
@@ -964,7 +973,7 @@ long long objv_object_longLongValue(objv_object_t * object,long long defaultValu
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_longLongValue_t)prop->getter)(c,object,prop);
+            return (* (objv_object_property_longLongValue_t)prop->getter)(c,object);
             
         }
         
@@ -992,7 +1001,7 @@ unsigned long long objv_object_ulongLongValue(objv_object_t * object,unsigned lo
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_ulongLongValue_t)prop->getter)(c,object,prop);
+            return (* (objv_object_property_ulongLongValue_t)prop->getter)(c,object);
             
         }
         
@@ -1020,7 +1029,7 @@ float objv_object_floatValue(objv_object_t * object,float defaultValue){
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_floatValue_t)prop->getter)(c,object,prop);
+            return (* (objv_object_property_floatValue_t)prop->getter)(c,object);
             
         }
         
@@ -1047,7 +1056,7 @@ double objv_object_doubleValue(objv_object_t * object,double defaultValue){
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_uintValue_t)prop->getter)(c,object,prop);
+            return (* (objv_object_property_uintValue_t)prop->getter)(c,object);
             
         }
         
@@ -1074,7 +1083,7 @@ objv_boolean_t objv_object_booleanValue(objv_object_t * object,objv_boolean_t de
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_booleanValue_t)prop->getter)(c,object,prop);
+            return (* (objv_object_property_booleanValue_t)prop->getter)(c,object);
             
         }
         
@@ -1101,7 +1110,7 @@ objv_string_t * objv_object_stringValue(objv_object_t * object,objv_string_t * d
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_stringValue_t)prop->getter)(c,object,prop);
+            return (* (objv_object_property_stringValue_t)prop->getter)(c,object);
             
         }
         

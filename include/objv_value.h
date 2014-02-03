@@ -48,6 +48,8 @@ extern "C" {
     
     extern objv_class_t objv_value_class;
     
+    objv_value_t * objv_value_alloc_nullValue(objv_zone_t * zone);
+    
     objv_value_t * objv_value_alloc_intValue(objv_zone_t * zone,int value);
     
     objv_value_t * objv_value_alloc_uintValue(objv_zone_t * zone,unsigned int value);
@@ -92,25 +94,27 @@ extern "C" {
     void * objv_value_ptrValue(objv_value_t * value,void * defaultValue);
     
     
-    typedef int (* objv_object_property_intValue_t) (objv_class_t * clazz,objv_object_t * object,objv_property_t * property);
+    typedef int (* objv_object_property_intValue_t) (objv_class_t * clazz,objv_object_t * object);
     
-    typedef unsigned int (* objv_object_property_uintValue_t) (objv_class_t * clazz,objv_object_t * object,objv_property_t * property);
+    typedef unsigned int (* objv_object_property_uintValue_t) (objv_class_t * clazz,objv_object_t * object);
     
-    typedef long (* objv_object_property_longValue_t) (objv_class_t * clazz,objv_object_t * object,objv_property_t * property);
+    typedef long (* objv_object_property_longValue_t) (objv_class_t * clazz,objv_object_t * object);
     
-    typedef unsigned long (* objv_object_property_ulongValue_t) (objv_class_t * clazz,objv_object_t * object,objv_property_t * property);
+    typedef unsigned long (* objv_object_property_ulongValue_t) (objv_class_t * clazz,objv_object_t * object);
     
-    typedef long long (* objv_object_property_longLongValue_t) (objv_class_t * clazz,objv_object_t * object,objv_property_t * property);
+    typedef long long (* objv_object_property_longLongValue_t) (objv_class_t * clazz,objv_object_t * object);
     
-    typedef unsigned long long (* objv_object_property_ulongLongValue_t) (objv_class_t * clazz,objv_object_t * object,objv_property_t * property);
+    typedef unsigned long long (* objv_object_property_ulongLongValue_t) (objv_class_t * clazz,objv_object_t * object);
     
-    typedef float (* objv_object_property_floatValue_t) (objv_class_t * clazz,objv_object_t * object,objv_property_t * property);
+    typedef float (* objv_object_property_floatValue_t) (objv_class_t * clazz,objv_object_t * object);
     
-    typedef double (* objv_object_property_doubleValue_t) (objv_class_t * clazz,objv_object_t * object,objv_property_t * property);
+    typedef double (* objv_object_property_doubleValue_t) (objv_class_t * clazz,objv_object_t * object);
     
-    typedef objv_boolean_t (* objv_object_property_booleanValue_t) (objv_class_t * clazz,objv_object_t * object,objv_property_t * property);
+    typedef objv_boolean_t (* objv_object_property_booleanValue_t) (objv_class_t * clazz,objv_object_t * object);
     
-    typedef objv_string_t * (* objv_object_property_stringValue_t) (objv_class_t * clazz,objv_object_t * object,objv_property_t * property);
+    typedef objv_string_t * (* objv_object_property_stringValue_t) (objv_class_t * clazz,objv_object_t * object);
+    
+    typedef objv_object_t * (* objv_object_property_objectValue_t) (objv_class_t * clazz,objv_object_t * object);
     
     
     int objv_object_intValue(objv_object_t * object,int defaultValue);

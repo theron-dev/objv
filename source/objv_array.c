@@ -64,6 +64,10 @@ objv_array_t * objv_array_alloc(objv_zone_t * zone,unsigned int capacity){
     return array;
 }
 
+objv_array_t * objv_array_new(objv_zone_t * zone,unsigned int capacity){
+    return (objv_array_t *) objv_object_retain((objv_object_t *) objv_array_alloc(zone,capacity));
+}
+
 objv_array_t * objv_array_alloc_copy(objv_zone_t * zone,objv_array_t * array){
     
     objv_array_t * arr = (objv_array_t *) objv_object_alloc(zone, &objv_array_class);
@@ -191,6 +195,22 @@ objv_object_t * objv_array_objectAt(objv_array_t * array,int index){
     }
     
     return NULL;
+}
+
+objv_object_t * objv_array_last(objv_array_t * array){
+    return objv_array_objectAt(array, array->length - 1);
+}
+
+void objv_array_removeLast(objv_array_t * array){
+    objv_array_removeAt(array, array->length - 1);
+}
+
+objv_object_t * objv_array_first(objv_array_t * array){
+    return objv_array_objectAt(array, 0);
+}
+
+void objv_array_removeFirst(objv_array_t * array){
+    objv_array_removeAt(array, 0);
 }
 
 void objv_array_sort(objv_array_t * array,objv_array_sort_compare_t compare,void * context){

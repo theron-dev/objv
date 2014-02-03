@@ -10,5 +10,24 @@
 #define objv_objv_json_h
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
+#include "objv_mbuf.h"
+#include "objv.h"
+#include "objv_string.h"
+    
+    void objv_json_encode_mbuf(objv_zone_t * zone, objv_object_t * object,objv_mbuf_t * mbuf);
+    
+    objv_string_t * objv_json_encode(objv_zone_t * zone,objv_object_t * object);
+    
+    objv_object_t * objv_json_decode(objv_zone_t * zone,const char * text);
+    
+#ifdef __cplusplus
+}
+#endif
+
+
 
 #endif

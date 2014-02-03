@@ -30,6 +30,8 @@ extern "C" {
     
     objv_array_t * objv_array_alloc(objv_zone_t * zone,unsigned int capacity);
     
+    objv_array_t * objv_array_new(objv_zone_t * zone,unsigned int capacity);
+    
     objv_array_t * objv_array_alloc_copy(objv_zone_t * zone,objv_array_t * array);
     
     void objv_array_add(objv_array_t * array,objv_object_t * object);
@@ -43,6 +45,14 @@ extern "C" {
     void objv_array_clear(objv_array_t * array);
     
     objv_object_t * objv_array_objectAt(objv_array_t * array,int index);
+    
+    objv_object_t * objv_array_last(objv_array_t * array);
+    
+    void objv_array_removeLast(objv_array_t * array);
+    
+    objv_object_t * objv_array_first(objv_array_t * array);
+    
+    void objv_array_removeFirst(objv_array_t * array);
     
     typedef int (* objv_array_sort_compare_t)(objv_object_t * value1,objv_object_t * value2,void * context);
     

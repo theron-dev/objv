@@ -36,6 +36,8 @@
 		11BD7964189A5F8200F028AC /* objv_dictionary.h in Headers */ = {isa = PBXBuildFile; fileRef = 11BD793F189A0E8C00F028AC /* objv_dictionary.h */; };
 		11BD7965189A60D700F028AC /* libobjv.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11BD79091899409000F028AC /* libobjv.a */; };
 		11BD7967189A98F000F028AC /* objv_dispatch_queue.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD7966189A98F000F028AC /* objv_dispatch_queue.c */; };
+		11BD7970189F1C1F00F028AC /* objv_mbuf.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD796F189F1C1F00F028AC /* objv_mbuf.c */; };
+		11BD7973189FB50500F028AC /* objv_json.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD7972189FB50500F028AC /* objv_json.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -92,6 +94,10 @@
 		11BD7949189A5F6400F028AC /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		11BD794B189A5F6400F028AC /* objvtest.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = objvtest.1; sourceTree = "<group>"; };
 		11BD7966189A98F000F028AC /* objv_dispatch_queue.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_dispatch_queue.c; sourceTree = "<group>"; };
+		11BD796E189F1B2500F028AC /* objv_mbuf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_mbuf.h; sourceTree = "<group>"; };
+		11BD796F189F1C1F00F028AC /* objv_mbuf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_mbuf.c; sourceTree = "<group>"; };
+		11BD7971189FB42500F028AC /* objv_json.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_json.h; sourceTree = "<group>"; };
+		11BD7972189FB50500F028AC /* objv_json.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_json.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -149,6 +155,8 @@
 				11BD79371899FFF400F028AC /* objv_autorelease.h */,
 				11BD793B189A0BD300F028AC /* objv_log.h */,
 				11BD793F189A0E8C00F028AC /* objv_dictionary.h */,
+				11BD796E189F1B2500F028AC /* objv_mbuf.h */,
+				11BD7971189FB42500F028AC /* objv_json.h */,
 			);
 			name = include;
 			path = ../include;
@@ -170,6 +178,8 @@
 				11BD7939189A00EE00F028AC /* objv_autorelease.c */,
 				11BD793D189A0C1D00F028AC /* objv_log.c */,
 				11BD7941189A0FD400F028AC /* objv_dictionary.c */,
+				11BD796F189F1C1F00F028AC /* objv_mbuf.c */,
+				11BD7972189FB50500F028AC /* objv_json.c */,
 			);
 			name = source;
 			path = ../source;
@@ -304,8 +314,10 @@
 				11BD7967189A98F000F028AC /* objv_dispatch_queue.c in Sources */,
 				11BD79301899E17D00F028AC /* objv_dispatch.c in Sources */,
 				11BD792B189978D400F028AC /* objv_array.c in Sources */,
+				11BD7973189FB50500F028AC /* objv_json.c in Sources */,
 				11BD793E189A0C1D00F028AC /* objv_log.c in Sources */,
 				11BD79361899F9A800F028AC /* objv_hash_map.c in Sources */,
+				11BD7970189F1C1F00F028AC /* objv_mbuf.c in Sources */,
 				11BD79191899427E00F028AC /* objv.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
