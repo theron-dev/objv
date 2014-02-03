@@ -143,7 +143,7 @@ static void objv_class_reg(objv_class_t * clazz){
             
             objv_mutex_init(& _objv_classs_mutex);
             
-            _objv_classs = objv_hash_map_alloc(128, objv_hash_map_hash_code_string, objv_map_compare_string);
+            _objv_classs = objv_hash_map_alloc(32, objv_hash_map_hash_code_string, objv_map_compare_string);
         }
         
         objv_mutex_lock(& _objv_classs_mutex);

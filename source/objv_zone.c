@@ -8,8 +8,12 @@
 
 #include "objv_os.h"
 #include "objv.h"
+#include "objv_log.h"
 
-static void * objv_zone_default_malloc(struct _objv_zone_t *zone, size_t size){
+#undef objv_zone_malloc
+#undef objv_zone_realloc
+
+static void * objv_zone_default_malloc(struct _objv_zone_t *zone, size_t size,const char * file,int line){
     return malloc(size);
 }
 
@@ -17,7 +21,8 @@ static void objv_zone_default_free(struct _objv_zone_t *zone, void *ptr){
     free(ptr);
 }
 
-static void * objv_zone_default_realloc(struct _objv_zone_t *zone, void *ptr, size_t size){
+static void * objv_zone_default_realloc(struct _objv_zone_t *zone, void *ptr, size_t size,const char * file,int line){
+    
     return realloc(ptr,size);
 }
 
@@ -34,17 +39,28 @@ static objv_zone_t _objv_zone_default = {
     objv_zone_default_memzero
 };
 
+static objv_zone_t * g_objv_zone_default = &_objv_zone_default;
+
 objv_zone_t * objv_zone_default(){
-    return &_objv_zone_default;
+    return g_objv_zone_default;
 }
 
-void * objv_zone_malloc(objv_zone_t * zone,size_t size){
+void objv_zone_default_set(objv_zone_t * zone){
+    if(zone){
+        g_objv_zone_default = zone;
+    }
+    else{
+        g_objv_zone_default = &_objv_zone_default;
+    }
+}
+
+void * objv_zone_malloc(objv_zone_t * zone,size_t size,const char * file,int line){
     
     if(zone == NULL){
         zone = objv_zone_default();
     }
     
-    return (* zone->malloc)(zone,size);
+    return (* zone->malloc)(zone,size,file,line);
 }
 
 void objv_zone_free(objv_zone_t * zone,void * ptr){
@@ -56,13 +72,13 @@ void objv_zone_free(objv_zone_t * zone,void * ptr){
     (* zone->free)(zone,ptr);
 }
 
-void * objv_zone_realloc(objv_zone_t * zone,void * ptr,size_t size){
+void * objv_zone_realloc(objv_zone_t * zone,void * ptr,size_t size,const char * file,int line){
     
     if(zone == NULL){
         zone = objv_zone_default();
     }
     
-    return (* zone->realloc)( zone ,ptr , size);
+    return (* zone->realloc)( zone ,ptr , size,file,line);
 }
 
 

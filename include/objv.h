@@ -19,19 +19,26 @@ extern "C" {
   
     typedef struct _objv_zone_t {
         const char * READONLY name;
-        void *(* malloc)(struct _objv_zone_t *zone, size_t size);
+        void *(* malloc)(struct _objv_zone_t *zone, size_t size,const char * file,int line);
         void (*free)(struct _objv_zone_t *zone, void *ptr);
-        void *(*realloc)(struct _objv_zone_t *zone, void *ptr, size_t size);
+        void *(*realloc)(struct _objv_zone_t *zone, void *ptr, size_t size,const char * file,int line);
         void (* memzero)(struct _objv_zone_t *zone, void *ptr, size_t size);
     } objv_zone_t;
     
     objv_zone_t * objv_zone_default();
     
-    void * objv_zone_malloc(objv_zone_t * zone,size_t size);
+    void objv_zone_default_set(objv_zone_t * zone);
+    
+    
+    void * objv_zone_malloc(objv_zone_t * zone,size_t size,const char * file,int line);
+    
+#define objv_zone_malloc(zone,size) objv_zone_malloc((zone),(size),__FILE__,__LINE__)
     
     void objv_zone_free(objv_zone_t * zone,void * ptr);
     
-    void * objv_zone_realloc(objv_zone_t * zone,void * ptr,size_t size);
+    void * objv_zone_realloc(objv_zone_t * zone,void * ptr,size_t size,const char * file,int line);
+
+#define objv_zone_realloc(zone,ptr,size) objv_zone_realloc((zone),(ptr),(size),__FILE__,__LINE__)
     
     void objv_zone_memzero(objv_zone_t * zone,void * ptr,size_t size);
     

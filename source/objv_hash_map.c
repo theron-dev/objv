@@ -15,7 +15,7 @@
 #include "objv_map.h"
 #include "objv_hash_map.h"
 
-#define MAP_HASH_TABLE_SIZE 512
+#define MAP_HASH_TABLE_SIZE 64
 
 static unsigned int hashCode_tab[] = {
 	0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
