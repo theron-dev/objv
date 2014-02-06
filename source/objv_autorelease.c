@@ -124,6 +124,25 @@ void objv_autorelease_pool_pop(){
     objv_object_release((objv_object_t *)objv_autorelease_pool_get_current());
 }
 
+objv_object_t * objv_object_new(objv_zone_t * zone,objv_class_t * clazz,...){
+    
+    objv_object_t * object;
+    
+    va_list ap;
+    
+    va_start(ap, clazz);
+    
+    object = objv_object_autorelease(objv_object_allocv(zone, clazz,ap));
+    
+    va_end(ap);
+    
+    return object;
+}
+
+objv_object_t * objv_object_newv(objv_zone_t * zone,objv_class_t * clazz,va_list ap){
+    return objv_object_autorelease(objv_object_allocv(zone, clazz,ap));
+}
+
 
 objv_object_t * objv_object_autorelease(objv_object_t * object){
     if(object){

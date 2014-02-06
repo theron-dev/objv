@@ -14,6 +14,7 @@
 #include "objv_hash_map.h"
 #include "objv_log.h"
 
+OBJV_KEY_IMP(alloc)
 OBJV_KEY_IMP(dealloc)
 OBJV_KEY_IMP(retainCount)
 OBJV_KEY_IMP(equal)
@@ -37,43 +38,6 @@ objv_boolean_t objv_key_equal(objv_key_t * key1,objv_key_t * key2){
     
     return objv_false;
 }
-
-static objv_hash_map_t * _objv_keys = NULL;
-static objv_mutex_t _objv_keys_mutex;
-
-
-objv_key_t * objv_key(const char * key){
-    
-    if(_objv_keys == NULL){
-        
-        objv_mutex_init(& _objv_keys_mutex);
-        
-        _objv_keys = objv_hash_map_alloc(128, objv_hash_map_hash_code_string, objv_map_compare_string);
-    }
-    
-    if(key){
-        
-        objv_mutex_lock(& _objv_keys_mutex);
-        
-        objv_key_t * k = (objv_key_t *) objv_hash_map_get(_objv_keys, (void *) key);
-        
-        if(k == NULL){
-            size_t len = strlen(key) + 1;
-            k = (objv_key_t *) objv_zone_malloc(NULL, sizeof(objv_key_t) + len);
-            k->name = (char *) k + sizeof(objv_key_t);
-            k->type = objv_key_type_dynamic;
-            strcpy((char *)k->name, key);
-            objv_hash_map_put(_objv_keys, (void *) k->name, k);
-        }
-        
-        objv_mutex_unlock(& _objv_keys_mutex);
-        
-        return k;
-    }
-    
-    return NULL;
-}
-
 
 static void objv_object_methods_dealloc(objv_class_t * clazz, objv_object_t * obj){
     
@@ -119,13 +83,13 @@ static objv_hash_map_t * _objv_classs = NULL;
 static objv_mutex_t _objv_classs_mutex;
 
 
-objv_class_t * objv_class(const char * className){
+objv_class_t * objv_class(objv_key_t * className){
     
     if(className && _objv_classs){
         
         objv_mutex_lock(& _objv_classs_mutex);
         
-        objv_class_t * clazz = (objv_class_t *) objv_hash_map_get(_objv_classs, (void *) className);
+        objv_class_t * clazz = (objv_class_t *) objv_hash_map_get(_objv_classs, (void *) className->name);
         
         objv_mutex_unlock(& _objv_classs_mutex);
      
@@ -239,8 +203,9 @@ objv_boolean_t objv_class_isKindOfClass(objv_class_t * clazz,objv_class_t * ofCl
     return objv_false;
 }
 
-objv_object_t * objv_object_alloc(objv_zone_t * zone,objv_class_t * clazz){
-
+objv_object_t * objv_object_allocv(objv_zone_t * zone,objv_class_t * clazz,va_list ap){
+    
+    
     if(zone == NULL){
         zone = objv_zone_default();
     }
@@ -256,14 +221,42 @@ objv_object_t * objv_object_alloc(objv_zone_t * zone,objv_class_t * clazz){
         obj->isa = clazz;
         obj->zone = zone;
         obj->retainCount = 1;
-        
         objv_mutex_init(& obj->mutex);
-
+        
+        {
+            objv_class_t * c = clazz;
+            
+            objv_method_t * method = NULL;
+            
+            while(c && (method = objv_class_getMethod(c, OBJV_KEY(alloc))) == NULL){
+                c = c->superClass;
+            }
+            
+            if(method){
+                obj = (* (objv_object_method_alloc_t) method->impl)(c,obj,ap);
+            }
+        }
+        
         return obj;
-
+        
     }
     
     return NULL;
+    
+}
+
+objv_object_t * objv_object_alloc(objv_zone_t * zone,objv_class_t * clazz,...){
+    
+    va_list ap;
+    objv_object_t * object = NULL;
+    
+    va_start(ap, clazz);
+    
+    object = objv_object_allocv(zone,clazz,ap);
+    
+    va_end(ap);
+    
+    return object;
 }
 
 objv_object_t * objv_object_retain(objv_object_t * object){

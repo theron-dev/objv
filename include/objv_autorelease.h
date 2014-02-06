@@ -19,6 +19,11 @@ extern "C" {
     
     void objv_autorelease_pool_pop();
    
+    objv_object_t * objv_object_new(objv_zone_t * zone,objv_class_t * clazz,...);
+    
+    objv_object_t * objv_object_newv(objv_zone_t * zone,objv_class_t * clazz,va_list ap);
+    
+    
     objv_object_t * objv_object_autorelease(objv_object_t * object);
     
 #ifdef __cplusplus

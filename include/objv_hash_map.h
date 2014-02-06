@@ -26,6 +26,8 @@ extern "C" {
 	
 	long objv_hash_map_hash_code_ptr(void * key);
     
+    long objv_hash_map_hash_code_key(void * key);
+    
 	objv_hash_map_t * objv_hash_map_alloc(int capacity,objv_hash_map_hash_code_t hash_code ,objv_map_compare_t compare);
 	
 	void objv_hash_map_dealloc(objv_hash_map_t * map);

@@ -33,6 +33,37 @@ int objv_map_compare_any(void * key1 ,void * key2){
     return 0;
 }
 
+int objv_map_compare_key(void * key1 ,void * key2){
+    objv_key_t * k1 = (objv_key_t *) key1;
+    objv_key_t * k2 = (objv_key_t *) key2;
+    
+    if(k1 == k2){
+        return 0;
+    }
+    
+    if(k1->name == k2->name){
+        return 0;
+    }
+    
+    long r = 0;
+    
+    if(k1->type == k2->type){
+        r = (long) k1->name - (long) k2->name;
+    }
+    else{
+        r = strcmp(k1->name, k2->name);
+    }
+    
+    if(r > 0){
+        return 1;
+    }
+    else if(r < 0){
+        return -1;
+    }
+    
+    return 0;
+}
+
 typedef struct _objv_map_item_t{
     void * key;
     void * value;

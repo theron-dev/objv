@@ -176,8 +176,50 @@ objv_string_t * objv_string_alloc(objv_zone_t * zone,const char * UTF8String){
     return s;
 }
 
+objv_string_t * objv_string_alloc_format(objv_zone_t * zone,const char * format,...){
+    va_list ap;
+    objv_string_t * s;
+    
+    va_start(ap, format);
+    
+    s = objv_string_alloc_formatv(zone, format, ap);
+    
+    va_end(ap);
+
+    return s;
+}
+
+objv_string_t * objv_string_alloc_formatv(objv_zone_t * zone,const char * format,va_list ap){
+    objv_mbuf_t mbuf;
+    objv_string_t * s;
+    
+    objv_mbuf_init(& mbuf, 128);
+    
+    objv_mbuf_formatv(& mbuf, format, ap);
+    
+    s = objv_string_alloc(zone, objv_mbuf_str(& mbuf));
+    
+    objv_mbuf_destroy(& mbuf);
+    
+    return s;
+}
+
 objv_string_t * objv_string_new(objv_zone_t * zone,const char * UTF8String){
     return (objv_string_t *) objv_object_autorelease( (objv_object_t *) objv_string_alloc(zone, UTF8String));
+}
+
+objv_string_t * objv_string_new_format(objv_zone_t * zone,const char * format,...){
+    
+    va_list ap;
+    objv_string_t * s;
+    
+    va_start(ap, format);
+    
+    s = objv_string_alloc_formatv(zone, format, ap);
+    
+    va_end(ap);
+    
+    return (objv_string_t *) objv_object_retain((objv_object_t *) s);
 }
 
 objv_string_t * objv_string_unicode_alloc(objv_zone_t * zone,unsigned short * unicode,size_t length){

@@ -23,6 +23,8 @@ extern "C" {
     int objv_map_compare_string(void * key1 ,void * key2);
 	
 	int objv_map_compare_any(void * key1 ,void * key2);
+    
+    int objv_map_compare_key(void * key1 ,void * key2);
 	
 	objv_map_t * objv_map_alloc(int capacity,objv_map_compare_t compare);
 	

@@ -55,6 +55,7 @@ extern "C" {
 #define OBJV_KEY_IMP(name)  objv_key_t __objv_key_##name = {#name,objv_key_type_static};
 #define OBJV_KEY(name)      (& __objv_key_##name )
     
+    OBJV_KEY_DEC(alloc)
     OBJV_KEY_DEC(dealloc)
     OBJV_KEY_DEC(retainCount)
     OBJV_KEY_DEC(equal)
@@ -63,8 +64,6 @@ extern "C" {
     
     objv_boolean_t objv_key_equal(objv_key_t * key1,objv_key_t * key2);
     
-    objv_key_t * objv_key(const char * key);
-
     typedef struct _objv_type_t {
         const char * READONLY name;
         size_t READONLY size;
@@ -128,11 +127,15 @@ extern "C" {
         int READONLY retainCount;
     } objv_object_t;
    
-    objv_class_t * objv_class(const char * className);
+    objv_class_t * objv_class(objv_key_t * className);
 
     void objv_class_initialize(objv_class_t * clazz);
     
-    objv_object_t * objv_object_alloc(objv_zone_t * zone,objv_class_t * clazz);
+    typedef objv_object_t * (* objv_object_method_alloc_t) (objv_class_t * clazz, objv_object_t * object,va_list ap);
+    
+    objv_object_t * objv_object_allocv(objv_zone_t * zone,objv_class_t * clazz,va_list ap);
+    
+    objv_object_t * objv_object_alloc(objv_zone_t * zone,objv_class_t * clazz,...);
     
     objv_object_t * objv_object_retain(objv_object_t * object);
     

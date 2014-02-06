@@ -84,6 +84,11 @@ long objv_hash_map_hash_code_ptr(void * key){
     return (long) key;
 }
 
+long objv_hash_map_hash_code_key(void * key){
+    objv_key_t * k = (objv_key_t *) key;
+    return k ? ((long) k->name << 1) + k->type : 0;
+}
+
 typedef struct _objv_hash_map_impl_t{
     objv_hash_map_t base;
     objv_map_t * maps[MAP_HASH_TABLE_SIZE];

@@ -30,7 +30,13 @@ extern "C" {
     
     objv_string_t * objv_string_alloc(objv_zone_t * zone,const char * UTF8String);
     
+    objv_string_t * objv_string_alloc_format(objv_zone_t * zone,const char * format,...);
+    
+    objv_string_t * objv_string_alloc_formatv(objv_zone_t * zone,const char * format,va_list ap);
+    
     objv_string_t * objv_string_new(objv_zone_t * zone,const char * UTF8String);
+    
+    objv_string_t * objv_string_new_format(objv_zone_t * zone,const char * format,...);
     
     objv_string_t * objv_string_unicode_alloc(objv_zone_t * zone,unsigned short * unicode,size_t length);
     

@@ -15,8 +15,10 @@
 extern "C" {
 #endif
     
+#include "objv_iterator.h"
     
     OBJV_KEY_DEC(Array)
+    OBJV_KEY_DEC(length)
     
     typedef struct _objv_array_t {
         objv_object_t base;
@@ -53,16 +55,7 @@ extern "C" {
     objv_object_t * objv_array_first(objv_array_t * array);
     
     void objv_array_removeFirst(objv_array_t * array);
-    
-    typedef int (* objv_array_sort_compare_t)(objv_object_t * value1,objv_object_t * value2,void * context);
-    
-    void objv_array_sort(objv_array_t * array,objv_array_sort_compare_t compare,void * context);
-    
-    void objv_array_insertBySort(objv_array_t * array,objv_array_sort_compare_t compare,void * context);
-    
-    int objv_array_sort_compare_hashCode(objv_object_t * value1,objv_object_t * value2,void * context);
-    
-    
+
 #ifdef __cplusplus
 }
 #endif

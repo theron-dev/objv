@@ -73,6 +73,31 @@ extern "C" {
     objv_value_t * objv_value_alloc_structValue(objv_zone_t * zone,void * value,objv_type_t * type);
     
     
+    objv_value_t * objv_value_new_nullValue(objv_zone_t * zone);
+    
+    objv_value_t * objv_value_new_intValue(objv_zone_t * zone,int value);
+    
+    objv_value_t * objv_value_new_uintValue(objv_zone_t * zone,unsigned int value);
+    
+    objv_value_t * objv_value_new_longValue(objv_zone_t * zone,long value);
+    
+    objv_value_t * objv_value_new_ulongValue(objv_zone_t * zone,unsigned long value);
+    
+    objv_value_t * objv_value_new_longLongValue(objv_zone_t * zone,long long value);
+    
+    objv_value_t * objv_value_new_ulongLongValue(objv_zone_t * zone,unsigned long long value);
+    
+    objv_value_t * objv_value_new_floatValue(objv_zone_t * zone,float value);
+    
+    objv_value_t * objv_value_new_doubleValue(objv_zone_t * zone,double value);
+    
+    objv_value_t * objv_value_new_booleanValue(objv_zone_t * zone,objv_boolean_t value);
+    
+    objv_value_t * objv_value_new_ptrValue(objv_zone_t * zone,void * value);
+    
+    objv_value_t * objv_value_new_structValue(objv_zone_t * zone,void * value,objv_type_t * type);
+    
+    
     int objv_value_intValue(objv_value_t * value,int defaultValue);
     
     unsigned int objv_value_uintValue(objv_value_t * value,unsigned int defaultValue);
@@ -137,6 +162,72 @@ extern "C" {
     
     objv_string_t * objv_object_stringValue(objv_object_t * object,objv_string_t * defaultValue);
     
+    
+    
+    int objv_property_intValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property, int defaultValue);
+    
+    unsigned int objv_property_uintValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,unsigned int defaultValue);
+    
+    long objv_property_longValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,long defaultValue);
+    
+    unsigned long objv_property_ulongValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,unsigned long defaultValue);
+    
+    long long objv_property_longLongValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,long long defaultValue);
+    
+    unsigned long long objv_property_ulongLongValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,unsigned long long defaultValue);
+    
+    float objv_property_floatValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,float defaultValue);
+    
+    double objv_property_doubleValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,double defaultValue);
+    
+    objv_boolean_t objv_property_booleanValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,objv_boolean_t defaultValue);
+    
+    objv_string_t * objv_property_stringValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,objv_string_t * defaultValue);
+
+    objv_object_t * objv_property_objectValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,objv_object_t * defaultValue);
+
+    
+    typedef void (* objv_object_property_setIntValue_t) (objv_class_t * clazz,objv_object_t * object,int value);
+    
+    typedef void (* objv_object_property_setUintValue_t) (objv_class_t * clazz,objv_object_t * object,unsigned int value);
+    
+    typedef void (* objv_object_property_setLongValue_t) (objv_class_t * clazz,objv_object_t * object,long value);
+    
+    typedef void (* objv_object_property_setUlongValue_t) (objv_class_t * clazz,objv_object_t * object,unsigned long value);
+    
+    typedef void (* objv_object_property_setLongLongValue_t) (objv_class_t * clazz,objv_object_t * object,long long value);
+    
+    typedef void (* objv_object_property_setUlongLongValue_t) (objv_class_t * clazz,objv_object_t * object,unsigned long long value);
+    
+    typedef void (* objv_object_property_setFloatValue_t) (objv_class_t * clazz,objv_object_t * object,float value);
+    
+    typedef void (* objv_object_property_setDoubleValue_t) (objv_class_t * clazz,objv_object_t * object,double value);
+    
+    typedef void (* objv_object_property_setBooleanValue_t) (objv_class_t * clazz,objv_object_t * object,objv_boolean_t value);
+   
+    typedef void (* objv_object_property_setObjectValue_t) (objv_class_t * clazz,objv_object_t * object,objv_object_t * value);
+    
+    
+    void objv_property_setIntValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property, int value);
+    
+    void objv_property_setUintValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,unsigned int value);
+    
+    void objv_property_setLongValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,long value);
+    
+    void objv_property_setUlongValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,unsigned long value);
+    
+    void objv_property_setLongLongValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,long long value);
+    
+    void objv_property_setUlongLongValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,unsigned long long value);
+    
+    void objv_property_setFloatValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,float value);
+    
+    void objv_property_setDoubleValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,double value);
+    
+    void objv_property_setBooleanValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,objv_boolean_t value);
+    
+    void objv_property_setObjectValue(objv_class_t * clazz,objv_object_t * object,objv_property_t * property,objv_object_t * value);
+
     
 #ifdef __cplusplus
 }

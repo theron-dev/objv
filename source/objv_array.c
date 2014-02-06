@@ -13,7 +13,60 @@
 #include "objv_array.h"
 #include "objv_autorelease.h"
 
+
+OBJV_KEY_DEC(ArrayIterator)
+OBJV_KEY_IMP(ArrayIterator)
+
+typedef struct _objv_array_iterator_t {
+    objv_iterator_t base;
+    objv_array_t * array;
+    unsigned int index;
+} objv_array_iterator_t;
+
+
+static objv_object_t * objv_array_iterator_methods_next(objv_class_t * clazz, objv_object_t * obj){
+    objv_array_iterator_t * iterator = (objv_array_iterator_t *) obj;
+    return objv_array_objectAt(iterator->array, iterator->index ++);
+}
+
+static objv_object_t * objv_array_iterator_method_alloc (objv_class_t * clazz, objv_object_t * object,va_list ap){
+    
+    objv_array_iterator_t * iterator = (objv_array_iterator_t *) object;
+    
+    iterator->array = (objv_array_t *) objv_object_retain((objv_object_t *) va_arg(ap, objv_object_t *));
+    
+    return object;
+}
+
+static void objv_array_iterator_method_dealloc (objv_class_t * clazz, objv_object_t * object){
+    
+    objv_array_iterator_t * iterator = (objv_array_iterator_t *) object;
+    
+    objv_object_release( ( objv_object_t *) iterator->array );
+    
+    if(clazz->superClass){
+        
+        objv_object_dealloc(clazz->superClass, object);
+        
+    }
+}
+
+static objv_method_t objv_array_iterator_methods[] = {
+    {OBJV_KEY(next),"@()",(objv_method_impl_t)objv_array_iterator_methods_next}
+    ,{OBJV_KEY(alloc),"@(@)",(objv_method_impl_t)objv_array_iterator_method_alloc}
+    ,{OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_array_iterator_method_dealloc}
+};
+
+
+static objv_class_t objv_array_iterator_class = {OBJV_KEY(ArrayIterator),& objv_iterator_class
+    ,objv_array_iterator_methods,sizeof(objv_array_iterator_methods) / sizeof(objv_method_t)
+    ,NULL,0
+    ,sizeof(objv_array_iterator_t)
+    ,NULL,0,0};
+
+
 OBJV_KEY_IMP(Array)
+OBJV_KEY_IMP(length)
 
 static void objv_array_methods_dealloc(objv_class_t * clazz, objv_object_t * obj){
     
@@ -39,14 +92,31 @@ static void objv_array_methods_dealloc(objv_class_t * clazz, objv_object_t * obj
     }
 }
 
+static unsigned int objv_array_methods_length(objv_class_t * clazz, objv_object_t * obj){
+    
+    objv_array_t * array = (objv_array_t *) obj;
+    
+    return array->length;
+}
+
+static objv_iterator_t * objv_array_method_iterator (objv_class_t * clazz,objv_object_t * obj){
+    objv_array_t * array = (objv_array_t *) obj;
+    return (objv_iterator_t *) objv_object_autorelease((objv_object_t *) objv_object_alloc(obj->zone, &objv_array_iterator_class,array) );
+}
 
 static objv_method_t objv_array_methods[] = {
     {OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_array_methods_dealloc}
+    ,{OBJV_KEY(length),"I()",(objv_method_impl_t)objv_array_methods_length}
+    ,{OBJV_KEY(iterator),"@()",(objv_method_impl_t)objv_array_method_iterator}
+};
+
+static objv_property_t objv_array_propertys[] = {
+    {OBJV_KEY(length),& objv_type_uint,& objv_array_methods[1],NULL}
 };
 
 objv_class_t objv_array_class = {OBJV_KEY(Array),& objv_object_class
     ,objv_array_methods,sizeof(objv_array_methods) / sizeof(objv_method_t)
-    ,NULL,0
+    ,objv_array_propertys,sizeof(objv_array_propertys) / sizeof(objv_property_t)
     ,sizeof(objv_array_t)
     ,NULL,0,0};
 
@@ -212,26 +282,5 @@ objv_object_t * objv_array_first(objv_array_t * array){
 
 void objv_array_removeFirst(objv_array_t * array){
     objv_array_removeAt(array, 0);
-}
-
-void objv_array_sort(objv_array_t * array,objv_array_sort_compare_t compare,void * context){
-    
-}
-
-void objv_array_insertBySort(objv_array_t * array,objv_array_sort_compare_t compare,void * context){
-    
-}
-
-int objv_array_sort_compare_hashCode(objv_object_t * value1,objv_object_t * value2,void * context){
-    long hashCode1 = objv_object_hashCode(value1->isa, value1);
-    long hashCode2 = objv_object_hashCode(value2->isa, value2);
-    long rs = hashCode1 - hashCode2;
-    if(rs > 0){
-        return 1;
-    }
-    else if(rs < 0){
-        return -1;
-    }
-    return 0;
 }
 
