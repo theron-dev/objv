@@ -10,5 +10,18 @@
 #define objv_objv_vmcompiler_invokes_h
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
+#include "objv_tokenizer.h"
+#include "objv_vmcompiler.h"
+    
+    vm_boolean_t vm_compiler_invokes(objv_tokenizer_t * tokenizer,objv_array_t * errors);
+    
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif

@@ -46,6 +46,8 @@ extern "C" {
     
     size_t objv_unicode_to_utf8(unsigned short * unicode, size_t length, objv_mbuf_t * mbuf);
 
+    const char * objv_string_indexOf(const char * string,const char * substring);
+    
 #ifdef __cplusplus
 }
 #endif

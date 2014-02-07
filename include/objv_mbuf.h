@@ -34,6 +34,8 @@ extern "C" {
     
     void objv_mbuf_clear(objv_mbuf_t * mbuf);
     
+    void objv_mbuf_extend(objv_mbuf_t * mbuf,size_t size);
+    
 #ifdef __cplusplus
 }
 #endif

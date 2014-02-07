@@ -6,108 +6,161 @@
 //  Copyright (c) 2014年 hailong.org. All rights reserved.
 //
 
+#define READONLY
+
 #include "objv_os.h"
 #include "objv.h"
 #include "objv_tokenizer.h"
+#include "objv_autorelease.h"
+#include "objv_log.h"
 
+OBJV_KEY_IMP(Tokenizer)
 
-static void hobj_tokenizer_destroy_impl(htokenizer_t * obj,InvokeTickDeclare);
-
-static hobj_t * hobj_tokenizer_copy_impl(htokenizer_t * obj,InvokeTickDeclare);
-
-HOBJ_KEY_IMP(Tokenizer)
-
-HOBJ_CLASS_METHOD_IMP_BEGIN(Tokenizer)
-
-HOBJ_CLASS_METHOD_IMP(destroy, hobj_tokenizer_destroy_impl)
-
-HOBJ_CLASS_METHOD_IMP(copy, hobj_tokenizer_copy_impl)
-
-HOBJ_CLASS_METHOD_IMP_END(Tokenizer)
-
-HOBJ_CLASS_IMP_I(Tokenizer,  htokenizer_t, &hobj_class)
-
-static void hobj_tokenizer_destroy_impl(htokenizer_t * obj,InvokeTickDeclare){
-    obj->parent = NULL;
-    hobj_release((hobj_t *)obj->childs, InvokeTickArg);
-    hobj_release(obj->userInfo, InvokeTickArg);
-}
-
-htokenizer_t * htokenizer_new( hcchar * source,InvokeTickDeclare){
-    return (htokenizer_t *) hobj_autorelease((hobj_t *)htokenizer_alloc(source,InvokeTickArg), InvokeTickArg);
-}
-
-htokenizer_t * htokenizer_alloc(hcchar * source,InvokeTickDeclare){
-    htokenizer_t * t = (htokenizer_t *) hobj_alloc(HOBJ_CLASS(Tokenizer), InvokeTickArg);
-    hchar * p = (hchar *) source;
+static void objv_tokenizer_method_dealloc(objv_class_t * clazz,objv_object_t * object){
     
-    t->ofString = source;
-    t->range.begin.p = (hchar *) source;
-    t->range.begin.line = 0;
-    t->range.begin.index = 0;
+    objv_tokenizer_t * tokenizer = (objv_tokenizer_t *) object, * p;
+    int i;
     
-    while(p ){
+    for(i=0;i< tokenizer->childs->length;i++){
+        p = (objv_tokenizer_t *) objv_array_objectAt(tokenizer->childs, i);
+        p->parent = NULL;
+    }
+    
+    objv_object_release((objv_object_t *)tokenizer->childs);
+    objv_object_release(tokenizer->userInfo);
+    objv_object_release((objv_object_t *)tokenizer->ofString);
+    
+    if(clazz->superClass){
         
-        t->range.end.p = p;
-        if(*p == '\n'){
-            t->range.end.line ++;
-            t->range.end.index = 0;
-        }
-        else{
-            t->range.end.index ++;
-        }
+        objv_object_dealloc(clazz, object);
         
-        if(*p == '\0'){
-            break;
-        }
-        
-        p++;
     }
-    
-    return t;
 }
 
-void htokenizer_child_add(htokenizer_t * tokenizer,htokenizer_t * token,InvokeTickDeclare){
-    hint32 i = 0,c;
-    htokenizer_t * t;
-    if(tokenizer->childs == NULL){
-        tokenizer->childs = hobj_array_alloc(InvokeTickArg);
+static objv_object_t * objv_tokenizer_method_copy(objv_class_t * clazz,objv_object_t * object){
+    
+    objv_tokenizer_t * tokenizer = (objv_tokenizer_t *) object;
+    
+    return objv_object_new(object->zone, object->isa,tokenizer->ofString,& tokenizer->range.begin,& tokenizer->range.end);
+
+}
+
+static objv_object_t * objv_tokenizer_method_init(objv_class_t * clazz,objv_object_t * object,va_list ap){
+    
+    if(clazz->superClass){
+        object = objv_object_initv(clazz->superClass, object,ap);
     }
     
-    c = hobj_array_count(tokenizer->childs, InvokeTickArg);
+    objv_string_t * ofString = va_arg(ap, objv_string_t *);
+    objv_tokenizer_location_t * begin = va_arg(ap, objv_tokenizer_location_t *);
+    objv_tokenizer_location_t * end = va_arg(ap, objv_tokenizer_location_t *);
     
-    for(i=0;i<c;i++){
-        t = (htokenizer_t *) hobj_array_objectAt(tokenizer->childs, i, InvokeTickArg);
-        if(t->range.begin.p > token->range.begin.p){
-            break;
+    objv_tokenizer_t * tokenizer = (objv_tokenizer_t *) object;
+    char * p;
+    
+    if(ofString == NULL){
+        objv_object_release(object);
+        return NULL;
+    }
+    
+    tokenizer->ofString = (objv_string_t *) objv_object_retain((objv_object_t *)ofString);
+    tokenizer->childs = objv_array_alloc(tokenizer->base.zone, 4);
+    
+    if(begin && end){
+        tokenizer->range.begin = * begin;
+        tokenizer->range.end = * end;
+    }
+    else{
+        p = (char *) tokenizer->ofString->UTF8String;
+        tokenizer->range.begin.p = p;
+        tokenizer->range.begin.line = 0;
+        tokenizer->range.begin.index = 0;
+        
+        while(p ){
+            
+            tokenizer->range.end.p = p;
+            if(*p == '\n'){
+                tokenizer->range.end.line ++;
+                tokenizer->range.end.index = 0;
+            }
+            else{
+                tokenizer->range.end.index ++;
+            }
+            
+            if(*p == '\0'){
+                break;
+            }
+            
+            p++;
         }
     }
     
-    hobj_array_insert(tokenizer->childs, (hobj_t *) token, i,InvokeTickArg);
-    
-    if(token->parent){
-        hobj_array_remove(token->parent->childs, (hobj_t *) token, InvokeTickArg);
-    }
-    
-    token->parent = tokenizer;
+    return object;
 }
 
-void htokenizer_child_remove(htokenizer_t * tokenizer,htokenizer_t * token,InvokeTickDeclare){
+static objv_method_t objv_tokenizer_methods[] = {
+    {OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_tokenizer_method_dealloc}
+    ,{OBJV_KEY(copy),"@()",(objv_method_impl_t)objv_tokenizer_method_copy}
+    ,{OBJV_KEY(init),"@(*)",(objv_method_impl_t)objv_tokenizer_method_init}
+};
+
+objv_class_t objv_tokenizer_class = {OBJV_KEY(Tokenizer),& objv_object_class
+    ,objv_tokenizer_methods,sizeof(objv_tokenizer_methods) / sizeof(objv_method_t)
+    ,NULL,0
+    ,sizeof(objv_tokenizer_t)
+    ,NULL,0,0};
+
+
+objv_tokenizer_t * objv_tokenizer_new( objv_zone_t * zone,objv_string_t * source){
+    return (objv_tokenizer_t *) objv_object_autorelease((objv_object_t *) objv_tokenizer_alloc(zone,source));
+}
+
+objv_tokenizer_t * objv_tokenizer_alloc(objv_zone_t * zone,objv_string_t * source){
+    return (objv_tokenizer_t *) objv_object_alloc(zone, &objv_tokenizer_class,source);
+}
+
+void objv_tokenizer_child_add(objv_tokenizer_t * tokenizer,objv_tokenizer_t * token){
+    
+    if(tokenizer && token && token->parent != tokenizer){
+        int i;
+        objv_tokenizer_t * p;
+        
+        for(i=0;i<tokenizer->childs->length;i++){
+            p = (objv_tokenizer_t *) objv_array_objectAt(tokenizer->childs, i);
+            if(p->range.begin.p > token->range.begin.p){
+                break;
+            }
+        }
+        
+        objv_array_insertAt(tokenizer->childs, (objv_object_t *) token, i);
+        
+        if(token->parent){
+            objv_array_remove(token->parent->childs, (objv_object_t *) token);
+        }
+        
+        token->parent = tokenizer;
+    }
+}
+
+void objv_tokenizer_child_remove(objv_tokenizer_t * tokenizer,objv_tokenizer_t * token){
     if(tokenizer && token && token->parent == tokenizer){
-        hobj_array_remove(tokenizer->childs, (hobj_t *) token, InvokeTickArg);
         token->parent = NULL;
+        objv_array_remove(tokenizer->childs, (objv_object_t *) token);
     }
 }
 
-void htokenizer_user_info_set(htokenizer_t * tokenizer,hobj_t * userInfo,InvokeTickDeclare){
-    hobj_retain(userInfo, InvokeTickArg);
-    hobj_release(tokenizer->userInfo, InvokeTickArg);
-    tokenizer->userInfo = userInfo;
+void objv_tokenizer_setUserInfo(objv_tokenizer_t * tokenizer,objv_object_t * userInfo){
+    if(tokenizer->userInfo != userInfo){
+        objv_object_retain(userInfo);
+        objv_object_release(tokenizer->userInfo);
+        tokenizer->userInfo = userInfo;
+    }
 }
 
-hbool htokenizer_equal_string(htokenizer_t * tokenizer,hcchar * string){
-    hchar * p = tokenizer->range.begin.p;
-    hchar * c = (hchar *) string;
+objv_boolean_t objv_tokenizer_equal_string(objv_tokenizer_t * tokenizer,const char * string){
+    char * p = tokenizer->range.begin.p;
+    char * c = (char *) string;
+    
     while(p <= tokenizer->range.end.p && c && *c != '\0'){
         
         if(*p != *c){
@@ -120,11 +173,12 @@ hbool htokenizer_equal_string(htokenizer_t * tokenizer,hcchar * string){
     return c && *c == '\0' && p > tokenizer->range.end.p;
 }
 
-hbool htokenizer_scanf(htokenizer_t * tokenizer,htokenizer_scanf_t scanf,htokenizer_scanf_context_t * ctx,htokenizer_location_t * location,InvokeTickDeclare){
-    htokenizer_t * token = NULL;
-    hbool rs = hbool_true;
-    hint32 i,c,index = 0;
-    memset(location, 0, sizeof(htokenizer_location_t));
+objv_boolean_t objv_tokenizer_scanf(objv_tokenizer_t * tokenizer,objv_tokenizer_scanf_t scanf,objv_tokenizer_scanf_context_t * ctx,objv_tokenizer_location_t * location){
+    objv_tokenizer_t * token = NULL;
+    objv_boolean_t rs = objv_true;
+    int i,index = 0;
+    
+    memset(location, 0, sizeof(objv_tokenizer_location_t));
     
     location->p = tokenizer->range.begin.p;
     location->line = tokenizer->range.begin.line;
@@ -132,10 +186,8 @@ hbool htokenizer_scanf(htokenizer_t * tokenizer,htokenizer_scanf_t scanf,htokeni
     
     while(location->p <= tokenizer->range.end.p){
         
-        c = hobj_array_count(tokenizer->childs, InvokeTickArg);
-        
-        for(i=index;i<c;i++){
-            token = (htokenizer_t *) hobj_array_objectAt(tokenizer->childs, i, InvokeTickArg);
+        for(i=index;i<tokenizer->childs->length;i++){
+            token = (objv_tokenizer_t *) objv_array_objectAt(tokenizer->childs, i);
             if(location->p == token->range.begin.p){
                 index = i + 1;
                 break;
@@ -149,7 +201,7 @@ hbool htokenizer_scanf(htokenizer_t * tokenizer,htokenizer_scanf_t scanf,htokeni
             }
         }
         
-        rs = (* scanf)(tokenizer,location,token,ctx,InvokeTickArg);
+        rs = (* scanf)(tokenizer,location,token,ctx);
         
         if(!rs){
             break;
@@ -183,13 +235,19 @@ hbool htokenizer_scanf(htokenizer_t * tokenizer,htokenizer_scanf_t scanf,htokeni
     return rs;
 }
 
-HOBJ_KEY_IMP(TokenizerComment)
+OBJV_KEY_IMP(TokenizerComment)
 
-HOBJ_CLASS_IMP(TokenizerComment, htokenizer_comment_t, &hobj_Tokenizer_class)
 
-hbool htokenizer_comment_scanf(htokenizer_t * tokenizer,htokenizer_location_t * locaiton,htokenizer_t * token,htokenizer_scanf_context_t * ctx, InvokeTickDeclare){
+objv_class_t objv_tokenizer_comment_class = {OBJV_KEY(TokenizerComment),& objv_tokenizer_class
+    ,NULL,0
+    ,NULL,0
+    ,sizeof(objv_tokenizer_comment_t)
+    ,NULL,0,0};
+
+
+objv_boolean_t objv_tokenizer_comment_scanf(objv_tokenizer_t * tokenizer,objv_tokenizer_location_t * locaiton,objv_tokenizer_t * token,objv_tokenizer_scanf_context_t * ctx){
     
-    htokenizer_comment_t * comment;
+    objv_tokenizer_comment_t * comment;
     
     if(token == NULL){
         switch (ctx->s) {
@@ -223,12 +281,9 @@ hbool htokenizer_comment_scanf(htokenizer_t * tokenizer,htokenizer_location_t * 
             case 2: //
             {
                 if( * locaiton->p == '\n'){
-                    comment = (htokenizer_comment_t *) hobj_alloc(HOBJ_CLASS(TokenizerComment), InvokeTickArg);
-                    comment->base.ofString = tokenizer->ofString;
-                    comment->base.range.begin = ctx->begin;
-                    comment->base.range.end = * locaiton;
-                    htokenizer_child_add(tokenizer, (htokenizer_t *)comment, InvokeTickArg);
-                    hobj_release((hobj_t *) comment, InvokeTickArg);
+                    comment = (objv_tokenizer_comment_t *) objv_object_alloc(tokenizer->base.zone, &objv_tokenizer_comment_class,tokenizer->ofString, & ctx->begin, locaiton);
+                    objv_tokenizer_child_add(tokenizer, (objv_tokenizer_t *)comment);
+                    objv_object_release((objv_object_t *) comment);
                     ctx->s = 0;
                 }
             }
@@ -246,12 +301,10 @@ hbool htokenizer_comment_scanf(htokenizer_t * tokenizer,htokenizer_location_t * 
                     
                 }
                 else if( * locaiton->p == '/'){
-                    comment = (htokenizer_comment_t *) hobj_alloc(HOBJ_CLASS(TokenizerComment), InvokeTickArg);
-                    comment->base.ofString = tokenizer->ofString;
-                    comment->base.range.begin = ctx->begin;
-                    comment->base.range.end = * locaiton;
-                    htokenizer_child_add(tokenizer, (htokenizer_t *)comment, InvokeTickArg);
-                    hobj_release((hobj_t *) comment, InvokeTickArg);
+                    comment = (objv_tokenizer_comment_t *) objv_object_alloc(tokenizer->base.zone, &objv_tokenizer_comment_class,tokenizer->ofString,& ctx->begin, locaiton);
+                    objv_tokenizer_child_add(tokenizer, (objv_tokenizer_t *)comment);
+                    objv_object_release((objv_object_t *) comment);
+                    
                     ctx->s = 0;
                 }
                 else{
@@ -289,17 +342,21 @@ hbool htokenizer_comment_scanf(htokenizer_t * tokenizer,htokenizer_location_t * 
         ctx->s = 0;
     }
     
-    return hbool_true;
+    return objv_true;
 }
 
 
-HOBJ_KEY_IMP(TokenizerString)
+OBJV_KEY_IMP(TokenizerString)
 
-HOBJ_CLASS_IMP(TokenizerString,  htokenizer_string_t, &hobj_Tokenizer_class)
+objv_class_t objv_tokenizer_string_class = {OBJV_KEY(TokenizerString),& objv_tokenizer_class
+    ,NULL,0
+    ,NULL,0
+    ,sizeof(objv_tokenizer_string_t)
+    ,NULL,0,0};
 
-hbool htokenizer_string_scanf(htokenizer_t * tokenizer,htokenizer_location_t * locaiton,htokenizer_t * token,htokenizer_scanf_context_t * ctx, InvokeTickDeclare){
+objv_boolean_t objv_tokenizer_string_scanf(objv_tokenizer_t * tokenizer,objv_tokenizer_location_t * locaiton,objv_tokenizer_t * token,objv_tokenizer_scanf_context_t * ctx){
     
-    htokenizer_string_t * string;
+    objv_tokenizer_string_t * string;
     
     if(token == NULL){
         switch (ctx->s) {
@@ -322,12 +379,9 @@ hbool htokenizer_string_scanf(htokenizer_t * tokenizer,htokenizer_location_t * l
                 }
                 else if(* locaiton->p == '\''){
                     ctx->s = 0;
-                    string = (htokenizer_string_t *) hobj_alloc(HOBJ_CLASS(TokenizerString), InvokeTickArg);
-                    string->base.ofString = tokenizer->ofString;
-                    string->base.range.begin = ctx->begin;
-                    string->base.range.end = * locaiton;
-                    htokenizer_child_add(tokenizer, (htokenizer_t *)string, InvokeTickArg);
-                    hobj_release((hobj_t *) string, InvokeTickArg);
+                    string = (objv_tokenizer_string_t *) objv_object_alloc(tokenizer->base.zone, & objv_tokenizer_string_class,tokenizer->ofString,& ctx->begin, locaiton);
+                    objv_tokenizer_child_add(tokenizer, (objv_tokenizer_t *)string);
+                    objv_object_release((objv_object_t *) string);
                 }
             }
                 break;
@@ -338,12 +392,9 @@ hbool htokenizer_string_scanf(htokenizer_t * tokenizer,htokenizer_location_t * l
                 }
                 else if(* locaiton->p == '"'){
                     ctx->s = 0;
-                    string = (htokenizer_string_t *) hobj_alloc(HOBJ_CLASS(TokenizerString), InvokeTickArg);
-                    string->base.ofString = tokenizer->ofString;
-                    string->base.range.begin = ctx->begin;
-                    string->base.range.end = * locaiton;
-                    htokenizer_child_add(tokenizer, (htokenizer_t *)string, InvokeTickArg);
-                    hobj_release((hobj_t *) string, InvokeTickArg);
+                    string = (objv_tokenizer_string_t *) objv_object_alloc(tokenizer->base.zone, & objv_tokenizer_string_class,tokenizer->ofString,& ctx->begin, locaiton);
+                    objv_tokenizer_child_add(tokenizer, (objv_tokenizer_t *)string);
+                    objv_object_release((objv_object_t *) string);
                 }
             }
                 break;
@@ -361,7 +412,7 @@ hbool htokenizer_string_scanf(htokenizer_t * tokenizer,htokenizer_location_t * l
         ctx->s = 0;
     }
     
-    return hbool_true;
+    return objv_true;
 }
 
 
@@ -371,13 +422,18 @@ hbool htokenizer_string_scanf(htokenizer_t * tokenizer,htokenizer_location_t * l
 #define IS_NUMBER_FIRST(c)  ( ( (c) >= '0' && (c) <= '9' ) )
 #define IS_HEX(c)           ( ( (c) >= '0' && (c) <= '9' ) || ( (c) >= 'A' && (c) <='F' ) || ( (c) >= 'a' && (c) <='f' ) )
 
-HOBJ_KEY_IMP(TokenizerValue)
+OBJV_KEY_IMP(TokenizerValue)
 
-HOBJ_CLASS_IMP(TokenizerValue,  htokenizer_value_t, &hobj_Tokenizer_class)
+objv_class_t objv_tokenizer_value_class = {OBJV_KEY(TokenizerValue),& objv_tokenizer_class
+    ,NULL,0
+    ,NULL,0
+    ,sizeof(objv_tokenizer_value_t)
+    ,NULL,0,0};
 
-hbool htokenizer_value_scanf(htokenizer_t * tokenizer,htokenizer_location_t * locaiton,htokenizer_t * token,htokenizer_scanf_context_t * ctx, InvokeTickDeclare){
+
+objv_boolean_t objv_tokenizer_value_scanf(objv_tokenizer_t * tokenizer,objv_tokenizer_location_t * locaiton,objv_tokenizer_t * token,objv_tokenizer_scanf_context_t * ctx){
     
-    htokenizer_value_t * value;
+    objv_tokenizer_value_t * value;
     
     if(token == NULL){
         switch (ctx->s) {
@@ -427,12 +483,9 @@ hbool htokenizer_value_scanf(htokenizer_t * tokenizer,htokenizer_location_t * lo
                 }
                 else{
                     ctx->s = 0;
-                    value = (htokenizer_value_t *) hobj_alloc(HOBJ_CLASS(TokenizerValue), InvokeTickArg);
-                    value->base.ofString = tokenizer->ofString;
-                    value->base.range.begin = ctx->begin;
-                    value->base.range.end = ctx->prev;
-                    htokenizer_child_add(tokenizer, (htokenizer_t *)value, InvokeTickArg);
-                    hobj_release((hobj_t *) value, InvokeTickArg);
+                    value = (objv_tokenizer_value_t *) objv_object_alloc(tokenizer->base.zone, & objv_tokenizer_value_class,tokenizer->ofString,& ctx->begin, & ctx->prev);
+                    objv_tokenizer_child_add(tokenizer, (objv_tokenizer_t *)value);
+                    objv_object_release((objv_object_t *) value);
                 }
             }
                 break;
@@ -443,12 +496,9 @@ hbool htokenizer_value_scanf(htokenizer_t * tokenizer,htokenizer_location_t * lo
                 }
                 else{
                     ctx->s = 0;
-                    value = (htokenizer_value_t *) hobj_alloc(HOBJ_CLASS(TokenizerValue), InvokeTickArg);
-                    value->base.ofString = tokenizer->ofString;
-                    value->base.range.begin = ctx->begin;
-                    value->base.range.end = ctx->prev;
-                    htokenizer_child_add(tokenizer, (htokenizer_t *)value, InvokeTickArg);
-                    hobj_release((hobj_t *) value, InvokeTickArg);
+                    value = (objv_tokenizer_value_t *) objv_object_alloc(tokenizer->base.zone, & objv_tokenizer_value_class,tokenizer->ofString,& ctx->begin, & ctx->prev);
+                    objv_tokenizer_child_add(tokenizer, (objv_tokenizer_t *)value);
+                    objv_object_release((objv_object_t *) value);
                 }
             }
                 break;
@@ -462,12 +512,9 @@ hbool htokenizer_value_scanf(htokenizer_t * tokenizer,htokenizer_location_t * lo
             {
                 ctx->s = 0;
                 ctx->prev = * locaiton;
-                value = (htokenizer_value_t *) hobj_alloc(HOBJ_CLASS(TokenizerValue), InvokeTickArg);
-                value->base.ofString = tokenizer->ofString;
-                value->base.range.begin = ctx->begin;
-                value->base.range.end = ctx->prev;
-                htokenizer_child_add(tokenizer, (htokenizer_t *)value, InvokeTickArg);
-                hobj_release((hobj_t *) value, InvokeTickArg);
+                value = (objv_tokenizer_value_t *) objv_object_alloc(tokenizer->base.zone, & objv_tokenizer_value_class,tokenizer->ofString,& ctx->begin, & ctx->prev);
+                objv_tokenizer_child_add(tokenizer, (objv_tokenizer_t *)value);
+                objv_object_release((objv_object_t *) value);
             }
                 break;
             case 0x40:
@@ -486,16 +533,21 @@ hbool htokenizer_value_scanf(htokenizer_t * tokenizer,htokenizer_location_t * lo
         ctx->s = 0;
     }
     
-    return hbool_true;
+    return objv_true;
 }
 
-HOBJ_KEY_IMP(TokenizerName)
+OBJV_KEY_IMP(TokenizerName)
 
-HOBJ_CLASS_IMP(TokenizerName,  htokenizer_name_t, &hobj_Tokenizer_class)
+objv_class_t objv_tokenizer_name_class = {OBJV_KEY(TokenizerName),& objv_tokenizer_class
+    ,NULL,0
+    ,NULL,0
+    ,sizeof(objv_tokenizer_name_t)
+    ,NULL,0,0};
 
-hbool htokenizer_name_scanf(htokenizer_t * tokenizer,htokenizer_location_t * locaiton,htokenizer_t * token,htokenizer_scanf_context_t * ctx, InvokeTickDeclare){
+
+objv_boolean_t objv_tokenizer_name_scanf(objv_tokenizer_t * tokenizer,objv_tokenizer_location_t * locaiton,objv_tokenizer_t * token,objv_tokenizer_scanf_context_t * ctx){
     
-    htokenizer_name_t * name;
+    objv_tokenizer_name_t * name;
     
     if(token == NULL){
         switch (ctx->s) {
@@ -516,12 +568,9 @@ hbool htokenizer_name_scanf(htokenizer_t * tokenizer,htokenizer_location_t * loc
                 }
                 else{
                     ctx->s = 0;
-                    name = (htokenizer_name_t *) hobj_alloc(HOBJ_CLASS(TokenizerName), InvokeTickArg);
-                    name->base.ofString = tokenizer->ofString;
-                    name->base.range.begin = ctx->begin;
-                    name->base.range.end = ctx->prev;
-                    htokenizer_child_add(tokenizer, (htokenizer_t *)name, InvokeTickArg);
-                    hobj_release((hobj_t *) name, InvokeTickArg);
+                    name = (objv_tokenizer_name_t *) objv_object_alloc(tokenizer->base.zone, & objv_tokenizer_name_class,tokenizer->ofString,& ctx->begin, & ctx->prev);
+                    objv_tokenizer_child_add(tokenizer, (objv_tokenizer_t *)name);
+                    objv_object_release((objv_object_t *) name);
                     
                 }
             }
@@ -532,26 +581,27 @@ hbool htokenizer_name_scanf(htokenizer_t * tokenizer,htokenizer_location_t * loc
     }
     else{
         if(ctx->s == 1){
-            name = (htokenizer_name_t *) hobj_alloc(HOBJ_CLASS(TokenizerName), InvokeTickArg);
-            name->base.ofString = tokenizer->ofString;
-            name->base.range.begin = ctx->begin;
-            name->base.range.end = ctx->prev;
-            htokenizer_child_add(tokenizer, (htokenizer_t *)name, InvokeTickArg);
-            hobj_release((hobj_t *) name, InvokeTickArg);
+            name = (objv_tokenizer_name_t *) objv_object_alloc(tokenizer->base.zone, & objv_tokenizer_name_class,tokenizer->ofString,& ctx->begin, & ctx->prev);
+            objv_tokenizer_child_add(tokenizer, (objv_tokenizer_t *)name);
+            objv_object_release((objv_object_t *) name);
         }
         ctx->s = 0;
     }
     
-    return hbool_true;
+    return objv_true;
 }
 
-HOBJ_KEY_IMP(TokenizerOperator)
+OBJV_KEY_IMP(TokenizerOperator)
 
-HOBJ_CLASS_IMP(TokenizerOperator, htokenizer_operator_t, &hobj_Tokenizer_class)
+objv_class_t objv_tokenizer_operator_class = {OBJV_KEY(TokenizerOperator),& objv_tokenizer_class
+    ,NULL,0
+    ,NULL,0
+    ,sizeof(objv_tokenizer_operator_t)
+    ,NULL,0,0};
 
-hbool htokenizer_operator_scanf(htokenizer_t * tokenizer,htokenizer_location_t * locaiton,htokenizer_t * token,htokenizer_scanf_context_t * ctx, InvokeTickDeclare){
+objv_boolean_t objv_tokenizer_operator_scanf(objv_tokenizer_t * tokenizer,objv_tokenizer_location_t * locaiton,objv_tokenizer_t * token,objv_tokenizer_scanf_context_t * ctx){
     
-    htokenizer_operator_t * op;
+    objv_tokenizer_operator_t * op;
     if(token == NULL){
         switch (ctx->s) {
             case 0:
@@ -568,12 +618,9 @@ hbool htokenizer_operator_scanf(htokenizer_t * tokenizer,htokenizer_location_t *
                     ctx->s ++;
                     if(ctx->op[ctx->s] ==0){
                         ctx->s = 0;
-                        op = (htokenizer_operator_t *) hobj_alloc(HOBJ_CLASS(TokenizerOperator), InvokeTickArg);
-                        op->base.ofString = tokenizer->ofString;
-                        op->base.range.begin = ctx->begin;
-                        op->base.range.end = * locaiton;
-                        htokenizer_child_add(tokenizer, (htokenizer_t *)op, InvokeTickArg);
-                        hobj_release((hobj_t *) op, InvokeTickArg);
+                        op = (objv_tokenizer_operator_t *) objv_object_alloc(tokenizer->base.zone, & objv_tokenizer_operator_class,tokenizer->ofString,& ctx->begin,  locaiton);
+                        objv_tokenizer_child_add(tokenizer, (objv_tokenizer_t *)op);
+                        objv_object_release((objv_object_t *) op);
                     }
                 }
                 else{
@@ -588,22 +635,26 @@ hbool htokenizer_operator_scanf(htokenizer_t * tokenizer,htokenizer_location_t *
         ctx->s = 0;
     }
     
-    return hbool_true;
+    return objv_true;
 }
 
 
-HOBJ_KEY_IMP(TokenizerGroup)
+OBJV_KEY_IMP(TokenizerGroup)
 
-HOBJ_CLASS_IMP(TokenizerGroup, htokenizer_group_t, &hobj_Tokenizer_class)
+objv_class_t objv_tokenizer_group_class = {OBJV_KEY(TokenizerGroup),& objv_tokenizer_class
+    ,NULL,0
+    ,NULL,0
+    ,sizeof(objv_tokenizer_group_t)
+    ,NULL,0,0};
 
-hbool htokenizer_group_scanf(htokenizer_t * tokenizer,htokenizer_location_t * locaiton,htokenizer_t * token,htokenizer_scanf_context_t * ctx, InvokeTickDeclare){
+objv_boolean_t objv_tokenizer_group_scanf(objv_tokenizer_t * tokenizer,objv_tokenizer_location_t * locaiton,objv_tokenizer_t * token,objv_tokenizer_scanf_context_t * ctx){
     
-    htokenizer_group_t * group;
-    hint32 c = sizeof(ctx->beginChar) / sizeof(hchar);
-    hint32 i = 0;
+    objv_tokenizer_group_t * group;
+    int c = sizeof(ctx->beginChar) / sizeof(char);
+    int i = 0;
     
     if(ctx->focusTokenizer == NULL){
-        return hbool_false;
+        return objv_false;
     }
     
     if(token == NULL){
@@ -616,19 +667,17 @@ hbool htokenizer_group_scanf(htokenizer_t * tokenizer,htokenizer_location_t * lo
         
         if( i<c && ctx->beginChar[i] != 0){
             
-            group = (htokenizer_group_t *) hobj_alloc(HOBJ_CLASS(TokenizerGroup), InvokeTickArg);
-            group->base.ofString = tokenizer->ofString;
-            group->base.range.begin = * locaiton;
+            group = (objv_tokenizer_group_t *) objv_object_alloc(tokenizer->base.zone, & objv_tokenizer_group_class,tokenizer->ofString, locaiton, locaiton);
             
-            htokenizer_child_add(ctx->focusTokenizer, (htokenizer_t *)group, InvokeTickArg);
+            objv_tokenizer_child_add(ctx->focusTokenizer, (objv_tokenizer_t *)group);
             
-            ctx->focusTokenizer = (htokenizer_t *)group;
+            ctx->focusTokenizer = (objv_tokenizer_t *) group;
             
-            hobj_release((hobj_t *) group, InvokeTickArg);
+            objv_object_release((objv_object_t *) group);
         }
         else {
             
-            if(hobj_is_kind((hobj_t *)ctx->focusTokenizer, HOBJ_CLASS(TokenizerGroup), InvokeTickArg)){
+            if(objv_object_isKindOfClass((objv_object_t *)ctx->focusTokenizer, &objv_tokenizer_group_class)){
                 
                 for(i=0;i<c;i++){
                     if(ctx->endChar[i] ==0 || ctx->endChar[i] == * locaiton->p){
@@ -637,14 +686,15 @@ hbool htokenizer_group_scanf(htokenizer_t * tokenizer,htokenizer_location_t * lo
                 }
                 
                 if(i<c && ctx->endChar[i] != 0){
-                    group = (htokenizer_group_t *) ctx->focusTokenizer;
+                    
+                    group = (objv_tokenizer_group_t *) ctx->focusTokenizer;
                     
                     if(* group->base.range.begin.p == ctx->beginChar[i]){
                         group->base.range.end = * locaiton;
                         ctx->focusTokenizer = group->base.parent;
                     }
                     else{
-                        return hbool_false;
+                        return objv_false;
                     }
                 }
                 
@@ -652,89 +702,79 @@ hbool htokenizer_group_scanf(htokenizer_t * tokenizer,htokenizer_location_t * lo
         }
     }
     else{
-        htokenizer_child_add(ctx->focusTokenizer, (htokenizer_t *)hobj_copy((hobj_t *)token,InvokeTickArg), InvokeTickArg);
+        objv_tokenizer_child_add(ctx->focusTokenizer, (objv_tokenizer_t *)objv_object_copy(token->base.isa, (objv_object_t *)token));
     }
     
-    return hbool_true;
+    return objv_true;
 }
 
-static hobj_t * hobj_tokenizer_copy_impl(htokenizer_t * obj,InvokeTickDeclare){
-    if(obj){
-        htokenizer_t * tokenizer = (htokenizer_t *) hobj_alloc(obj->base.clazz, InvokeTickArg);
-        tokenizer->ofString = obj->ofString;
-        tokenizer->range = obj->range;
-        return hobj_autorelease((hobj_t *)tokenizer, InvokeTickArg);
-    }
-    return NULL;
-}
+OBJV_KEY_IMP(TokenizerCombi)
 
-HOBJ_KEY_IMP(TokenizerCombi)
-
-HOBJ_CLASS_IMP(TokenizerCombi,  htokenizer_combi_t, &hobj_Tokenizer_class)
+objv_class_t objv_tokenizer_combi_class = {OBJV_KEY(TokenizerCombi),& objv_tokenizer_class
+    ,NULL,0
+    ,NULL,0
+    ,sizeof(objv_tokenizer_combi_t)
+    ,NULL,0,0};
 
 
-htokenizer_combi_t * htokenizer_comib(htokenizer_t * tokenizer,hint32 index,hint32 length,InvokeTickDeclare){
-    htokenizer_t * t1 = (htokenizer_t *) hobj_array_objectAt(tokenizer->childs, index, InvokeTickArg);
-    htokenizer_t * t2 = (htokenizer_t *) hobj_array_objectAt(tokenizer->childs, index + length - 1, InvokeTickArg);
-    htokenizer_t * token = (htokenizer_t *) hobj_new(HOBJ_CLASS(TokenizerCombi), InvokeTickArg);
-    hint32 i;
-    token->ofString = tokenizer->ofString;
-    token->range.begin = t1->range.begin;
-    token->range.end = t2->range.end;
+objv_tokenizer_combi_t * objv_tokenizer_comib(objv_tokenizer_t * tokenizer,int index,int length){
+    objv_tokenizer_t * t1 = (objv_tokenizer_t *) objv_array_objectAt(tokenizer->childs, index);
+    objv_tokenizer_t * t2 = (objv_tokenizer_t *) objv_array_objectAt(tokenizer->childs, index + length - 1);
+    objv_tokenizer_t * token = (objv_tokenizer_t *) objv_object_new(tokenizer->base.zone, &objv_tokenizer_combi_class, tokenizer->ofString,t1->range.begin,t2->range.end);
+    int i;
     
     for(i=0;i<length;i++){
-        htokenizer_child_add(token, (htokenizer_t *) hobj_array_objectAt(tokenizer->childs, index + i, InvokeTickArg), InvokeTickArg);
+        objv_tokenizer_child_add(token, (objv_tokenizer_t *) objv_array_objectAt(tokenizer->childs, index + i));
         i --;
         length --;
     }
     
-    htokenizer_child_add(tokenizer, token, InvokeTickArg);
+    objv_tokenizer_child_add(tokenizer, token);
     
-    return (htokenizer_combi_t *)token;
+    return (objv_tokenizer_combi_t *)token;
 }
 
-static void _htokenizer_log_level(hint32 level){
+static void _objv_tokenizer_log_level(int level){
     while(level>0){
-        hlog("\t");
+        objv_log("\t");
         level --;
     }
 }
 
-static void _htokenizer_log(htokenizer_t * tokenizer,hint32 level,hint32 maxLevel,InvokeTickDeclare){
-    hint32 i,c;
-    hchar *p;
-    _htokenizer_log_level(level);
+static void _objv_tokenizer_log(objv_tokenizer_t * tokenizer,int level,int maxLevel){
+    int i;
+    char *p;
+    _objv_tokenizer_log_level(level);
     
-    hlog("%s %d:%d~%d:%d ",tokenizer->base.clazz->name->name,tokenizer->range.begin.line,tokenizer->range.begin.index,tokenizer->range.end.line,tokenizer->range.end.index);
+    objv_log("%s %d:%d~%d:%d ",tokenizer->base.isa->name->name,tokenizer->range.begin.line,tokenizer->range.begin.index,tokenizer->range.end.line,tokenizer->range.end.index);
     
-    if(tokenizer->base.clazz != HOBJ_CLASS(Tokenizer)){
-        if(hobj_is_kind((hobj_t *) tokenizer , HOBJ_CLASS(TokenizerGroup), InvokeTickArg) && * tokenizer->range.begin.p == '{'){
-            hlog("{...}");
+    if(tokenizer->base.isa != & objv_tokenizer_class){
+        if(objv_object_isKindOfClass((objv_object_t *) tokenizer , & objv_tokenizer_group_class) && * tokenizer->range.begin.p == '{'){
+            objv_log("{...}");
         }
-        else if(hobj_is_kind((hobj_t *) tokenizer , HOBJ_CLASS(TokenizerCombi), InvokeTickArg)){
+        else if(objv_object_isKindOfClass((objv_object_t *) tokenizer , & objv_tokenizer_combi_class)){
             
         }
         else{
             p = tokenizer->range.begin.p;
             while(p <= tokenizer->range.end.p){
-                hlog("%c",*p);
+                objv_log("%c",*p);
                 p++;
             }
         }
     }
     
-    hlog("\n");
+    objv_log("\n");
     
     if(level <maxLevel){
-        c = hobj_array_count(tokenizer->childs, InvokeTickArg);
-        
-        for(i=0;i<c;i++){
-            _htokenizer_log((htokenizer_t * ) hobj_array_objectAt(tokenizer->childs, i, InvokeTickArg),level +1,maxLevel,InvokeTickArg);
+
+        for(i=0;i<tokenizer->childs->length;i++){
+            _objv_tokenizer_log((objv_tokenizer_t * ) objv_array_objectAt(tokenizer->childs, i),level +1,maxLevel);
         }
     }
 }
 
-void htokenizer_log(htokenizer_t * tokenizer,hint32 level,InvokeTickDeclare){
-    _htokenizer_log(tokenizer,0,level,InvokeTickArg);
+void objv_tokenizer_log(objv_tokenizer_t * tokenizer,int level){
+    _objv_tokenizer_log(tokenizer,0,level);
 }
 

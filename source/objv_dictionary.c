@@ -46,17 +46,6 @@ static void objv_dictionary_methods_dealloc(objv_class_t * clazz, objv_object_t 
 }
 
 
-static objv_method_t objv_dictionary_methods[] = {
-    {OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_dictionary_methods_dealloc}
-};
-
-objv_class_t objv_dictionary_class = {OBJV_KEY(Dictionary),& objv_object_class
-    ,objv_dictionary_methods,sizeof(objv_dictionary_methods) / sizeof(objv_method_t)
-    ,NULL,0
-    ,sizeof(objv_dictionary_t)
-    ,NULL,0,0};
-
-
 static long objv_dictionary_key_hash_code(void * key){
     objv_object_t * obj = (objv_object_t *) key;
     return objv_object_hashCode(obj->isa, obj);
@@ -82,17 +71,44 @@ static int objv_dictionary_key_compare(void * key1,void * key2){
     return 0;
 }
 
-objv_dictionary_t * objv_dictionary_alloc(objv_zone_t * zone,unsigned int capacity){
+static objv_object_t * objv_dictionary_methods_alloc(objv_class_t * clazz, objv_object_t * object,va_list ap){
     
-    if(capacity == 0){
-        capacity = 20;
+    if(clazz->superClass){
+        object = objv_object_initv(clazz->superClass, object,ap);
     }
     
-    objv_dictionary_t * dictionary = (objv_dictionary_t *) objv_object_alloc(zone, &objv_dictionary_class);
+    if(object){
     
-    dictionary->map = objv_hash_map_alloc(capacity,objv_dictionary_key_hash_code,objv_dictionary_key_compare);
+        objv_dictionary_t * dictionary = (objv_dictionary_t *) object;
+        unsigned int capacity = va_arg(ap, unsigned int);
+        
+        if(capacity == 0){
+            capacity = 20;
+        }
+        
+        dictionary->map = objv_hash_map_alloc(capacity,objv_dictionary_key_hash_code,objv_dictionary_key_compare);
+        
+    }
     
-    return dictionary;
+    return object;
+}
+
+
+static objv_method_t objv_dictionary_methods[] = {
+    {OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_dictionary_methods_dealloc}
+    ,{OBJV_KEY(init),"@(*)",(objv_method_impl_t)objv_dictionary_methods_alloc}
+};
+
+objv_class_t objv_dictionary_class = {OBJV_KEY(Dictionary),& objv_object_class
+    ,objv_dictionary_methods,sizeof(objv_dictionary_methods) / sizeof(objv_method_t)
+    ,NULL,0
+    ,sizeof(objv_dictionary_t)
+    ,NULL,0,0};
+
+
+
+objv_dictionary_t * objv_dictionary_alloc(objv_zone_t * zone,unsigned int capacity){
+    return (objv_dictionary_t *) objv_object_alloc(zone, &objv_dictionary_class,capacity);
 }
 
 objv_dictionary_t * objv_dictionary_new(objv_zone_t * zone,unsigned int capacity){

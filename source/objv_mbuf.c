@@ -29,6 +29,13 @@ void objv_mbuf_destroy(objv_mbuf_t * mbuf){
     objv_zone_memzero(NULL,mbuf, sizeof(objv_mbuf_t));
 }
 
+void objv_mbuf_extend(objv_mbuf_t * mbuf,size_t size){
+    if(size > mbuf->size){
+        mbuf->size = size;
+        mbuf->data = objv_zone_realloc(NULL, mbuf->data, mbuf->size);
+    }
+}
+
 void objv_mbuf_append(objv_mbuf_t * mbuf,void * bytes,size_t length){
     
     if(mbuf->length + length + 1 > mbuf->size){

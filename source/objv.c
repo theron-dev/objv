@@ -14,11 +14,12 @@
 #include "objv_hash_map.h"
 #include "objv_log.h"
 
-OBJV_KEY_IMP(alloc)
+OBJV_KEY_IMP(init)
 OBJV_KEY_IMP(dealloc)
 OBJV_KEY_IMP(retainCount)
 OBJV_KEY_IMP(equal)
 OBJV_KEY_IMP(hashCode)
+OBJV_KEY_IMP(copy)
 OBJV_KEY_IMP(Object)
 
 
@@ -203,6 +204,40 @@ objv_boolean_t objv_class_isKindOfClass(objv_class_t * clazz,objv_class_t * ofCl
     return objv_false;
 }
 
+objv_object_t * objv_object_init(objv_class_t * clazz,objv_object_t * object,...){
+    va_list ap;
+    objv_object_t * o;
+    
+    va_start(ap, object);
+    
+    o = objv_object_initv(clazz,object,ap);
+    
+    va_end(ap);
+    
+    return o;
+}
+
+objv_object_t * objv_object_initv(objv_class_t * clazz,objv_object_t * object,va_list ap){
+    
+    if(clazz && object){
+        
+        objv_class_t * c = clazz;
+        
+        objv_method_t * method = NULL;
+        
+        while(c && (method = objv_class_getMethod(c, OBJV_KEY(init))) == NULL){
+            
+            c = c->superClass;
+        }
+        
+        if(method){
+            return (* (objv_object_method_init_t) method->impl)(c,object,ap);
+        }
+    }
+    
+    return object;
+}
+
 objv_object_t * objv_object_allocv(objv_zone_t * zone,objv_class_t * clazz,va_list ap){
     
     
@@ -223,22 +258,7 @@ objv_object_t * objv_object_allocv(objv_zone_t * zone,objv_class_t * clazz,va_li
         obj->retainCount = 1;
         objv_mutex_init(& obj->mutex);
         
-        {
-            objv_class_t * c = clazz;
-            
-            objv_method_t * method = NULL;
-            
-            while(c && (method = objv_class_getMethod(c, OBJV_KEY(alloc))) == NULL){
-                c = c->superClass;
-            }
-            
-            if(method){
-                obj = (* (objv_object_method_alloc_t) method->impl)(c,obj,ap);
-            }
-        }
-        
-        return obj;
-        
+        return objv_object_init(clazz, obj, ap);
     }
     
     return NULL;
@@ -394,6 +414,28 @@ objv_boolean_t objv_object_equal(objv_class_t * clazz,objv_object_t * object
     }
     
     return object == value;
+}
+
+objv_object_t * objv_object_copy(objv_class_t * clazz,objv_object_t * object){
+    
+    if(clazz && object){
+        
+        objv_class_t * c = clazz;
+        
+        objv_method_t * method = NULL;
+        
+        while(c && (method = objv_class_getMethod(c, OBJV_KEY(copy))) == NULL){
+            
+            c = c->superClass;
+        }
+        
+        if(method){
+            return (* (objv_object_method_copy_t) method->impl)(c,object);
+        }
+        
+    }
+    
+    return NULL;
 }
 
 

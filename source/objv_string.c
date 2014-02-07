@@ -298,3 +298,25 @@ size_t objv_unicode_to_utf8(unsigned short * unicode, size_t length, objv_mbuf_t
     
     return l;
 }
+
+const char * objv_string_indexOf(const char * string,const char * substring){
+    if(string && substring){
+        char * p = (char *) string;
+        char * s = (char *) substring;
+        
+        while(*p !=0 && * s != 0){
+            
+            if(*p == *s){
+                s ++;
+            }
+            else{
+                p = p - (s - substring);
+                s = (char *) substring;
+            }
+            
+            p ++;
+        }
+        return * s == 0 ? p - (s - substring) : NULL;
+    }
+    return NULL;
+}

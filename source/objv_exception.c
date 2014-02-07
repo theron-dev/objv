@@ -25,12 +25,12 @@ static void objv_exception_methods_dealloc(objv_class_t * clazz, objv_object_t *
     }
 }
 
-static objv_object_t * objv_exception_methods_alloc(objv_class_t * clazz, objv_object_t * obj,int code,objv_string_t * message){
+static objv_object_t * objv_exception_methods_init(objv_class_t * clazz, objv_object_t * obj,va_list ap){
     
     objv_exception_t * ex = (objv_exception_t *) obj;
     
-    ex->code = code;
-    ex->message = (objv_string_t *) objv_object_retain((objv_object_t *) message);
+    ex->code = va_arg(ap, int);
+    ex->message = (objv_string_t *) objv_object_retain(va_arg(ap, objv_object_t *));
  
     return obj;
 }
@@ -38,7 +38,7 @@ static objv_object_t * objv_exception_methods_alloc(objv_class_t * clazz, objv_o
 
 static objv_method_t objv_exception_methods[] = {
     {OBJV_KEY(dealloc),"v()",(objv_method_impl_t) objv_exception_methods_dealloc},
-    {OBJV_KEY(alloc),"@(i,@)",(objv_method_impl_t) objv_exception_methods_alloc}
+    {OBJV_KEY(init),"@(*)",(objv_method_impl_t) objv_exception_methods_init}
 };
 
 objv_class_t objv_exception_class = {OBJV_KEY(Exception),& objv_object_class

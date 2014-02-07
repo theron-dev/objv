@@ -29,11 +29,20 @@ static objv_object_t * objv_array_iterator_methods_next(objv_class_t * clazz, ob
     return objv_array_objectAt(iterator->array, iterator->index ++);
 }
 
-static objv_object_t * objv_array_iterator_method_alloc (objv_class_t * clazz, objv_object_t * object,va_list ap){
+static objv_object_t * objv_array_iterator_method_init (objv_class_t * clazz, objv_object_t * object,va_list ap){
     
-    objv_array_iterator_t * iterator = (objv_array_iterator_t *) object;
+
+    if(clazz->superClass){
+        object = objv_object_initv(clazz->superClass, object, ap);
+    }
     
-    iterator->array = (objv_array_t *) objv_object_retain((objv_object_t *) va_arg(ap, objv_object_t *));
+    if(object){
+        
+        objv_array_iterator_t * iterator = (objv_array_iterator_t *) object;
+    
+        iterator->array = (objv_array_t *) objv_object_retain((objv_object_t *) va_arg(ap, objv_object_t *));
+        
+    }
     
     return object;
 }
@@ -53,7 +62,7 @@ static void objv_array_iterator_method_dealloc (objv_class_t * clazz, objv_objec
 
 static objv_method_t objv_array_iterator_methods[] = {
     {OBJV_KEY(next),"@()",(objv_method_impl_t)objv_array_iterator_methods_next}
-    ,{OBJV_KEY(alloc),"@(@)",(objv_method_impl_t)objv_array_iterator_method_alloc}
+    ,{OBJV_KEY(init),"@(*)",(objv_method_impl_t)objv_array_iterator_method_init}
     ,{OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_array_iterator_method_dealloc}
 };
 

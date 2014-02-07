@@ -10,5 +10,16 @@
 #define objv_objv_crypt_h
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+   
+    unsigned long objv_crc32(unsigned long crc32,const char * bytes, unsigned int length);
+    
+    
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif

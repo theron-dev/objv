@@ -163,11 +163,16 @@ extern "C" {
     
     typedef struct _vmMetaClass{
         vmMetaOffset offset;
-        vmMetaOffset uniqueKey;
         vmMetaOffset superClass;
         vm_uint32_t propertyCount;
         vm_uint32_t functionCount;
     } vmMetaClass;
+    
+    typedef struct _vmMetaClassBinary {
+        vmMetaOffset uniqueKey;
+        vmMetaOffset metaOffset;
+    } vmMetaClassBinary;
+    
     
     typedef struct _vmMetaBinary {
         struct {
@@ -238,11 +243,6 @@ extern "C" {
     
     extern objv_class_t vmContextClass;
     
-    typedef struct _vmObject {
-        objv_object_t base;
-        vmContext * READONLY ctx;
-    } vmObject;
-    
     typedef vmVariant (* vmObjectInitWithContextFun) (objv_class_t * clazz, objv_object_t * object,vmContext * context,objv_array_t * arguments);
     
     typedef vmVariant (* vmObjectMethodInvokeFun) (objv_class_t * clazz,objv_object_t * object, objv_key_t * name,objv_array_t * arguments);
@@ -251,6 +251,7 @@ extern "C" {
     
     typedef vmVariant (* vmObjectMethodSetPropertyFun) (objv_class_t * clazz,objv_object_t * object, objv_key_t * name,vmVariant value);
     
+    vmContext * vmContextWithObject(objv_object_t * object);
     
     vmContext * vmContextAlloc(objv_zone_t * zone);
     
@@ -265,6 +266,8 @@ extern "C" {
     objv_boolean_t vmContextLoadBinary(vmContext * ctx,vmMetaBinary * binary,objv_boolean_t copy);
     
     objv_class_t * vmContextGetClass(vmContext * ctx, objv_key_t * key);
+    
+    vmMetaOperator * vmContextGetMetaOperator(vmContext * ctx,objv_key_t * key);
     
     objv_key_t * vmContextKey(vmContext * ctx, const char * key);
     
@@ -298,6 +301,10 @@ extern "C" {
 
     vmVariant vmObjectToVariant(objv_object_t * object);
 
+    void vmVariantRetain(vmVariant value);
+    
+    void vmVariantRelease(vmVariant value);
+    
 #ifdef __cplusplus
 }
 #endif

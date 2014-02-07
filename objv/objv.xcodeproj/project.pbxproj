@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1121043118A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c in Sources */ = {isa = PBXBuildFile; fileRef = 1121043018A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c */; };
+		113206A218A49630006C9112 /* objv_vmcompiler.c in Sources */ = {isa = PBXBuildFile; fileRef = 113206A118A49630006C9112 /* objv_vmcompiler.c */; };
 		11BD79191899427E00F028AC /* objv.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD79181899427E00F028AC /* objv.c */; };
 		11BD791E189953EB00F028AC /* objv_zone.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD791D189953EB00F028AC /* objv_zone.c */; };
 		11BD79201899540A00F028AC /* objv_types.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD791F1899540A00F028AC /* objv_types.c */; };
@@ -44,6 +46,14 @@
 		11BD798018A3356F00F028AC /* objv_exception.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD797F18A3356F00F028AC /* objv_exception.c */; };
 		11BD798318A3A94600F028AC /* objv_iterator.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD798218A3A94600F028AC /* objv_iterator.c */; };
 		11BD798C18A3B73C00F028AC /* objv_tokenizer.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD798B18A3B73C00F028AC /* objv_tokenizer.c */; };
+		11F67EB118A4B00F006E4EC1 /* objv_vmcompiler_expression.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EB018A4B00F006E4EC1 /* objv_vmcompiler_expression.c */; };
+		11F67EB418A4B266006E4EC1 /* objv_vmcompiler_invokes.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EB318A4B266006E4EC1 /* objv_vmcompiler_invokes.c */; };
+		11F67EB718A4B3FF006E4EC1 /* objv_vmcompiler_class.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EB618A4B3FF006E4EC1 /* objv_vmcompiler_class.c */; };
+		11F67EBA18A4B543006E4EC1 /* objv_vmcompiler_meta.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EB918A4B543006E4EC1 /* objv_vmcompiler_meta.c */; };
+		11F67EBD18A4C42A006E4EC1 /* objv_vmcompiler_binary.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EBC18A4C42A006E4EC1 /* objv_vmcompiler_binary.c */; };
+		11F67EC418A4C556006E4EC1 /* objv_crypt.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EC318A4C556006E4EC1 /* objv_crypt.c */; };
+		11F67EC618A4C73C006E4EC1 /* md5.h in Headers */ = {isa = PBXBuildFile; fileRef = 11F67EC518A4C73C006E4EC1 /* md5.h */; };
+		11F67EC818A4C746006E4EC1 /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EC718A4C746006E4EC1 /* md5.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -70,6 +80,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1121042F18A4ABB7009A81E1 /* objv_vmcompiler_tokenizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_vmcompiler_tokenizer.h; sourceTree = "<group>"; };
+		1121043018A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_vmcompiler_tokenizer.c; sourceTree = "<group>"; };
+		113206A018A49601006C9112 /* objv_vmcompiler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_vmcompiler.h; sourceTree = "<group>"; };
+		113206A118A49630006C9112 /* objv_vmcompiler.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_vmcompiler.c; sourceTree = "<group>"; };
 		11BD79091899409000F028AC /* libobjv.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libobjv.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		11BD7911189940E800F028AC /* objv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = objv.h; sourceTree = "<group>"; };
 		11BD79161899426B00F028AC /* objv_os.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = objv_os.h; sourceTree = "<group>"; };
@@ -115,6 +129,20 @@
 		11BD798218A3A94600F028AC /* objv_iterator.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_iterator.c; sourceTree = "<group>"; };
 		11BD798A18A3B6CA00F028AC /* objv_tokenizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_tokenizer.h; sourceTree = "<group>"; };
 		11BD798B18A3B73C00F028AC /* objv_tokenizer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_tokenizer.c; sourceTree = "<group>"; };
+		11F67EAF18A4AFD6006E4EC1 /* objv_vmcompiler_expression.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_vmcompiler_expression.h; sourceTree = "<group>"; };
+		11F67EB018A4B00F006E4EC1 /* objv_vmcompiler_expression.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_vmcompiler_expression.c; sourceTree = "<group>"; };
+		11F67EB218A4B243006E4EC1 /* objv_vmcompiler_invokes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_vmcompiler_invokes.h; sourceTree = "<group>"; };
+		11F67EB318A4B266006E4EC1 /* objv_vmcompiler_invokes.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_vmcompiler_invokes.c; sourceTree = "<group>"; };
+		11F67EB518A4B3E1006E4EC1 /* objv_vmcompiler_class.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_vmcompiler_class.h; sourceTree = "<group>"; };
+		11F67EB618A4B3FF006E4EC1 /* objv_vmcompiler_class.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_vmcompiler_class.c; sourceTree = "<group>"; };
+		11F67EB818A4B518006E4EC1 /* objv_vmcompiler_meta.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_vmcompiler_meta.h; sourceTree = "<group>"; };
+		11F67EB918A4B543006E4EC1 /* objv_vmcompiler_meta.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_vmcompiler_meta.c; sourceTree = "<group>"; };
+		11F67EBB18A4BBEC006E4EC1 /* objv_vmcompiler_binary.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_vmcompiler_binary.h; sourceTree = "<group>"; };
+		11F67EBC18A4C42A006E4EC1 /* objv_vmcompiler_binary.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_vmcompiler_binary.c; sourceTree = "<group>"; };
+		11F67EC218A4C546006E4EC1 /* objv_crypt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_crypt.h; sourceTree = "<group>"; };
+		11F67EC318A4C556006E4EC1 /* objv_crypt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_crypt.c; sourceTree = "<group>"; };
+		11F67EC518A4C73C006E4EC1 /* md5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = md5.h; sourceTree = "<group>"; };
+		11F67EC718A4C746006E4EC1 /* md5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = md5.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -139,7 +167,6 @@
 		11BD79001899409000F028AC = {
 			isa = PBXGroup;
 			children = (
-				11BD7968189C8CBE00F028AC /* vermin */,
 				11BD79211899568A00F028AC /* private */,
 				11BD79151899424700F028AC /* source */,
 				11BD7910189940B300F028AC /* include */,
@@ -179,6 +206,15 @@
 				11BD797E18A3349B00F028AC /* objv_exception.h */,
 				11BD798118A3A8B300F028AC /* objv_iterator.h */,
 				11BD798A18A3B6CA00F028AC /* objv_tokenizer.h */,
+				113206A018A49601006C9112 /* objv_vmcompiler.h */,
+				1121042F18A4ABB7009A81E1 /* objv_vmcompiler_tokenizer.h */,
+				11F67EAF18A4AFD6006E4EC1 /* objv_vmcompiler_expression.h */,
+				11F67EB218A4B243006E4EC1 /* objv_vmcompiler_invokes.h */,
+				11F67EB518A4B3E1006E4EC1 /* objv_vmcompiler_class.h */,
+				11F67EB818A4B518006E4EC1 /* objv_vmcompiler_meta.h */,
+				11F67EBB18A4BBEC006E4EC1 /* objv_vmcompiler_binary.h */,
+				11F67EC218A4C546006E4EC1 /* objv_crypt.h */,
+				11F67EC518A4C73C006E4EC1 /* md5.h */,
 			);
 			name = include;
 			path = ../include;
@@ -208,6 +244,15 @@
 				11BD797F18A3356F00F028AC /* objv_exception.c */,
 				11BD798218A3A94600F028AC /* objv_iterator.c */,
 				11BD798B18A3B73C00F028AC /* objv_tokenizer.c */,
+				113206A118A49630006C9112 /* objv_vmcompiler.c */,
+				1121043018A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c */,
+				11F67EB018A4B00F006E4EC1 /* objv_vmcompiler_expression.c */,
+				11F67EB318A4B266006E4EC1 /* objv_vmcompiler_invokes.c */,
+				11F67EB618A4B3FF006E4EC1 /* objv_vmcompiler_class.c */,
+				11F67EB918A4B543006E4EC1 /* objv_vmcompiler_meta.c */,
+				11F67EBC18A4C42A006E4EC1 /* objv_vmcompiler_binary.c */,
+				11F67EC318A4C556006E4EC1 /* objv_crypt.c */,
+				11F67EC718A4C746006E4EC1 /* md5.c */,
 			);
 			name = source;
 			path = ../source;
@@ -231,14 +276,6 @@
 			path = objvtest;
 			sourceTree = "<group>";
 		};
-		11BD7968189C8CBE00F028AC /* vermin */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = vermin;
-			path = ../vermin;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -257,6 +294,7 @@
 				11BD7961189A5F8200F028AC /* objv_hash_map.h in Headers */,
 				11BD7962189A5F8200F028AC /* objv_autorelease.h in Headers */,
 				11BD795F189A5F8200F028AC /* objv_dispatch.h in Headers */,
+				11F67EC618A4C73C006E4EC1 /* md5.h in Headers */,
 				11BD795E189A5F8200F028AC /* objv_types.h in Headers */,
 				11BD795B189A5F8200F028AC /* objv_value.h in Headers */,
 			);
@@ -338,16 +376,25 @@
 				11BD79261899698B00F028AC /* objv_value.c in Sources */,
 				11BD797D18A215CE00F028AC /* objv_vermin_runtime.c in Sources */,
 				11BD797818A0DE0300F028AC /* objv_zombie.c in Sources */,
+				11F67EC818A4C746006E4EC1 /* md5.c in Sources */,
+				1121043118A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c in Sources */,
 				11BD793A189A00EE00F028AC /* objv_autorelease.c in Sources */,
 				11BD791E189953EB00F028AC /* objv_zone.c in Sources */,
+				11F67EC418A4C556006E4EC1 /* objv_crypt.c in Sources */,
 				11BD792C1899828B00F028AC /* objv_string.c in Sources */,
 				11BD7967189A98F000F028AC /* objv_dispatch_queue.c in Sources */,
 				11BD798018A3356F00F028AC /* objv_exception.c in Sources */,
+				11F67EBA18A4B543006E4EC1 /* objv_vmcompiler_meta.c in Sources */,
 				11BD79301899E17D00F028AC /* objv_dispatch.c in Sources */,
+				11F67EB718A4B3FF006E4EC1 /* objv_vmcompiler_class.c in Sources */,
+				11F67EBD18A4C42A006E4EC1 /* objv_vmcompiler_binary.c in Sources */,
+				113206A218A49630006C9112 /* objv_vmcompiler.c in Sources */,
 				11BD792B189978D400F028AC /* objv_array.c in Sources */,
 				11BD7973189FB50500F028AC /* objv_json.c in Sources */,
 				11BD793E189A0C1D00F028AC /* objv_log.c in Sources */,
 				11BD79361899F9A800F028AC /* objv_hash_map.c in Sources */,
+				11F67EB418A4B266006E4EC1 /* objv_vmcompiler_invokes.c in Sources */,
+				11F67EB118A4B00F006E4EC1 /* objv_vmcompiler_expression.c in Sources */,
 				11BD7970189F1C1F00F028AC /* objv_mbuf.c in Sources */,
 				11BD797B18A0F04A00F028AC /* objv_vermin.c in Sources */,
 				11BD798C18A3B73C00F028AC /* objv_tokenizer.c in Sources */,
