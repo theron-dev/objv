@@ -14,6 +14,9 @@
 #include "objv_log.h"
 #include "objv_value.h"
 
+vm_boolean_t vm_true =  1;
+vm_boolean_t vm_false =  0;
+
 typedef struct _vmObject {
     vmContext * READONLY ctx;
 } vmObject;

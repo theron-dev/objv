@@ -54,6 +54,7 @@
 		11F67EC418A4C556006E4EC1 /* objv_crypt.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EC318A4C556006E4EC1 /* objv_crypt.c */; };
 		11F67EC618A4C73C006E4EC1 /* md5.h in Headers */ = {isa = PBXBuildFile; fileRef = 11F67EC518A4C73C006E4EC1 /* md5.h */; };
 		11F67EC818A4C746006E4EC1 /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EC718A4C746006E4EC1 /* md5.c */; };
+		11F67ECE18A4EC98006E4EC1 /* objv_vm.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67ECD18A4EC98006E4EC1 /* objv_vm.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -143,6 +144,8 @@
 		11F67EC318A4C556006E4EC1 /* objv_crypt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_crypt.c; sourceTree = "<group>"; };
 		11F67EC518A4C73C006E4EC1 /* md5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = md5.h; sourceTree = "<group>"; };
 		11F67EC718A4C746006E4EC1 /* md5.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = md5.c; sourceTree = "<group>"; };
+		11F67ECC18A4EB4D006E4EC1 /* objv_vm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_vm.h; sourceTree = "<group>"; };
+		11F67ECD18A4EC98006E4EC1 /* objv_vm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_vm.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -214,6 +217,7 @@
 				11F67EB818A4B518006E4EC1 /* objv_vmcompiler_meta.h */,
 				11F67EBB18A4BBEC006E4EC1 /* objv_vmcompiler_binary.h */,
 				11F67EC218A4C546006E4EC1 /* objv_crypt.h */,
+				11F67ECC18A4EB4D006E4EC1 /* objv_vm.h */,
 				11F67EC518A4C73C006E4EC1 /* md5.h */,
 			);
 			name = include;
@@ -253,6 +257,7 @@
 				11F67EBC18A4C42A006E4EC1 /* objv_vmcompiler_binary.c */,
 				11F67EC318A4C556006E4EC1 /* objv_crypt.c */,
 				11F67EC718A4C746006E4EC1 /* md5.c */,
+				11F67ECD18A4EC98006E4EC1 /* objv_vm.c */,
 			);
 			name = source;
 			path = ../source;
@@ -395,6 +400,7 @@
 				11BD79361899F9A800F028AC /* objv_hash_map.c in Sources */,
 				11F67EB418A4B266006E4EC1 /* objv_vmcompiler_invokes.c in Sources */,
 				11F67EB118A4B00F006E4EC1 /* objv_vmcompiler_expression.c in Sources */,
+				11F67ECE18A4EC98006E4EC1 /* objv_vm.c in Sources */,
 				11BD7970189F1C1F00F028AC /* objv_mbuf.c in Sources */,
 				11BD797B18A0F04A00F028AC /* objv_vermin.c in Sources */,
 				11BD798C18A3B73C00F028AC /* objv_tokenizer.c in Sources */,

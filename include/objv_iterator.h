@@ -28,7 +28,7 @@ extern "C" {
     
     typedef objv_object_t * (* objv_iterator_next_t ) (objv_class_t * clazz,objv_object_t * object);
     
-    objv_object_t * objv_iterator_next(objv_iterator_t * iterator);
+    objv_object_t * objv_iterator_next(objv_class_t * clazz,objv_iterator_t * iterator);
     
     typedef objv_iterator_t * (* objv_object_method_iterator_t) (objv_class_t * clazz,objv_object_t * object);
     

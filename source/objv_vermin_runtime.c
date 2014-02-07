@@ -1187,7 +1187,7 @@ vmVariant vmObjectOperatorExecute(vmContext * ctx,objv_class_t * clazz,objv_obje
                     
                     iterator = objv_object_iterator(objectClass, obj.objectValue);
                     
-                    while((item = objv_iterator_next(iterator))){
+                    while(iterator && (item = objv_iterator_next(iterator->base.isa,iterator))){
                         
                         v.type = vmVariantTypeObject;
                         v.objectValue = item;

@@ -33,6 +33,8 @@ OBJV_KEY_DEC(vmCompilerBinary)
 
 extern objv_class_t vmCompilerBinaryClass;
 
+vmCompilerBinary * vmCompilerBinaryAlloc(objv_zone_t * zone);
+
 vm_boolean_t vmCompilerBinaryAddClass(vmCompilerBinary * binary,vmCompilerClassMeta * classMeta,const char * className);
 
 vm_boolean_t vmCompilerBinaryAddStringResource(vmCompilerBinary * binary,const char * key,const char * string);

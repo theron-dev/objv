@@ -50,3 +50,24 @@ objv_iterator_t * objv_object_iterator(objv_class_t * clazz,objv_object_t * obje
     
     return NULL;
 }
+
+objv_object_t * objv_iterator_next(objv_class_t * clazz,objv_iterator_t * iterator){
+    
+    if(clazz && iterator){
+        
+        objv_class_t * c = clazz;
+        
+        objv_method_t * method = NULL;
+        
+        while(c && (method = objv_class_getMethod(c, OBJV_KEY(next))) == NULL){
+            
+            c = c->superClass;
+        }
+        
+        if(method){
+            return (* (objv_iterator_next_t) method->impl)(c,(objv_object_t *)iterator);
+        }
+    }
+    
+    return NULL;
+}

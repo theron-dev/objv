@@ -28,6 +28,7 @@ static void vmCompilerBinaryMethodDealloc(objv_class_t * clazz,objv_object_t * o
     objv_object_release((objv_object_t *) binary->resources);
     
     objv_mbuf_destroy(& binary->uniqueKeys);
+    objv_mbuf_destroy(& binary->binary);
     
     if(clazz->superClass){
         
@@ -70,6 +71,9 @@ objv_class_t vmCompilerBinaryClass = {OBJV_KEY(vmCompilerBinary),& objv_object_c
     ,sizeof(vmCompilerBinary)
     ,NULL,0,0};
 
+vmCompilerBinary * vmCompilerBinaryAlloc(objv_zone_t * zone){
+    return (vmCompilerBinary *) objv_object_alloc(zone, &vmCompilerBinaryClass);
+}
 
 
 static vmMetaOffset vmCompilerBinaryUniqueKey(vmCompilerBinary * binary,const char * key,vm_int32_t length,vm_boolean_t isNilString){
