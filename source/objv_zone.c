@@ -12,6 +12,8 @@
 
 #undef objv_zone_malloc
 #undef objv_zone_realloc
+#undef objv_zone_retain
+#undef objv_zone_release
 
 static void * objv_zone_default_malloc(struct _objv_zone_t *zone, size_t size,const char * file,int line){
     return malloc(size);
@@ -89,4 +91,26 @@ void objv_zone_memzero(objv_zone_t * zone,void * ptr,size_t size){
     }
     
     (* zone->memzero)( zone ,ptr , size);
+}
+
+void objv_zone_retain(objv_zone_t * zone,void * ptr,const char * file,int line){
+    
+    if(zone == NULL){
+        zone = objv_zone_default();
+    }
+    
+    if(zone->retain){
+        (* zone->retain)( zone ,ptr ,file,line);
+    }
+}
+
+
+void objv_zone_release(objv_zone_t * zone,void * ptr,const char * file,int line){
+    if(zone == NULL){
+        zone = objv_zone_default();
+    }
+    
+    if(zone->retain){
+        (* zone->release)( zone ,ptr ,file,line);
+    }
 }

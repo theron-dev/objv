@@ -12,7 +12,7 @@
 #include "objv.h"
 #include "objv_array.h"
 #include "objv_autorelease.h"
-
+#include "objv_value.h"
 
 OBJV_KEY_DEC(ArrayIterator)
 OBJV_KEY_IMP(ArrayIterator)
@@ -60,6 +60,7 @@ static void objv_array_iterator_method_dealloc (objv_class_t * clazz, objv_objec
     }
 }
 
+
 static objv_method_t objv_array_iterator_methods[] = {
     {OBJV_KEY(next),"@()",(objv_method_impl_t)objv_array_iterator_methods_next}
     ,{OBJV_KEY(init),"@(*)",(objv_method_impl_t)objv_array_iterator_method_init}
@@ -71,7 +72,7 @@ static objv_class_t objv_array_iterator_class = {OBJV_KEY(ArrayIterator),& objv_
     ,objv_array_iterator_methods,sizeof(objv_array_iterator_methods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(objv_array_iterator_t)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 OBJV_KEY_IMP(Array)
@@ -101,6 +102,29 @@ static void objv_array_methods_dealloc(objv_class_t * clazz, objv_object_t * obj
     }
 }
 
+static objv_object_t * objv_array_methods_init(objv_class_t * clazz, objv_object_t * object,va_list ap){
+    
+    if(clazz->superClass){
+        object = objv_object_initv(clazz->superClass, object,ap);
+    }
+    
+    if(object){
+        
+        objv_array_t * array = (objv_array_t *) object;
+        unsigned int capacity = va_arg(ap, unsigned int);
+        
+        if(capacity == 0){
+            capacity = 20;
+        }
+        
+        array->size = capacity;
+        array->objects = objv_zone_malloc(object->zone, capacity * sizeof(objv_object_t *));
+        
+    }
+    
+    return object;
+}
+
 static unsigned int objv_array_methods_length(objv_class_t * clazz, objv_object_t * obj){
     
     objv_array_t * array = (objv_array_t *) obj;
@@ -113,35 +137,45 @@ static objv_iterator_t * objv_array_method_iterator (objv_class_t * clazz,objv_o
     return (objv_iterator_t *) objv_object_autorelease((objv_object_t *) objv_object_alloc(obj->zone, &objv_array_iterator_class,array) );
 }
 
-static objv_method_t objv_array_methods[] = {
-    {OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_array_methods_dealloc}
-    ,{OBJV_KEY(length),"I()",(objv_method_impl_t)objv_array_methods_length}
-    ,{OBJV_KEY(iterator),"@()",(objv_method_impl_t)objv_array_method_iterator}
-};
+static objv_object_t * objv_array_methods_objectForKey(objv_class_t * clazz,objv_object_t * object,objv_object_t * key){
+    int index = objv_object_intValue(key, -1);
+    objv_array_t * array = (objv_array_t *) object;
+    return objv_array_objectAt(array, index);
+}
 
-static objv_property_t objv_array_propertys[] = {
-    {OBJV_KEY(length),& objv_type_uint,& objv_array_methods[1],NULL}
-};
+static void objv_array_methods_setObjectForKey(objv_class_t * clazz,objv_object_t * object,objv_object_t * key,objv_object_t * value){
+    int index = objv_object_intValue(key, -1);
+    objv_array_t * array = (objv_array_t *) object;
+    objv_array_replaceAt(array, value, index);
+}
 
-objv_class_t objv_array_class = {OBJV_KEY(Array),& objv_object_class
-    ,objv_array_methods,sizeof(objv_array_methods) / sizeof(objv_method_t)
-    ,objv_array_propertys,sizeof(objv_array_propertys) / sizeof(objv_property_t)
-    ,sizeof(objv_array_t)
-    ,NULL,0,0};
+OBJV_CLASS_METHOD_IMP_BEGIN(Array)
+
+OBJV_CLASS_METHOD_IMP(dealloc, "v()", objv_array_methods_dealloc)
+
+OBJV_CLASS_METHOD_IMP(init,"@(*)",objv_array_methods_init)
+
+OBJV_CLASS_METHOD_IMP(length,"I()",objv_array_methods_length)
+
+OBJV_CLASS_METHOD_IMP(iterator,"I()",objv_array_method_iterator)
+
+OBJV_CLASS_METHOD_IMP(objectForKey,"@(@)",objv_array_methods_objectForKey)
+
+OBJV_CLASS_METHOD_IMP(setObjectForKey,"v(@,@)",objv_array_methods_setObjectForKey)
+
+OBJV_CLASS_METHOD_IMP_END(Array)
+
+OBJV_CLASS_PROPERTY_IMP_BEGIN(Array)
+
+OBJV_CLASS_PROPERTY_IMP(length, uint, OBJV_CLASS_METHOD(Array, 2), NULL, objv_false)
+
+OBJV_CLASS_PROPERTY_IMP_END(Array)
+
+OBJV_CLASS_IMP_P_M(Array, OBJV_CLASS(Object), objv_array_t)
 
 
 objv_array_t * objv_array_alloc(objv_zone_t * zone,unsigned int capacity){
-    
-    if(capacity == 0){
-        capacity = 20;
-    }
-    
-    objv_array_t * array = (objv_array_t *) objv_object_alloc(zone, &objv_array_class);
-    
-    array->size = capacity;
-    array->objects = objv_zone_malloc(zone, capacity * sizeof(objv_object_t *));
-    
-    return array;
+    return (objv_array_t *) objv_object_alloc(zone, OBJV_CLASS(Array),capacity);
 }
 
 objv_array_t * objv_array_new(objv_zone_t * zone,unsigned int capacity){
@@ -150,11 +184,9 @@ objv_array_t * objv_array_new(objv_zone_t * zone,unsigned int capacity){
 
 objv_array_t * objv_array_alloc_copy(objv_zone_t * zone,objv_array_t * array){
     
-    objv_array_t * arr = (objv_array_t *) objv_object_alloc(zone, &objv_array_class);
+    objv_array_t * arr = objv_array_alloc(zone,array->size);
     
-    arr->size = array->size;
     arr->length = array->length;
-    arr->objects = objv_zone_malloc(zone, arr->size * sizeof(objv_object_t *));
     
     memcpy(arr->objects, array->objects, arr->size * sizeof(objv_object_t *));
     
@@ -247,6 +279,18 @@ void objv_array_insertAt(objv_array_t * array,objv_object_t * object,int index){
         
     }
     
+}
+
+void objv_array_replaceAt(objv_array_t * array,objv_object_t * object,int index){
+    
+    if(array && object && index >=0 && index < array->length){
+        
+        objv_object_retain(object);
+        objv_object_release(array->objects[index]);
+        
+        array->objects[index] = object;
+    
+    }
 }
 
 void objv_array_clear(objv_array_t * array){

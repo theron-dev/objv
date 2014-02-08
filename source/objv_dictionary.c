@@ -13,6 +13,7 @@
 #include "objv.h"
 #include "objv_dictionary.h"
 #include "objv_autorelease.h"
+#include "objv_value.h"
 
 OBJV_KEY_IMP(Dictionary)
 
@@ -71,7 +72,7 @@ static int objv_dictionary_key_compare(void * key1,void * key2){
     return 0;
 }
 
-static objv_object_t * objv_dictionary_methods_alloc(objv_class_t * clazz, objv_object_t * object,va_list ap){
+static objv_object_t * objv_dictionary_methods_init(objv_class_t * clazz, objv_object_t * object,va_list ap){
     
     if(clazz->superClass){
         object = objv_object_initv(clazz->superClass, object,ap);
@@ -93,22 +94,51 @@ static objv_object_t * objv_dictionary_methods_alloc(objv_class_t * clazz, objv_
     return object;
 }
 
+static unsigned int objv_dictionary_methods_length(objv_class_t * clazz, objv_object_t * object){
+    
+    objv_dictionary_t * dictionary = (objv_dictionary_t *) object;
+    
+    return dictionary->map->length;
+}
 
-static objv_method_t objv_dictionary_methods[] = {
-    {OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_dictionary_methods_dealloc}
-    ,{OBJV_KEY(init),"@(*)",(objv_method_impl_t)objv_dictionary_methods_alloc}
-};
+static objv_object_t * objv_dictionary_methods_objectForKey(objv_class_t * clazz,objv_object_t * object,objv_object_t * key){
+    return objv_dictionary_value((objv_dictionary_t *) object, key);
+}
 
-objv_class_t objv_dictionary_class = {OBJV_KEY(Dictionary),& objv_object_class
-    ,objv_dictionary_methods,sizeof(objv_dictionary_methods) / sizeof(objv_method_t)
-    ,NULL,0
-    ,sizeof(objv_dictionary_t)
-    ,NULL,0,0};
+static void objv_dictionary_methods_setObjectForKey(objv_class_t * clazz,objv_object_t * object,objv_object_t * key,objv_object_t * value){
+    if(value){
+        objv_dictionary_setValue((objv_dictionary_t *) object, key, value);
+    }
+    else{
+        objv_dictionary_remove((objv_dictionary_t *) object, key);
+    }
+}
 
+OBJV_CLASS_METHOD_IMP_BEGIN(Dictionary)
+
+OBJV_CLASS_METHOD_IMP(dealloc, "v()", objv_dictionary_methods_dealloc)
+
+OBJV_CLASS_METHOD_IMP(init,"@(*)",objv_dictionary_methods_init)
+
+OBJV_CLASS_METHOD_IMP(length,"I()",objv_dictionary_methods_length)
+
+OBJV_CLASS_METHOD_IMP(objectForKey,"@(@)",objv_dictionary_methods_objectForKey)
+
+OBJV_CLASS_METHOD_IMP(setObjectForKey,"v(@,@)",objv_dictionary_methods_setObjectForKey)
+
+OBJV_CLASS_METHOD_IMP_END(Dictionary)
+
+OBJV_CLASS_PROPERTY_IMP_BEGIN(Dictionary)
+
+OBJV_CLASS_PROPERTY_IMP(length, uint, OBJV_CLASS_METHOD(Dictionary, 2), NULL, objv_false)
+
+OBJV_CLASS_PROPERTY_IMP_END(Dictionary)
+
+OBJV_CLASS_IMP_P_M(Dictionary, OBJV_CLASS(Object), objv_dictionary_t)
 
 
 objv_dictionary_t * objv_dictionary_alloc(objv_zone_t * zone,unsigned int capacity){
-    return (objv_dictionary_t *) objv_object_alloc(zone, &objv_dictionary_class,capacity);
+    return (objv_dictionary_t *) objv_object_alloc(zone, OBJV_CLASS(Dictionary),capacity);
 }
 
 objv_dictionary_t * objv_dictionary_new(objv_zone_t * zone,unsigned int capacity){
@@ -173,7 +203,7 @@ void objv_dictionary_remove(objv_dictionary_t * dictionary,objv_object_t * key){
     
 }
 
-int objv_dictionary_length(objv_dictionary_t * dictionary){
+unsigned int objv_dictionary_length(objv_dictionary_t * dictionary){
     if(dictionary ){
         return dictionary->map->length;
     }

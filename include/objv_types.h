@@ -16,8 +16,8 @@
 
 typedef int objv_boolean_t;
 
-extern objv_boolean_t objv_true;
-extern objv_boolean_t objv_false;
+#define objv_true  1
+#define objv_false 0
 
 typedef double objv_timeinval_t;
 

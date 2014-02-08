@@ -26,7 +26,12 @@ extern "C" {
     OBJV_KEY_DEC(doubleValue)
     OBJV_KEY_DEC(booleanValue)
     
+    OBJV_KEY_DEC(objectForKey);
+    OBJV_KEY_DEC(setObjectForKey);
+    
     OBJV_KEY_DEC(Value)
+    
+    OBJV_CLASS_DEC(Value)
     
     typedef struct _objv_value_t {
         objv_object_t base;
@@ -141,6 +146,14 @@ extern "C" {
     
     typedef objv_object_t * (* objv_object_property_objectValue_t) (objv_class_t * clazz,objv_object_t * object);
     
+    
+    typedef objv_object_t * (* objv_object_method_objectForKey_t) (objv_class_t * clazz,objv_object_t * object,objv_object_t * key);
+    
+    typedef void (* objv_object_method_setObjectForKey_t)(objv_class_t * clazz,objv_object_t * object,objv_object_t * key,objv_object_t * value);
+    
+    objv_object_t * objv_object_objectForKey(objv_class_t * clazz,objv_object_t * object,objv_object_t * key);
+    
+    void objv_object_setObjectForKey(objv_class_t * clazz,objv_object_t * object,objv_object_t * key,objv_object_t * value);
     
     int objv_object_intValue(objv_object_t * object,int defaultValue);
     

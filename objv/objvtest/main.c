@@ -18,6 +18,7 @@
 #include "objv_json.h"
 #include "objv_zombie.h"
 #include "objv_vm.h"
+#include "objv_vmcompiler.h"
 
 extern void objv_mem_print();
 
@@ -57,7 +58,7 @@ objv_class_t ConsoleTaskClass = { OBJV_KEY(ConsoleTask),& objv_dispatch_task_cla
     ,ConsoleTaskMethods,sizeof(ConsoleTaskMethods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(objv_dispatch_task_t)
-    ,NULL,0,0};
+    ,NULL,0};
 
 int main(int argc, const char * argv[])
 {
@@ -70,11 +71,23 @@ int main(int argc, const char * argv[])
     
     vmContext * ctx = vmContextAlloc(& zombie.zone);
     
-    objv_string_t * source = objv_string_new(& zombie.zone, "function main(){ return \"OK\"; }");
+    objv_string_t * source = objv_string_new(& zombie.zone, "var(weak) a; function main(){ this.a = new Object(); var data = new Dictionary(); data[\"a\"] = \"OK\"; data[\"b\"] += 100;  data[\"b\"] *= 100; return this.encodeString(data); }");
     
-    vmVariant v = vmRun(ctx,source , NULL);
+    objv_array_t * errors = objv_array_new(& zombie.zone, 4);
+    
+    vmVariant v = vmRun(ctx,source , errors);
+    
+    objv_string_t * s = vmVariantToString(& zombie.zone,v);
+    
+    vmCompilerErrorsLog(errors);
+    
+    if(s){
+        objv_log("%s",s->UTF8String);
+    }
     
     objv_object_release((objv_object_t *) ctx);
+    
+    objv_autorelease_pool_pop();
     
     objv_zombie_destroy(& zombie);
     

@@ -24,6 +24,9 @@ OBJV_KEY_IMP(floatValue)
 OBJV_KEY_IMP(doubleValue)
 OBJV_KEY_IMP(booleanValue)
 
+OBJV_KEY_IMP(objectForKey);
+OBJV_KEY_IMP(setObjectForKey);
+
 OBJV_KEY_IMP(Value)
 
 static long objv_value_method_hashCode (objv_class_t * clazz, objv_object_t * object){
@@ -92,7 +95,7 @@ static long objv_value_method_hashCode (objv_class_t * clazz, objv_object_t * ob
 
 static objv_boolean_t objv_value_method_equal(objv_class_t * clazz, objv_object_t * object,objv_object_t * value){
     
-    if(object != value && objv_object_isKindOfClass(value, & objv_value_class)){
+    if(object != value && objv_object_isKindOfClass(value, OBJV_CLASS(Value))){
         
         objv_value_t * v1 = (objv_value_t *) object;
         objv_value_t * v2 = (objv_value_t *) value;
@@ -217,45 +220,65 @@ static objv_boolean_t objv_value_methods_booleanValue(objv_class_t * clazz,objv_
     return objv_value_booleanValue((objv_value_t *) obj, 0);
 }
 
-static objv_method_t objv_value_methods[] = {
-    {OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_value_methods_dealloc}
-    ,{OBJV_KEY(hashCode),"l()",(objv_method_impl_t)objv_value_method_hashCode}
-    ,{OBJV_KEY(equal),"l()",(objv_method_impl_t)objv_value_method_equal}
-    ,{OBJV_KEY(stringValue),"@()",(objv_method_impl_t)objv_value_methods_stringValue}
-    ,{OBJV_KEY(intValue),"i()",(objv_method_impl_t)objv_value_methods_intValue}
-    ,{OBJV_KEY(uintValue),"I()",(objv_method_impl_t)objv_value_methods_uintValue}
-    ,{OBJV_KEY(longValue),"l()",(objv_method_impl_t)objv_value_methods_longValue}
-    ,{OBJV_KEY(ulongValue),"L()",(objv_method_impl_t)objv_value_methods_ulongValue}
-    ,{OBJV_KEY(longLongValue),"q()",(objv_method_impl_t)objv_value_methods_longLongValue}
-    ,{OBJV_KEY(ulongLongValue),"Q()",(objv_method_impl_t)objv_value_methods_ulongLongValue}
-    ,{OBJV_KEY(floatValue),"f()",(objv_method_impl_t)objv_value_methods_floatValue}
-    ,{OBJV_KEY(doubleValue),"d()",(objv_method_impl_t)objv_value_methods_doubleValue}
-    ,{OBJV_KEY(booleanValue),"b()",(objv_method_impl_t)objv_value_methods_booleanValue}
-};
+OBJV_CLASS_METHOD_IMP_BEGIN(Value)
 
-static objv_property_t objv_value_propertys[] = {
-    {OBJV_KEY(stringValue),&objv_type_object,&objv_value_methods[3],NULL}
-    ,{OBJV_KEY(intValue),&objv_type_int,&objv_value_methods[4],NULL}
-    ,{OBJV_KEY(uintValue),&objv_type_uint,&objv_value_methods[5],NULL}
-    ,{OBJV_KEY(longValue),&objv_type_long,&objv_value_methods[6],NULL}
-    ,{OBJV_KEY(ulongValue),&objv_type_ulong,&objv_value_methods[7],NULL}
-    ,{OBJV_KEY(longLongValue),&objv_type_longLong,&objv_value_methods[8],NULL}
-    ,{OBJV_KEY(ulongLongValue),&objv_type_ulongLong,&objv_value_methods[9],NULL}
-    ,{OBJV_KEY(floatValue),&objv_type_float,&objv_value_methods[10],NULL}
-    ,{OBJV_KEY(doubleValue),&objv_type_double,&objv_value_methods[11],NULL}
-    ,{OBJV_KEY(booleanValue),&objv_type_boolean,&objv_value_methods[12],NULL}
-};
+OBJV_CLASS_METHOD_IMP(dealloc, "v()", objv_value_methods_dealloc)
 
-objv_class_t objv_value_class = {OBJV_KEY(Value),& objv_object_class
-    ,objv_value_methods,sizeof(objv_value_methods) / sizeof(objv_method_t)
-    ,objv_value_propertys,sizeof(objv_value_propertys) / sizeof(objv_property_t)
-    ,sizeof(objv_value_t)
-    ,NULL,0,0};
+OBJV_CLASS_METHOD_IMP(hashCode,"l()",objv_value_method_hashCode)
 
+OBJV_CLASS_METHOD_IMP(equal,"l()",objv_value_method_equal)
+
+OBJV_CLASS_METHOD_IMP(stringValue,"@()",objv_value_methods_stringValue)
+
+OBJV_CLASS_METHOD_IMP(intValue,"i()",objv_value_methods_intValue)
+
+OBJV_CLASS_METHOD_IMP(uintValue,"I()",objv_value_methods_uintValue)
+
+OBJV_CLASS_METHOD_IMP(longValue,"l()",objv_value_methods_longValue)
+
+OBJV_CLASS_METHOD_IMP(ulongValue,"L()",objv_value_methods_ulongValue)
+
+OBJV_CLASS_METHOD_IMP(longLongValue,"q()",objv_value_methods_longLongValue)
+
+OBJV_CLASS_METHOD_IMP(ulongLongValue,"Q()",objv_value_methods_ulongLongValue)
+
+OBJV_CLASS_METHOD_IMP(floatValue,"f()",objv_value_methods_floatValue)
+
+OBJV_CLASS_METHOD_IMP(doubleValue,"d()",objv_value_methods_doubleValue)
+
+OBJV_CLASS_METHOD_IMP(booleanValue,"b()",objv_value_methods_booleanValue)
+
+OBJV_CLASS_METHOD_IMP_END(Value)
+
+OBJV_CLASS_PROPERTY_IMP_BEGIN(Value)
+
+OBJV_CLASS_PROPERTY_IMP(stringValue, object, OBJV_CLASS_METHOD(Value, 3), NULL, objv_false)
+
+OBJV_CLASS_PROPERTY_IMP(intValue,int,OBJV_CLASS_METHOD(Value,4),NULL,objv_false)
+                        
+OBJV_CLASS_PROPERTY_IMP(uintValue,uint,OBJV_CLASS_METHOD(Value,5),NULL,objv_false)
+
+OBJV_CLASS_PROPERTY_IMP(longValue,long,OBJV_CLASS_METHOD(Value,6),NULL,objv_false)
+
+OBJV_CLASS_PROPERTY_IMP(ulongValue,ulong,OBJV_CLASS_METHOD(Value,7),NULL,objv_false)
+
+OBJV_CLASS_PROPERTY_IMP(longLongValue,longLong,OBJV_CLASS_METHOD(Value,8),NULL,objv_false)
+
+OBJV_CLASS_PROPERTY_IMP(ulongLongValue,ulongLong,OBJV_CLASS_METHOD(Value,9),NULL,objv_false)
+
+OBJV_CLASS_PROPERTY_IMP(floatValue,float,OBJV_CLASS_METHOD(Value,10),NULL,objv_false)
+
+OBJV_CLASS_PROPERTY_IMP(doubleValue,double,OBJV_CLASS_METHOD(Value,11),NULL,objv_false)
+
+OBJV_CLASS_PROPERTY_IMP(booleanValue,boolean,OBJV_CLASS_METHOD(Value,12),NULL,objv_false)
+
+OBJV_CLASS_PROPERTY_IMP_END(Value)
+
+OBJV_CLASS_IMP_P_M(Value, OBJV_CLASS(Object), objv_value_t)
 
 objv_value_t * objv_value_alloc_nullValue(objv_zone_t * zone){
  
-    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,&objv_value_class);
+    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,OBJV_CLASS(Value));
     
     v->type = & objv_type_void;
    
@@ -264,7 +287,7 @@ objv_value_t * objv_value_alloc_nullValue(objv_zone_t * zone){
 
 objv_value_t * objv_value_alloc_intValue(objv_zone_t * zone,int value){
     
-    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,&objv_value_class);
+    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,OBJV_CLASS(Value));
     
     v->type = & objv_type_int;
     v->intValue = value;
@@ -275,7 +298,7 @@ objv_value_t * objv_value_alloc_intValue(objv_zone_t * zone,int value){
 
 objv_value_t * objv_value_alloc_uintValue(objv_zone_t * zone,unsigned int value){
     
-    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,&objv_value_class);
+    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,OBJV_CLASS(Value));
     
     v->type = & objv_type_uint;
     v->uintValue = value;
@@ -286,7 +309,7 @@ objv_value_t * objv_value_alloc_uintValue(objv_zone_t * zone,unsigned int value)
 
 objv_value_t * objv_value_alloc_longValue(objv_zone_t * zone,long value){
     
-    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,&objv_value_class);
+    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,OBJV_CLASS(Value));
     
     v->type = & objv_type_long;
     v->longValue = value;
@@ -296,7 +319,7 @@ objv_value_t * objv_value_alloc_longValue(objv_zone_t * zone,long value){
 
 objv_value_t * objv_value_alloc_ulongValue(objv_zone_t * zone,unsigned long value){
     
-    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,&objv_value_class);
+    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,OBJV_CLASS(Value));
     
     v->type = & objv_type_ulong;
     v->ulongValue = value;
@@ -306,7 +329,7 @@ objv_value_t * objv_value_alloc_ulongValue(objv_zone_t * zone,unsigned long valu
 
 objv_value_t * objv_value_alloc_longLongValue(objv_zone_t * zone,long long value){
     
-    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,&objv_value_class);
+    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,OBJV_CLASS(Value));
     
     v->type = & objv_type_longLong;
     v->longLongValue = value;
@@ -317,7 +340,7 @@ objv_value_t * objv_value_alloc_longLongValue(objv_zone_t * zone,long long value
 
 objv_value_t * objv_value_alloc_ulongLongValue(objv_zone_t * zone,unsigned long long value){
     
-    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,&objv_value_class);
+    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,OBJV_CLASS(Value));
     
     v->type = & objv_type_ulongLong;
     v->ulongLongValue = value;
@@ -328,7 +351,7 @@ objv_value_t * objv_value_alloc_ulongLongValue(objv_zone_t * zone,unsigned long 
 
 objv_value_t * objv_value_alloc_floatValue(objv_zone_t * zone,float value){
     
-    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,&objv_value_class);
+    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,OBJV_CLASS(Value));
     
     v->type = & objv_type_float;
     v->floatValue = value;
@@ -339,7 +362,7 @@ objv_value_t * objv_value_alloc_floatValue(objv_zone_t * zone,float value){
 
 objv_value_t * objv_value_alloc_doubleValue(objv_zone_t * zone,double value){
     
-    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,&objv_value_class);
+    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,OBJV_CLASS(Value));
     
     v->type = & objv_type_double;
     v->doubleValue = value;
@@ -350,7 +373,7 @@ objv_value_t * objv_value_alloc_doubleValue(objv_zone_t * zone,double value){
 
 objv_value_t * objv_value_alloc_booleanValue(objv_zone_t * zone,objv_boolean_t value){
     
-    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,&objv_value_class);
+    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,OBJV_CLASS(Value));
     
     v->type = & objv_type_boolean;
     v->booleanValue = value;
@@ -361,7 +384,7 @@ objv_value_t * objv_value_alloc_booleanValue(objv_zone_t * zone,objv_boolean_t v
 
 objv_value_t * objv_value_alloc_ptrValue(objv_zone_t * zone,void * value){
     
-    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,&objv_value_class);
+    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,OBJV_CLASS(Value));
     
     v->type = & objv_type_ptr;
     v->ptrValue = value;
@@ -372,7 +395,7 @@ objv_value_t * objv_value_alloc_ptrValue(objv_zone_t * zone,void * value){
 
 objv_value_t * objv_value_alloc_structValue(objv_zone_t * zone,void * value,objv_type_t * type){
     
-    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,&objv_value_class);
+    objv_value_t * v = (objv_value_t *) objv_object_alloc(zone,OBJV_CLASS(Value));
     
     v->type = type;
     v->ptrValue = objv_zone_malloc(zone,type->size);
@@ -899,7 +922,7 @@ int objv_object_intValue(objv_object_t * object,int defaultValue){
     
     if(object){
         
-        if(objv_object_isKindOfClass(object, & objv_value_class)){
+        if(objv_object_isKindOfClass(object, OBJV_CLASS(Value))){
             return objv_value_intValue((objv_value_t *) object, defaultValue);
         }
         
@@ -913,7 +936,7 @@ int objv_object_intValue(objv_object_t * object,int defaultValue){
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_intValue_t)prop->getter)(c,object);
+            return (* (objv_object_property_intValue_t)prop->getter->impl)(c,object);
             
         }
         
@@ -926,7 +949,7 @@ unsigned int objv_object_uintValue(objv_object_t * object,unsigned int defaultVa
     
     if(object){
         
-        if(objv_object_isKindOfClass(object, & objv_value_class)){
+        if(objv_object_isKindOfClass(object, OBJV_CLASS(Value))){
             return objv_value_uintValue((objv_value_t *) object, defaultValue);
         }
         
@@ -940,7 +963,7 @@ unsigned int objv_object_uintValue(objv_object_t * object,unsigned int defaultVa
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_uintValue_t)prop->getter)(c,object);
+            return (* (objv_object_property_uintValue_t)prop->getter->impl)(c,object);
             
         }
         
@@ -953,7 +976,7 @@ long objv_object_longValue(objv_object_t * object,long defaultValue){
     
     if(object){
         
-        if(objv_object_isKindOfClass(object, & objv_value_class)){
+        if(objv_object_isKindOfClass(object, OBJV_CLASS(Value))){
             return objv_value_longValue((objv_value_t *) object, defaultValue);
         }
         
@@ -967,7 +990,7 @@ long objv_object_longValue(objv_object_t * object,long defaultValue){
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_longValue_t)prop->getter)(c,object);
+            return (* (objv_object_property_longValue_t)prop->getter->impl)(c,object);
             
         }
         
@@ -981,7 +1004,7 @@ unsigned long objv_object_ulongValue(objv_object_t * object,unsigned long defaul
     
     if(object){
         
-        if(objv_object_isKindOfClass(object, & objv_value_class)){
+        if(objv_object_isKindOfClass(object, OBJV_CLASS(Value))){
             return objv_value_ulongValue((objv_value_t *) object, defaultValue);
         }
         
@@ -995,7 +1018,7 @@ unsigned long objv_object_ulongValue(objv_object_t * object,unsigned long defaul
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_ulongValue_t)prop->getter)(c,object);
+            return (* (objv_object_property_ulongValue_t)prop->getter->impl)(c,object);
             
         }
         
@@ -1009,7 +1032,7 @@ long long objv_object_longLongValue(objv_object_t * object,long long defaultValu
     
     if(object){
         
-        if(objv_object_isKindOfClass(object, & objv_value_class)){
+        if(objv_object_isKindOfClass(object, OBJV_CLASS(Value))){
             return objv_value_longLongValue((objv_value_t *) object, defaultValue);
         }
         
@@ -1023,7 +1046,7 @@ long long objv_object_longLongValue(objv_object_t * object,long long defaultValu
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_longLongValue_t)prop->getter)(c,object);
+            return (* (objv_object_property_longLongValue_t)prop->getter->impl)(c,object);
             
         }
         
@@ -1037,7 +1060,7 @@ unsigned long long objv_object_ulongLongValue(objv_object_t * object,unsigned lo
     
     if(object){
         
-        if(objv_object_isKindOfClass(object, & objv_value_class)){
+        if(objv_object_isKindOfClass(object, OBJV_CLASS(Value))){
             return objv_value_ulongLongValue((objv_value_t *) object, defaultValue);
         }
         
@@ -1051,7 +1074,7 @@ unsigned long long objv_object_ulongLongValue(objv_object_t * object,unsigned lo
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_ulongLongValue_t)prop->getter)(c,object);
+            return (* (objv_object_property_ulongLongValue_t)prop->getter->impl)(c,object);
             
         }
         
@@ -1065,7 +1088,7 @@ float objv_object_floatValue(objv_object_t * object,float defaultValue){
     
     if(object){
         
-        if(objv_object_isKindOfClass(object, & objv_value_class)){
+        if(objv_object_isKindOfClass(object, OBJV_CLASS(Value))){
             return objv_value_floatValue((objv_value_t *) object, defaultValue);
         }
         
@@ -1079,7 +1102,7 @@ float objv_object_floatValue(objv_object_t * object,float defaultValue){
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_floatValue_t)prop->getter)(c,object);
+            return (* (objv_object_property_floatValue_t)prop->getter->impl)(c,object);
             
         }
         
@@ -1092,7 +1115,7 @@ double objv_object_doubleValue(objv_object_t * object,double defaultValue){
     
     if(object){
         
-        if(objv_object_isKindOfClass(object, & objv_value_class)){
+        if(objv_object_isKindOfClass(object, OBJV_CLASS(Value))){
             return objv_value_doubleValue((objv_value_t *) object, defaultValue);
         }
         
@@ -1106,7 +1129,7 @@ double objv_object_doubleValue(objv_object_t * object,double defaultValue){
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_uintValue_t)prop->getter)(c,object);
+            return (* (objv_object_property_uintValue_t)prop->getter->impl)(c,object);
             
         }
         
@@ -1119,7 +1142,7 @@ double objv_object_doubleValue(objv_object_t * object,double defaultValue){
 objv_boolean_t objv_object_booleanValue(objv_object_t * object,objv_boolean_t defaultValue){
     if(object){
         
-        if(objv_object_isKindOfClass(object, & objv_value_class)){
+        if(objv_object_isKindOfClass(object, OBJV_CLASS(Value))){
             return objv_value_booleanValue((objv_value_t *) object, defaultValue);
         }
         
@@ -1133,7 +1156,7 @@ objv_boolean_t objv_object_booleanValue(objv_object_t * object,objv_boolean_t de
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_booleanValue_t)prop->getter)(c,object);
+            return (* (objv_object_property_booleanValue_t)prop->getter->impl)(c,object);
             
         }
         
@@ -1160,7 +1183,7 @@ objv_string_t * objv_object_stringValue(objv_object_t * object,objv_string_t * d
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_stringValue_t)prop->getter)(c,object);
+            return (* (objv_object_property_stringValue_t)prop->getter->impl)(c,object);
             
         }
         
@@ -1850,4 +1873,46 @@ void objv_property_setObjectValue(objv_class_t * clazz,objv_object_t * object,ob
             (* (objv_object_property_setObjectValue_t) property->setter)(clazz,object,value);
         }
     }
+}
+
+
+objv_object_t * objv_object_objectForKey(objv_class_t * clazz,objv_object_t * object,objv_object_t * key){
+    
+    if(clazz && object && key){
+        
+        objv_class_t * c = clazz;
+        
+        objv_method_t * method = NULL;
+        
+        while(c && (method = objv_class_getMethod(c, OBJV_KEY(objectForKey))) == NULL){
+            
+            c = c->superClass;
+        }
+        
+        if(method){
+            return (* (objv_object_method_objectForKey_t) method->impl)(c,object,key);
+        }
+    }
+    
+    return NULL;
+}
+
+void objv_object_setObjectForKey(objv_class_t * clazz,objv_object_t * object,objv_object_t * key,objv_object_t * value){
+    
+    if(clazz && object && key){
+        
+        objv_class_t * c = clazz;
+        
+        objv_method_t * method = NULL;
+        
+        while(c && (method = objv_class_getMethod(c, OBJV_KEY(setObjectForKey))) == NULL){
+            
+            c = c->superClass;
+        }
+        
+        if(method){
+            (* (objv_object_method_setObjectForKey_t) method->impl)(c,object,key,value);
+        }
+    }
+    
 }

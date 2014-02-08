@@ -42,11 +42,11 @@ static objv_method_t objv_dispatch_queue_methods[] = {
     {OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_dispatch_queue_method_dealloc}
 };
 
-objv_class_t objv_dispatch_queue_class = {OBJV_KEY(DispatchQueue),& objv_object_class
+objv_class_t objv_dispatch_queue_class = {OBJV_KEY(DispatchQueue),& objv_Object_class
     ,objv_dispatch_queue_methods,sizeof(objv_dispatch_queue_methods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(objv_dispatch_queue_t)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 objv_dispatch_queue_t * objv_dispatch_queue_alloc(objv_zone_t * zone,const char * name,unsigned int maxThreadCount){
@@ -149,7 +149,7 @@ objv_class_t objv_dispatch_queue_task_class = {OBJV_KEY(DispatchQueueTask)
     ,sizeof(objv_dispatch_queue_task_methods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(objv_dispatch_queue_task_t)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 static void * objv_dispatch_queue_thread(void * userInfo){

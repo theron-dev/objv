@@ -25,7 +25,7 @@ extern "C" {
         objv_hash_map_t * READONLY map;
     } objv_dictionary_t;
     
-    extern objv_class_t objv_dictionary_class;
+    OBJV_CLASS_DEC(Dictionary)
     
     objv_dictionary_t * objv_dictionary_alloc(objv_zone_t * zone,unsigned int capacity);
     
@@ -37,7 +37,7 @@ extern "C" {
     
     void objv_dictionary_remove(objv_dictionary_t * dictionary,objv_object_t * key);
     
-    int objv_dictionary_length(objv_dictionary_t * dictionary);
+    unsigned int objv_dictionary_length(objv_dictionary_t * dictionary);
     
     objv_object_t * objv_dictionary_keyAt(objv_dictionary_t * dictionary,int index);
     

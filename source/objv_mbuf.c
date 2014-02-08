@@ -180,10 +180,11 @@ void objv_mbuf_formatv(objv_mbuf_t * mbuf,const char * format,va_list va){
             }
             else if( *p == 's'){
                 {
-                    char * s = va_arg(va, char *);
-                    if(s){
-                        objv_mbuf_append(mbuf, s, strlen(s));
+                    char * svalue = va_arg(va, char *);
+                    if(svalue){
+                        objv_mbuf_append(mbuf, svalue, strlen(svalue));
                     }
+                    s = 0;
                 }
             }
             else if( *p == '%'){

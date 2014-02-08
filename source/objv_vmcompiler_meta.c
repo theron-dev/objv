@@ -1063,12 +1063,14 @@ static vmCompilerMeta * vmCompilerExecExpression(objv_tokenizer_t * tokenizer,ob
                     }
                 }
             }
+            
             if(((objv_object_isKindOfClass((objv_object_t *) tokenizer, & objv_tokenizer_group_class)
                  && (* tokenizer->range.begin.p == '[' || * tokenizer->range.begin.p == '('))
                 || objv_object_isKindOfClass((objv_object_t *) tokenizer, & objv_tokenizer_combi_class))
                && tokenizer->childs->length ==1){
                 return vmCompilerExecExpression((objv_tokenizer_t *) objv_array_objectAt(tokenizer->childs, 0), errors);
             }
+            
             vmCompilerErrorSet(errors,tokenizer->range.begin, "ExecExpression");
         }
     }

@@ -27,11 +27,11 @@ static objv_method_t objv_dispatch_task_methods[] = {
     {OBJV_KEY(run),"v()",(objv_method_impl_t)objv_dispatch_task_method_run}
 };
 
-objv_class_t objv_dispatch_task_class = { OBJV_KEY(DispatchTask),& objv_object_class
+objv_class_t objv_dispatch_task_class = { OBJV_KEY(DispatchTask),& objv_Object_class
     ,objv_dispatch_task_methods,sizeof(objv_dispatch_task_methods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(objv_dispatch_task_t)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 void objv_dispatch_task_run(objv_class_t * clazz,objv_dispatch_task_t * task){
@@ -79,11 +79,11 @@ static objv_method_t objv_dispatch_methods[] = {
     {OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_dispatch_method_dealloc}
 };
 
-objv_class_t objv_dispatch_class = {OBJV_KEY(Dispatch),& objv_object_class
+objv_class_t objv_dispatch_class = {OBJV_KEY(Dispatch),& objv_Object_class
     ,objv_dispatch_methods,sizeof(objv_dispatch_methods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(objv_dispatch_t)
-    ,NULL,0,0};
+    ,NULL,0};
 
 objv_dispatch_t * objv_dispatch_alloc(objv_zone_t * zone,const char * name){
     

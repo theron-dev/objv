@@ -29,8 +29,8 @@ extern "C" {
     typedef int vm_boolean_t;
     typedef const char * vm_string_t;
     
-    extern vm_boolean_t vm_true;
-    extern vm_boolean_t vm_false;
+#define vm_true objv_true
+#define vm_false objv_false
     
     enum {
         vmVariantTypeVoid = 0
@@ -41,7 +41,6 @@ extern "C" {
         ,vmVariantTypeObject = 1<<4
         ,vmVariantTypeString = 1<<5
         ,vmVariantTypeThrowable = 1<<6
-        ,vmVariantTypeWeak = 1<<7
     };
     
     typedef vm_uint32_t vmVariantType;
@@ -127,7 +126,6 @@ extern "C" {
         ,vmMetaTypeObject = vmVariantTypeObject
         ,vmMetaTypeString = vmVariantTypeString
         ,vmMetaTypeThrowable = vmVariantTypeThrowable
-        ,vmMetaTypeWeak = vmVariantTypeWeak
         
         ,vmMetaTypeReturn   = 1<<8
         ,vmMetaTypeOperator = 1<<9
@@ -227,6 +225,9 @@ extern "C" {
             objv_key_t * thisKey;
             objv_key_t * superKey;
             objv_key_t * argumentsKey;
+            objv_key_t * toString;
+            objv_key_t * encodeString;
+            objv_key_t * decodeString;
         } keys;
         struct {
             vmContextScope * scope;
@@ -304,6 +305,10 @@ extern "C" {
     void vmVariantRetain(vmVariant value);
     
     void vmVariantRelease(vmVariant value);
+    
+    void vmVariantWeak(vmVariant value,objv_object_t ** toObject);
+    
+    void vmVariantUnWeak(vmVariant value,objv_object_t ** toObject);
     
 #ifdef __cplusplus
 }

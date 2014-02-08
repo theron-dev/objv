@@ -48,7 +48,7 @@ static vm_boolean_t vm_compiler_class_property(objv_tokenizer_t * tokenizer,vm_i
                     token = (objv_tokenizer_t *) objv_array_objectAt(token->childs, 0);
                     
                     if(objv_object_isKindOfClass((objv_object_t *) token, & objv_tokenizer_name_class)
-                       && objv_tokenizer_equal_string(token, "assign")){
+                       && objv_tokenizer_equal_string(token, "weak")){
                         
                     }
                     else{

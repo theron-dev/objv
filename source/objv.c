@@ -74,11 +74,11 @@ static void objv_object_class_initialize(objv_class_t * clazz){
     
 }
 
-objv_class_t objv_object_class = {OBJV_KEY(Object),NULL
+objv_class_t objv_Object_class = {OBJV_KEY(Object),NULL
     ,objv_object_methods,sizeof(objv_object_methods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(objv_object_t)
-    ,objv_object_class_initialize,0,0};
+    ,objv_object_class_initialize,0};
 
 static objv_hash_map_t * _objv_classs = NULL;
 static objv_mutex_t _objv_classs_mutex;
@@ -90,7 +90,7 @@ objv_class_t * objv_class(objv_key_t * className){
         
         objv_mutex_lock(& _objv_classs_mutex);
         
-        objv_class_t * clazz = (objv_class_t *) objv_hash_map_get(_objv_classs, (void *) className->name);
+        objv_class_t * clazz = (objv_class_t *) objv_hash_map_get(_objv_classs, className);
         
         objv_mutex_unlock(& _objv_classs_mutex);
      
@@ -108,13 +108,13 @@ static void objv_class_reg(objv_class_t * clazz){
             
             objv_mutex_init(& _objv_classs_mutex);
             
-            _objv_classs = objv_hash_map_alloc(32, objv_hash_map_hash_code_string, objv_map_compare_string);
+            _objv_classs = objv_hash_map_alloc(32, objv_hash_map_hash_code_key, objv_map_compare_key);
         }
         
         objv_mutex_lock(& _objv_classs_mutex);
         
-        if(! objv_hash_map_get(_objv_classs, (void *) clazz->name)){
-            objv_hash_map_put(_objv_classs, (void *) clazz->name, clazz);
+        if(! objv_hash_map_get(_objv_classs, clazz->name)){
+            objv_hash_map_put(_objv_classs, clazz->name, clazz);
         }
         
         objv_mutex_unlock(& _objv_classs_mutex);
@@ -128,7 +128,6 @@ void objv_class_initialize(objv_class_t * clazz){
         
         if(clazz->superClass){
             objv_class_initialize(clazz->superClass);
-            clazz->offset = clazz->superClass->size;
         }
         
         if(clazz->name->type == objv_key_type_static){
@@ -239,6 +238,10 @@ objv_object_t * objv_object_initv(objv_class_t * clazz,objv_object_t * object,va
 }
 
 objv_object_t * objv_object_allocv(objv_zone_t * zone,objv_class_t * clazz,va_list ap){
+    return objv_object_alloc_exertv(zone,clazz,0,ap);
+}
+
+objv_object_t * objv_object_alloc_exertv(objv_zone_t * zone,objv_class_t * clazz,size_t exert,va_list ap){
     
     
     if(zone == NULL){
@@ -249,7 +252,7 @@ objv_object_t * objv_object_allocv(objv_zone_t * zone,objv_class_t * clazz,va_li
     
     if(clazz && clazz->size > 0){
         
-        objv_object_t * obj = (objv_object_t *) objv_zone_malloc(zone, clazz->size);
+        objv_object_t * obj = (objv_object_t *) objv_zone_malloc(zone, clazz->size + exert);
         
         objv_zone_memzero(zone, obj, clazz->size);
         
@@ -258,11 +261,25 @@ objv_object_t * objv_object_allocv(objv_zone_t * zone,objv_class_t * clazz,va_li
         obj->retainCount = 1;
         objv_mutex_init(& obj->mutex);
         
-        return objv_object_init(clazz, obj, ap);
+        return objv_object_initv(clazz, obj, ap);
     }
     
     return NULL;
+
     
+}
+
+objv_object_t * objv_object_alloc_exert(objv_zone_t * zone,objv_class_t * clazz,size_t exert,...){
+    va_list ap;
+    objv_object_t * object = NULL;
+    
+    va_start(ap, exert);
+    
+    object = objv_object_alloc_exertv(zone,clazz,exert,ap);
+    
+    va_end(ap);
+    
+    return object;
 }
 
 objv_object_t * objv_object_alloc(objv_zone_t * zone,objv_class_t * clazz,...){
@@ -272,16 +289,20 @@ objv_object_t * objv_object_alloc(objv_zone_t * zone,objv_class_t * clazz,...){
     
     va_start(ap, clazz);
     
-    object = objv_object_allocv(zone,clazz,ap);
+    object = objv_object_alloc_exertv(zone,clazz,0,ap);
     
     va_end(ap);
     
     return object;
 }
 
-objv_object_t * objv_object_retain(objv_object_t * object){
+#undef objv_object_retain
+
+objv_object_t * objv_object_retain(objv_object_t * object,const char * file,int line){
     
     if(object){
+        
+        objv_zone_retain(object->zone, object,file,line);
         
         objv_mutex_lock(& object->mutex);
         
@@ -290,15 +311,20 @@ objv_object_t * objv_object_retain(objv_object_t * object){
         object->retainCount ++;
         
         objv_mutex_unlock(& object->mutex);
+        
+
     }
     
     return object;
 }
 
+#undef objv_object_release
 
-void objv_object_release(objv_object_t * object){
+void objv_object_release(objv_object_t * object,const char * file,int line){
     
     if(object){
+        
+        objv_zone_release(object->zone, object,file,line);
         
         objv_mutex_lock(& object->mutex);
         
@@ -314,6 +340,17 @@ void objv_object_release(objv_object_t * object){
             
             objv_object_dealloc(object->isa,object);
             
+            {
+                objv_object_weak_t * weak = object->weak, * tweak;
+                
+                while (weak) {
+                    * weak->object = NULL;
+                    tweak = weak;
+                    weak = weak->next;
+                    objv_zone_free(object->zone, tweak);
+                }
+            }
+            
             objv_mutex_destroy(& object->mutex);
             
             objv_zone_free(object->zone, object);
@@ -323,22 +360,61 @@ void objv_object_release(objv_object_t * object){
     
 }
 
-void objv_object_lock(objv_object_t * object){
+objv_object_t * objv_object_weak(objv_object_t * object, objv_object_t ** toObject){
+    if(object && toObject){
+        
+        objv_object_weak_t * weak = (objv_object_weak_t *) objv_zone_malloc(object->zone, sizeof(objv_object_weak_t));
+        
+        weak->object = toObject;
+        weak->next = NULL;
+        
+        objv_mutex_lock(& object->mutex);
+     
+        if(object->weak){
+            weak->next = object->weak;
+            object->weak = weak;
+        }
+        else{
+            object->weak = weak;
+        }
+        
+        objv_mutex_unlock(& object->mutex);
+    }
+    return object;
+}
 
-    if(object){
+void objv_object_unweak(objv_object_t * object, objv_object_t ** toObject){
+    if(object && toObject){
+        
+        objv_object_weak_t * weak ,* pweak;
         
         objv_mutex_lock(& object->mutex);
         
-    }
-    
-}
-
-void objv_object_unlock(objv_object_t * object){
-    
-    if(object){
+        pweak = NULL;
+        weak = object->weak;
+        
+        while (weak) {
+            
+            if(toObject == weak->object){
+                
+                if(pweak){
+                    pweak->next = weak->next;
+                    objv_zone_free(object->zone, weak);
+                    weak = pweak->next;
+                }
+                else{
+                    object->weak = weak->next;
+                    objv_zone_free(object->zone, weak);
+                    weak = object->weak;
+                }
+            }
+            else{
+                pweak = weak;
+                weak = weak->next;
+            }
+        }
         
         objv_mutex_unlock(& object->mutex);
-        
     }
 }
 

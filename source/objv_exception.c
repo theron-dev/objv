@@ -10,7 +10,8 @@
 
 #include "objv_os.h"
 #include "objv_exception.h"
-
+#include "objv_autorelease.h"
+#include "objv_value.h"
 
 OBJV_KEY_IMP(Exception)
 
@@ -35,17 +36,26 @@ static objv_object_t * objv_exception_methods_init(objv_class_t * clazz, objv_ob
     return obj;
 }
 
+static objv_string_t * objv_exception_methods_stringValue(objv_class_t * clazz, objv_object_t * obj){
+    objv_exception_t * ex = (objv_exception_t *) obj;
+    return ex->message;
+}
 
 static objv_method_t objv_exception_methods[] = {
     {OBJV_KEY(dealloc),"v()",(objv_method_impl_t) objv_exception_methods_dealloc},
-    {OBJV_KEY(init),"@(*)",(objv_method_impl_t) objv_exception_methods_init}
+    {OBJV_KEY(init),"@(*)",(objv_method_impl_t) objv_exception_methods_init},
+    {OBJV_KEY(stringValue),"@()",(objv_method_impl_t) objv_exception_methods_stringValue}
 };
 
-objv_class_t objv_exception_class = {OBJV_KEY(Exception),& objv_object_class
+static objv_property_t objv_exception_propertys[] = {
+    {OBJV_KEY(stringValue),& objv_type_object,& objv_exception_methods[2],NULL}
+};
+
+objv_class_t objv_exception_class = {OBJV_KEY(Exception),& objv_Object_class
     ,objv_exception_methods,sizeof(objv_exception_methods) / sizeof(objv_method_t)
-    ,NULL,0
+    ,objv_exception_propertys,sizeof(objv_exception_propertys) / sizeof(objv_property_t)
     ,sizeof(objv_exception_t)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 objv_exception_t * objv_exception_alloc(objv_zone_t * zone,int code,const char * format,...){
@@ -84,5 +94,5 @@ objv_exception_t * objv_exception_new(objv_zone_t * zone,int code,const char * f
 }
 
 objv_exception_t * objv_exception_newv(objv_zone_t * zone,int code,const char * format,va_list ap){
-    return (objv_exception_t *) objv_object_retain((objv_object_t *) objv_exception_allocv(zone,code,format,ap));
+    return (objv_exception_t *) objv_object_autorelease((objv_object_t *) objv_exception_allocv(zone,code,format,ap));
 }

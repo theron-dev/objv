@@ -14,38 +14,45 @@
 #include "objv_vmcompiler_meta.h"
 #include "objv_autorelease.h"
 
-vmVariant vmRun(vmContext * ctx,objv_string_t * source,objv_array_t * errors){
-    
+vm_boolean_t vmContextLoadClassSource(vmContext * ctx,const char * className,objv_string_t * source,objv_array_t * errors){
     objv_zone_t * zone = ctx->base.zone;
-    vmCompilerBinary * binary ;
-    char className[128];
-    vmMetaBinary * b;
-    vmVariant v = {vmVariantTypeVoid,0};
-    objv_class_t * clazz;
-    objv_object_t * object;
     vmCompilerClassMeta * classMeta = vmCompilerClassSource(source, errors);
+    vmCompilerBinary * binary ;
+    vmMetaBinary * b;
+    vm_boolean_t rs = vm_false;
     
     if(classMeta){
         
-        objv_autorelease_pool_push();
-        
         binary = vmCompilerBinaryAlloc(zone);
-        
-        sprintf(className,"unname_%ld_%d",time(NULL),rand());
         
         vmCompilerBinaryAddClass(binary, classMeta, className);
         
         b = vmCompilerBinaryBytes(binary);
         
-        vmContextLoadBinary(ctx, b, vm_true);
+        rs = vmContextLoadBinary(ctx, b, vm_true);
         
         objv_object_release((objv_object_t *) binary);
         
-        objv_autorelease_pool_pop();
-        
+    }
+    return rs;
+}
+
+vmVariant vmRun(vmContext * ctx,objv_string_t * source,objv_array_t * errors){
+    
+    char className[128];
+    vmVariant v = {vmVariantTypeVoid,0};
+    objv_class_t * clazz;
+    objv_object_t * object;
+    
+    sprintf(className,"unname_%ld_%d",time(NULL),rand());
+    
+    if(vmContextLoadClassSource(ctx,className,source,errors)){
+       
         clazz = vmContextGetClass(ctx, vmContextKey(ctx, className));
         
         if(clazz){
+            
+            vmContextScopePush(ctx);
             
             v = vmObjectNew(ctx, clazz, NULL);
             
@@ -56,6 +63,7 @@ vmVariant vmRun(vmContext * ctx,objv_string_t * source,objv_array_t * errors){
                 
             }
             
+            vmContextScopePop(ctx);
         }
         
     }

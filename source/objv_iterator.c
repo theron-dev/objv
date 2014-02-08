@@ -23,11 +23,11 @@ static objv_method_t objv_iterator_methods[] = {
     {OBJV_KEY(next),"@()",(objv_method_impl_t)objv_iterator_method_next}
 };
 
-objv_class_t objv_iterator_class = {OBJV_KEY(Iterator),& objv_object_class
+objv_class_t objv_iterator_class = {OBJV_KEY(Iterator),& objv_Object_class
     ,objv_iterator_methods,sizeof(objv_iterator_methods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(objv_iterator_t)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 objv_iterator_t * objv_object_iterator(objv_class_t * clazz,objv_object_t * object){

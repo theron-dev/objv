@@ -20,9 +20,12 @@ static void * objv_zone_zombie_malloc(struct _objv_zone_t *zone, size_t size,con
     
     objv_zombie_block_t * block = ( objv_zombie_block_t *) malloc(size + sizeof(objv_zombie_block_t));
     
+    memset(block, 0, sizeof(objv_zombie_block_t));
+    
     block->file = file;
     block->line = line;
     block->size = size;
+    block->retainCount = 1;
     
     objv_mutex_lock(& zombie->mutex);
     
@@ -43,11 +46,17 @@ static void * objv_zone_zombie_malloc(struct _objv_zone_t *zone, size_t size,con
 
 static void objv_zone_zombie_free(struct _objv_zone_t *zone, void *ptr){
    
+    objv_zombie_t * zombie = (objv_zombie_t *) zone;
+    
     objv_zombie_block_t * block = (objv_zombie_block_t *) ptr - 1;
     
+    objv_mutex_lock(& zombie->mutex);
+
     assert(block->size);
     
     block->size = 0;
+    
+    objv_mutex_unlock(& zombie->mutex);
     
 }
 
@@ -76,6 +85,72 @@ static void objv_zone_zombie_memzero(struct _objv_zone_t *zone, void *ptr, size_
 }
 
 
+static void objv_zone_zombie_retain(struct _objv_zone_t *zone, void *ptr,const char * file,int line){
+    
+    objv_zombie_t * zombie = (objv_zombie_t *) zone;
+    
+    objv_zombie_block_t * block = (objv_zombie_block_t *) ptr - 1;
+    
+    objv_mutex_lock(& zombie->mutex);
+    
+    assert(block->retainCount >0);
+    
+    block->retainCount ++;
+    
+    objv_zombie_block_location_t * location = (objv_zombie_block_location_t *) malloc(sizeof(objv_zombie_block_location_t));
+    
+    memset(location, 0, sizeof(objv_zombie_block_location_t));
+    
+    location->method = "retain";
+    location->file = file;
+    location->line = line;
+    location->retainCount = block->retainCount;
+    
+    if(block->begin == NULL){
+        block->begin = block->end = location;
+    }
+    else{
+        block->end->next = location;
+        block->end = location;
+    }
+    
+    objv_mutex_unlock(& zombie->mutex);
+    
+}
+
+static void objv_zone_zombie_release(struct _objv_zone_t *zone, void *ptr,const char * file,int line){
+    
+    objv_zombie_t * zombie = (objv_zombie_t *) zone;
+    
+    objv_zombie_block_t * block = (objv_zombie_block_t *) ptr - 1;
+    
+    objv_mutex_lock(& zombie->mutex);
+    
+    assert(block->retainCount >0);
+    
+    block->retainCount --;
+    
+    objv_zombie_block_location_t * location = (objv_zombie_block_location_t *) malloc(sizeof(objv_zombie_block_location_t));
+    
+    memset(location, 0, sizeof(objv_zombie_block_location_t));
+    
+    location->method = "release";
+    location->file = file;
+    location->line = line;
+    location->retainCount = block->retainCount;
+    
+    if(block->begin == NULL){
+        block->begin = block->end = location;
+    }
+    else{
+        block->end->next = location;
+        block->end = location;
+    }
+    
+    objv_mutex_unlock(& zombie->mutex);
+    
+}
+
 void objv_zombie_init(objv_zombie_t * zombie,size_t capacity){
     
     memset(zombie,0,sizeof(objv_zombie_t));
@@ -87,7 +162,9 @@ void objv_zombie_init(objv_zombie_t * zombie,size_t capacity){
     zombie->zone.malloc = objv_zone_zombie_malloc;
     zombie->zone.free = objv_zone_zombie_free;
     zombie->zone.realloc = objv_zone_zombie_realloc;
-    zombie->zone.memzero =objv_zone_zombie_memzero;
+    zombie->zone.memzero = objv_zone_zombie_memzero;
+    zombie->zone.retain = objv_zone_zombie_retain;
+    zombie->zone.release = objv_zone_zombie_release;
 }
 
 void objv_zombie_destroy(objv_zombie_t * zombie){
@@ -101,7 +178,7 @@ void objv_zombie_destroy(objv_zombie_t * zombie){
     for(int i=0;i< zombie->length;i++){
         objv_zombie_block_t * block = zombie->blocks[i];
         if(block->size){
-            objv_log("%d,(%d)%s\n",block->size,block->line,block->size);
+            objv_log("%d,%d,(%d)%s\n",i,block->size,block->line,block->file);
             c ++;
         }
         else{

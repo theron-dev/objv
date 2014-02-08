@@ -32,7 +32,7 @@ static void objv_tokenizer_method_dealloc(objv_class_t * clazz,objv_object_t * o
     
     if(clazz->superClass){
         
-        objv_object_dealloc(clazz, object);
+        objv_object_dealloc(clazz->superClass, object);
         
     }
 }
@@ -40,9 +40,8 @@ static void objv_tokenizer_method_dealloc(objv_class_t * clazz,objv_object_t * o
 static objv_object_t * objv_tokenizer_method_copy(objv_class_t * clazz,objv_object_t * object){
     
     objv_tokenizer_t * tokenizer = (objv_tokenizer_t *) object;
-    
-    return objv_object_new(object->zone, object->isa,tokenizer->ofString,& tokenizer->range.begin,& tokenizer->range.end);
 
+    return objv_object_new(object->zone, object->isa,tokenizer->ofString,& tokenizer->range.begin,& tokenizer->range.end,NULL);
 }
 
 static objv_object_t * objv_tokenizer_method_init(objv_class_t * clazz,objv_object_t * object,va_list ap){
@@ -52,8 +51,8 @@ static objv_object_t * objv_tokenizer_method_init(objv_class_t * clazz,objv_obje
     }
     
     objv_string_t * ofString = va_arg(ap, objv_string_t *);
-    objv_tokenizer_location_t * begin = va_arg(ap, objv_tokenizer_location_t *);
-    objv_tokenizer_location_t * end = va_arg(ap, objv_tokenizer_location_t *);
+    objv_tokenizer_location_t * begin = ofString ? va_arg(ap, objv_tokenizer_location_t *) : NULL;
+    objv_tokenizer_location_t * end = begin ? va_arg(ap, objv_tokenizer_location_t *) : NULL;
     
     objv_tokenizer_t * tokenizer = (objv_tokenizer_t *) object;
     char * p;
@@ -104,11 +103,11 @@ static objv_method_t objv_tokenizer_methods[] = {
     ,{OBJV_KEY(init),"@(*)",(objv_method_impl_t)objv_tokenizer_method_init}
 };
 
-objv_class_t objv_tokenizer_class = {OBJV_KEY(Tokenizer),& objv_object_class
+objv_class_t objv_tokenizer_class = {OBJV_KEY(Tokenizer),& objv_Object_class
     ,objv_tokenizer_methods,sizeof(objv_tokenizer_methods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(objv_tokenizer_t)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 objv_tokenizer_t * objv_tokenizer_new( objv_zone_t * zone,objv_string_t * source){
@@ -116,7 +115,7 @@ objv_tokenizer_t * objv_tokenizer_new( objv_zone_t * zone,objv_string_t * source
 }
 
 objv_tokenizer_t * objv_tokenizer_alloc(objv_zone_t * zone,objv_string_t * source){
-    return (objv_tokenizer_t *) objv_object_alloc(zone, &objv_tokenizer_class,source);
+    return (objv_tokenizer_t *) objv_object_alloc(zone, &objv_tokenizer_class,source,NULL);
 }
 
 void objv_tokenizer_child_add(objv_tokenizer_t * tokenizer,objv_tokenizer_t * token){
@@ -242,7 +241,7 @@ objv_class_t objv_tokenizer_comment_class = {OBJV_KEY(TokenizerComment),& objv_t
     ,NULL,0
     ,NULL,0
     ,sizeof(objv_tokenizer_comment_t)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 objv_boolean_t objv_tokenizer_comment_scanf(objv_tokenizer_t * tokenizer,objv_tokenizer_location_t * locaiton,objv_tokenizer_t * token,objv_tokenizer_scanf_context_t * ctx){
@@ -352,7 +351,7 @@ objv_class_t objv_tokenizer_string_class = {OBJV_KEY(TokenizerString),& objv_tok
     ,NULL,0
     ,NULL,0
     ,sizeof(objv_tokenizer_string_t)
-    ,NULL,0,0};
+    ,NULL,0};
 
 objv_boolean_t objv_tokenizer_string_scanf(objv_tokenizer_t * tokenizer,objv_tokenizer_location_t * locaiton,objv_tokenizer_t * token,objv_tokenizer_scanf_context_t * ctx){
     
@@ -428,7 +427,7 @@ objv_class_t objv_tokenizer_value_class = {OBJV_KEY(TokenizerValue),& objv_token
     ,NULL,0
     ,NULL,0
     ,sizeof(objv_tokenizer_value_t)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 objv_boolean_t objv_tokenizer_value_scanf(objv_tokenizer_t * tokenizer,objv_tokenizer_location_t * locaiton,objv_tokenizer_t * token,objv_tokenizer_scanf_context_t * ctx){
@@ -542,7 +541,7 @@ objv_class_t objv_tokenizer_name_class = {OBJV_KEY(TokenizerName),& objv_tokeniz
     ,NULL,0
     ,NULL,0
     ,sizeof(objv_tokenizer_name_t)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 objv_boolean_t objv_tokenizer_name_scanf(objv_tokenizer_t * tokenizer,objv_tokenizer_location_t * locaiton,objv_tokenizer_t * token,objv_tokenizer_scanf_context_t * ctx){
@@ -597,7 +596,7 @@ objv_class_t objv_tokenizer_operator_class = {OBJV_KEY(TokenizerOperator),& objv
     ,NULL,0
     ,NULL,0
     ,sizeof(objv_tokenizer_operator_t)
-    ,NULL,0,0};
+    ,NULL,0};
 
 objv_boolean_t objv_tokenizer_operator_scanf(objv_tokenizer_t * tokenizer,objv_tokenizer_location_t * locaiton,objv_tokenizer_t * token,objv_tokenizer_scanf_context_t * ctx){
     
@@ -645,7 +644,7 @@ objv_class_t objv_tokenizer_group_class = {OBJV_KEY(TokenizerGroup),& objv_token
     ,NULL,0
     ,NULL,0
     ,sizeof(objv_tokenizer_group_t)
-    ,NULL,0,0};
+    ,NULL,0};
 
 objv_boolean_t objv_tokenizer_group_scanf(objv_tokenizer_t * tokenizer,objv_tokenizer_location_t * locaiton,objv_tokenizer_t * token,objv_tokenizer_scanf_context_t * ctx){
     
@@ -714,13 +713,13 @@ objv_class_t objv_tokenizer_combi_class = {OBJV_KEY(TokenizerCombi),& objv_token
     ,NULL,0
     ,NULL,0
     ,sizeof(objv_tokenizer_combi_t)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 objv_tokenizer_combi_t * objv_tokenizer_comib(objv_tokenizer_t * tokenizer,int index,int length){
     objv_tokenizer_t * t1 = (objv_tokenizer_t *) objv_array_objectAt(tokenizer->childs, index);
     objv_tokenizer_t * t2 = (objv_tokenizer_t *) objv_array_objectAt(tokenizer->childs, index + length - 1);
-    objv_tokenizer_t * token = (objv_tokenizer_t *) objv_object_new(tokenizer->base.zone, &objv_tokenizer_combi_class, tokenizer->ofString,t1->range.begin,t2->range.end);
+    objv_tokenizer_t * token = (objv_tokenizer_t *) objv_object_new(tokenizer->base.zone, &objv_tokenizer_combi_class, tokenizer->ofString,&t1->range.begin, &t2->range.end);
     int i;
     
     for(i=0;i<length;i++){

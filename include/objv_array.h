@@ -27,8 +27,7 @@ extern "C" {
         unsigned int READONLY length;
     } objv_array_t;
     
-    
-    extern objv_class_t objv_array_class;
+    OBJV_CLASS_DEC(Array)
     
     objv_array_t * objv_array_alloc(objv_zone_t * zone,unsigned int capacity);
     
@@ -43,6 +42,8 @@ extern "C" {
     void objv_array_removeAt(objv_array_t * array,int index);
     
     void objv_array_insertAt(objv_array_t * array,objv_object_t * object,int index);
+    
+    void objv_array_replaceAt(objv_array_t * array,objv_object_t * object,int index);
     
     void objv_array_clear(objv_array_t * array);
     

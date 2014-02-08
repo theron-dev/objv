@@ -17,6 +17,8 @@ extern "C" {
 #include "objv_vermin.h"
 #include "objv_array.h"
     
+    vm_boolean_t vmContextLoadClassSource(vmContext * ctx,const char * className,objv_string_t * source,objv_array_t * errors);
+    
     vmVariant vmRun(vmContext * ctx,objv_string_t * source,objv_array_t * errors);
     
 #ifdef __cplusplus

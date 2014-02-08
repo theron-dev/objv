@@ -16,11 +16,22 @@ extern "C" {
 #include "objv.h"
 #include "objv_os.h"
     
-    typedef struct _objv_zombie_block_t {
-        size_t size;
+    typedef struct _objv_zombie_block_location_t {
+        const char * method;
         const char * file;
         int line;
+        unsigned int retainCount;
+        struct _objv_zombie_block_location_t * next;
+    } objv_zombie_block_location_t;
+    
+    typedef struct _objv_zombie_block_t {
+        size_t size;
         size_t index;
+        const char * file;
+        int line;
+        unsigned int retainCount;
+        objv_zombie_block_location_t * begin;
+        objv_zombie_block_location_t * end;
     } objv_zombie_block_t;
     
     typedef struct _objv_zombie_t{

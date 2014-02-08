@@ -61,11 +61,11 @@ static objv_method_t vmCompilerMetaOperatorMethods[] = {
     ,{OBJV_KEY(init),"@(*)",(objv_method_impl_t)vmCompilerMetaOperatorMethodInit}
 };
 
-objv_class_t vmCompilerMetaOperatorClass = {OBJV_KEY(vmCompilerMetaOperator),& objv_object_class
+objv_class_t vmCompilerMetaOperatorClass = {OBJV_KEY(vmCompilerMetaOperator),& objv_Object_class
     ,vmCompilerMetaOperatorMethods,sizeof(vmCompilerMetaOperatorMethods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(vmCompilerMetaOperator)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 vmCompilerMetaOperator * vmCompilerMetaOperatorNew(objv_zone_t * zone, vmOperatorType type,objv_tokenizer_location_t location,vm_uint32_t length){
@@ -175,11 +175,11 @@ static objv_method_t vmCompilerMetaMethods[] = {
     ,{OBJV_KEY(init),"@(*)",(objv_method_impl_t)vmCompilerMetaMethodInit}
 };
 
-objv_class_t vmCompilerMetaClass = {OBJV_KEY(vmCompilerMeta),& objv_object_class
+objv_class_t vmCompilerMetaClass = {OBJV_KEY(vmCompilerMeta),& objv_Object_class
     ,vmCompilerMetaMethods,sizeof(vmCompilerMetaMethods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(vmCompilerMeta)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 
@@ -337,11 +337,11 @@ static objv_method_t vmCompilerClassMetaMethods[] = {
     ,{OBJV_KEY(init),"@(*)",(objv_method_impl_t)vmCompilerClassMetaMethodInit}
 };
 
-objv_class_t vmCompilerClassMetaClass = {OBJV_KEY(vmCompilerClassMeta),& objv_object_class
+objv_class_t vmCompilerClassMetaClass = {OBJV_KEY(vmCompilerClassMeta),& objv_Object_class
     ,vmCompilerClassMetaMethods,sizeof(vmCompilerClassMetaMethods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(vmCompilerClassMeta)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 vmCompilerClassMeta * vmCompilerClassMetaNew(objv_zone_t * zone){
@@ -397,11 +397,11 @@ static objv_method_t vmCompilerErrorMethods[] = {
     ,{OBJV_KEY(init),"@(*)",(objv_method_impl_t)vmCompilerErrorMethodInit}
 };
 
-objv_class_t vmCompilerErrorClass = {OBJV_KEY(vmCompilerError),& objv_object_class
+objv_class_t vmCompilerErrorClass = {OBJV_KEY(vmCompilerError),& objv_Object_class
     ,vmCompilerErrorMethods,sizeof(vmCompilerErrorMethods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(vmCompilerError)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 vmCompilerError * vmCompilerErrorNew(objv_zone_t * zone, objv_tokenizer_location_t location,const char * format,...){
@@ -464,15 +464,33 @@ void vmCompilerClassMetaLog(vmCompilerClassMeta * classMeta){
 
 void vmCompilerErrorSet(objv_array_t * errors,objv_tokenizer_location_t location,const char * format,...){
     
-    vmCompilerError * e;
-    va_list ap;
+    if(errors){
+        vmCompilerError * e;
+        va_list ap;
+        
+        va_start(ap, format);
+        
+        e = vmCompilerErrorNewV(errors->base.zone,location,format,ap);
+        
+        va_end(ap);
+        
+        objv_array_add(errors, (objv_object_t *) e);
+    }
+}
+
+void vmCompilerErrorsLog(objv_array_t * errors){
     
-    va_start(ap, format);
-    
-    e = vmCompilerErrorNewV(errors->base.zone,location,format,ap);
-    
-    va_end(ap);
-    
-    objv_array_add(errors, (objv_object_t *) e);
+    if(errors){
+        vmCompilerError * e;
+        
+        objv_log("\n");
+
+        for(int i=0;i<errors->length;i++){
+            e = (vmCompilerError *) objv_array_objectAt(errors, i);
+            objv_log("(%d:%d) %s\n%30s\n",e->location.line,e->location.index,objv_mbuf_str(& e->error),e->location.p);
+        }
+        
+        objv_log("\n");
+    }
 }
 

@@ -23,6 +23,8 @@ extern "C" {
         void (*free)(struct _objv_zone_t *zone, void *ptr);
         void *(*realloc)(struct _objv_zone_t *zone, void *ptr, size_t size,const char * file,int line);
         void (* memzero)(struct _objv_zone_t *zone, void *ptr, size_t size);
+        void (* retain)(struct _objv_zone_t *zone, void *ptr,const char * file,int line);
+        void (* release)(struct _objv_zone_t *zone, void *ptr,const char * file,int line);
     } objv_zone_t;
     
     objv_zone_t * objv_zone_default();
@@ -41,6 +43,10 @@ extern "C" {
 #define objv_zone_realloc(zone,ptr,size) objv_zone_realloc((zone),(ptr),(size),__FILE__,__LINE__)
     
     void objv_zone_memzero(objv_zone_t * zone,void * ptr,size_t size);
+    
+    void objv_zone_retain(objv_zone_t * zone,void * ptr,const char * file,int line);
+    
+    void objv_zone_release(objv_zone_t * zone,void * ptr,const char * file,int line);
     
     typedef enum {
         objv_key_type_static = 0,objv_key_type_dynamic = 1
@@ -100,6 +106,7 @@ extern "C" {
         objv_type_t * READONLY type;
         objv_method_t * READONLY getter;
         objv_method_t * READONLY setter;
+        objv_boolean_t serialization;
     } objv_property_t;
     
     typedef struct _objv_class_t {
@@ -110,22 +117,29 @@ extern "C" {
         objv_property_t * READONLY propertys;
         unsigned int READONLY propertyCount;
         size_t READONLY size;
+
         void (* initialize) (struct _objv_class_t * clazz);
         
-        size_t READONLY offset;
         objv_boolean_t READONLY initialized;
-        
     } objv_class_t;
     
     objv_method_t * objv_class_getMethod(objv_class_t * clazz,objv_key_t * name);
     objv_property_t * objv_class_getProperty(objv_class_t * clazz,objv_key_t * name);
     objv_boolean_t objv_class_isKindOfClass(objv_class_t * clazz,objv_class_t * ofClass);
     
+    struct _objv_object_t;
+    
+    typedef struct _objv_object_weak_t {
+        struct _objv_object_t ** READONLY object;
+        struct _objv_object_weak_t * READONLY next;
+    } objv_object_weak_t;
+    
     typedef struct _objv_object_t {
         objv_class_t * READONLY isa;
         objv_zone_t * READONLY zone;
         objv_mutex_t READONLY mutex;
         int READONLY retainCount;
+        objv_object_weak_t * READONLY weak;
     } objv_object_t;
    
     objv_class_t * objv_class(objv_key_t * className);
@@ -142,18 +156,27 @@ extern "C" {
     
     objv_object_t * objv_object_alloc(objv_zone_t * zone,objv_class_t * clazz,...);
     
-    objv_object_t * objv_object_retain(objv_object_t * object);
+    objv_object_t * objv_object_alloc_exertv(objv_zone_t * zone,objv_class_t * clazz,size_t exert,va_list ap);
     
-    void objv_object_release(objv_object_t * object);
+    objv_object_t * objv_object_alloc_exert(objv_zone_t * zone,objv_class_t * clazz,size_t exert,...);
+
     
-    void objv_object_lock(objv_object_t * object);
+    objv_object_t * objv_object_retain(objv_object_t * object,const char * file,int line);
     
-    void objv_object_unlock(objv_object_t * object);
+#define objv_object_retain(object) objv_object_retain((object),__FILE__,__LINE__)
+    
+    void objv_object_release(objv_object_t * object,const char * file,int line);
+    
+#define objv_object_release(object) objv_object_release((object),__FILE__,__LINE__)
+    
+    objv_object_t * objv_object_weak(objv_object_t * object, objv_object_t ** toObject);
+    
+    void objv_object_unweak(objv_object_t * object, objv_object_t ** toObject);
     
     objv_boolean_t objv_object_isKindOfClass(objv_object_t * object,objv_class_t * ofClass);
     
     
-    extern objv_class_t objv_object_class;
+    extern objv_class_t objv_Object_class;
     
     typedef void (* objv_object_method_dealloc_t) (objv_class_t * clazz, objv_object_t * object);
     
@@ -171,6 +194,34 @@ extern "C" {
     
     objv_object_t * objv_object_copy(objv_class_t * clazz,objv_object_t * object);
 
+#define OBJV_CLASS(clazz)   (&objv_##clazz##_class)
+    
+#define OBJV_CLASS_DEC(clazz) extern objv_class_t objv_##clazz##_class;
+    
+#define OBJV_CLASS_METHOD_IMP_BEGIN(clazz) static objv_method_t objv_##clazz##_methods[] = {
+    
+#define OBJV_CLASS_METHOD_IMP(name,type,impl) {OBJV_KEY(name),(type),(objv_method_impl_t)(impl)},
+    
+#define OBJV_CLASS_METHOD_IMP_END(clazz) };
+    
+#define OBJV_CLASS_METHOD(clazz,index)  (objv_##clazz##_methods + (index))
+    
+#define OBJV_CLASS_PROPERTY_IMP_BEGIN(clazz) static objv_property_t objv_##clazz##_propertys[] = {
+    
+#define OBJV_CLASS_PROPERTY_IMP(name,type,getter,setter,serialization) {OBJV_KEY(name),OBJV_TYPE(type),(getter),(setter),(serialization)},
+    
+#define OBJV_CLASS_PROPERTY_IMP_END(clazz) };
+    
+    
+#define OBJV_CLASS_IMP(clazz,superClazz,object) objv_class_t objv_##clazz##_class = {OBJV_KEY(clazz),(superClazz),NULL,0,NULL,0,sizeof(object),NULL,0};
+  
+#define OBJV_CLASS_IMP_P(clazz,superClazz,object) objv_class_t objv_##clazz##_class = {OBJV_KEY(clazz),(superClazz),NULL,0,objv_##clazz##_propertys,sizeof(objv_##clazz##_propertys) / sizeof(objv_property_t),sizeof(object),NULL,0};
+
+#define OBJV_CLASS_IMP_P_M(clazz,superClazz,object) objv_class_t objv_##clazz##_class = {OBJV_KEY(clazz),(superClazz), objv_##clazz##_methods,sizeof( objv_##clazz##_methods) / sizeof(objv_method_t),objv_##clazz##_propertys,sizeof(objv_##clazz##_propertys) / sizeof(objv_property_t),sizeof(object),NULL,0};
+    
+#define OBJV_CLASS_IMP_M(clazz,superClazz,object) objv_class_t objv_##clazz##_class = {OBJV_KEY(clazz),(superClazz), objv_##clazz##_methods,sizeof( objv_##clazz##_methods) / sizeof(objv_method_t),NULL,0,sizeof(object),NULL,0};
+    
+    
 #ifdef __cplusplus
 }
 #endif

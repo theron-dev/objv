@@ -65,6 +65,33 @@ static void objv_string_methods_dealloc(objv_class_t * clazz, objv_object_t * ob
     }
 }
 
+static objv_object_t * objv_string_methods_init(objv_class_t * clazz, objv_object_t * object,va_list ap){
+    
+    if(clazz->superClass){
+        object = objv_object_initv(clazz->superClass, object, ap);
+    }
+    
+    if(object){
+        
+        objv_string_t * value = (objv_string_t *) object;
+        const char * s = va_arg(ap, const char *);
+        objv_boolean_t copyed = va_arg(ap, objv_boolean_t);
+        
+        if(copyed){
+            value->length = strlen(s);
+            value->UTF8String = objv_zone_malloc(object->zone, value->length + 1);
+            value->copyed = objv_true;
+            strcpy(value->UTF8String, s);
+        }
+        else{
+            value->length = strlen(s);
+            value->UTF8String = objv_zone_malloc(object->zone, value->length + 1);
+            value->copyed = objv_false;
+        }
+    }
+    
+    return object;
+}
 
 static objv_string_t * objv_string_methods_stringValue(objv_class_t * clazz,objv_object_t * obj){
     return (objv_string_t *) obj;
@@ -127,6 +154,7 @@ static objv_boolean_t objv_string_methods_booleanValue(objv_class_t * clazz,objv
 
 static objv_method_t objv_string_methods[] = {
     {OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_string_methods_dealloc}
+    ,{OBJV_KEY(init),"@(*)",(objv_method_impl_t) objv_string_methods_init}
     ,{OBJV_KEY(hashCode),"l()",(objv_method_impl_t)objv_string_method_hashCode}
     ,{OBJV_KEY(equal),"l()",(objv_method_impl_t)objv_string_method_equal}
     ,{OBJV_KEY(stringValue),"@()",(objv_method_impl_t)objv_string_methods_stringValue}
@@ -154,26 +182,15 @@ static objv_property_t objv_string_propertys[] = {
     ,{OBJV_KEY(booleanValue),&objv_type_boolean,&objv_string_methods[12],NULL}
 };
 
-objv_class_t objv_string_class = {OBJV_KEY(String),& objv_object_class
+objv_class_t objv_string_class = {OBJV_KEY(String),& objv_Object_class
     ,objv_string_methods,sizeof(objv_string_methods) / sizeof(objv_method_t)
     ,objv_string_propertys,sizeof(objv_string_propertys) / sizeof(objv_property_t)
     ,sizeof(objv_string_t)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 objv_string_t * objv_string_alloc(objv_zone_t * zone,const char * UTF8String){
-    
-    objv_string_t * s = (objv_string_t *) objv_object_alloc(zone,&objv_string_class);
-    
-    
-    s->length = strlen(UTF8String);
-    s->UTF8String = objv_zone_malloc(zone,s->length + 1);
-    s->copyed = objv_true;
-    
-    memcpy(s->UTF8String,UTF8String,s->length + 1);
-    
-    
-    return s;
+    return (objv_string_t *) objv_object_alloc(zone,&objv_string_class,UTF8String,objv_true);
 }
 
 objv_string_t * objv_string_alloc_format(objv_zone_t * zone,const char * format,...){
@@ -219,7 +236,7 @@ objv_string_t * objv_string_new_format(objv_zone_t * zone,const char * format,..
     
     va_end(ap);
     
-    return (objv_string_t *) objv_object_retain((objv_object_t *) s);
+    return (objv_string_t *) objv_object_autorelease((objv_object_t *) s);
 }
 
 objv_string_t * objv_string_unicode_alloc(objv_zone_t * zone,unsigned short * unicode,size_t length){
@@ -245,14 +262,7 @@ objv_string_t * objv_string_unicode_new(objv_zone_t * zone,unsigned short * unic
 }
 
 objv_string_t * objv_string_alloc_nocopy(objv_zone_t * zone,const char * UTF8String){
-    
-    objv_string_t * s = (objv_string_t *) objv_object_alloc(zone,&objv_string_class);
-    
-    s->length = strlen(UTF8String);
-    s->UTF8String = (char *) UTF8String;
-    s->copyed = objv_false;
-    
-    return s;
+    return (objv_string_t *) objv_object_alloc(zone,&objv_string_class,UTF8String,objv_false);
 }
 
 size_t objv_unicode_to_utf8(unsigned short * unicode, size_t length, objv_mbuf_t * mbuf){

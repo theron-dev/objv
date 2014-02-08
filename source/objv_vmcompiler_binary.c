@@ -65,14 +65,14 @@ static objv_method_t vmCompilerBinaryMethods[] = {
     ,{OBJV_KEY(dealloc),"v()",(objv_method_impl_t)vmCompilerBinaryMethodDealloc}
 };
 
-objv_class_t vmCompilerBinaryClass = {OBJV_KEY(vmCompilerBinary),& objv_object_class
+objv_class_t vmCompilerBinaryClass = {OBJV_KEY(vmCompilerBinary),& objv_Object_class
     ,vmCompilerBinaryMethods,sizeof(vmCompilerBinaryMethods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(vmCompilerBinary)
-    ,NULL,0,0};
+    ,NULL,0};
 
 vmCompilerBinary * vmCompilerBinaryAlloc(objv_zone_t * zone){
-    return (vmCompilerBinary *) objv_object_alloc(zone, &vmCompilerBinaryClass);
+    return (vmCompilerBinary *) objv_object_alloc(zone, &vmCompilerBinaryClass,0);
 }
 
 
@@ -95,7 +95,6 @@ static vmMetaOffset vmCompilerBinaryUniqueKey(vmCompilerBinary * binary,const ch
         p = p + len +1;
     }
     offset = (vmMetaOffset) (binary->uniqueKeys.length + UNIQUE_KEY_OFFSET);
-    objv_mbuf_append(&binary->uniqueKeys, (void *) key, length);
     objv_mbuf_append(&binary->uniqueKeys, (void *) key, length);
     objv_mbuf_append(&binary->uniqueKeys, &e,1);
     binary->uniqueKeyCount ++;
@@ -274,9 +273,7 @@ vmMetaBinary * vmCompilerBinaryBytes(vmCompilerBinary * binary){
     bytes->classCount = binary->classMetas->length;
     bytes->uniqueKeyCount = binary->uniqueKeyCount;
     bytes->length = length;
-    
-    vmMetaBinarySignature(bytes);
-    
+ 
     uniqueKeyOffset = (vmMetaOffset) (length - binary->uniqueKeys.length) ;
     
     memcpy((char *)bytes + uniqueKeyOffset, binary->uniqueKeys.data, binary->uniqueKeys.length);
@@ -386,6 +383,8 @@ vmMetaBinary * vmCompilerBinaryBytes(vmCompilerBinary * binary){
     }
     
     md5_finish(&md5, bytes->UDID);
+    
+    vmMetaBinarySignature(bytes);
     
     return bytes;
 }

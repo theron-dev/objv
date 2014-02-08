@@ -13,9 +13,7 @@
 #include "objv_autorelease.h"
 #include "objv_log.h"
 #include "objv_value.h"
-
-vm_boolean_t vm_true =  1;
-vm_boolean_t vm_false =  0;
+#include "objv_json.h"
 
 typedef struct _vmObject {
     vmContext * READONLY ctx;
@@ -25,7 +23,7 @@ typedef struct _vmObject {
 vmObject * vmObjectAssign(objv_object_t * object){
     
     if(object && vmIsClass(object->isa)){
-        return ((vmObject *) ((char *) object + object->isa->size - sizeof(vmObject)));
+        return ((vmObject *) ((char *) object + object->isa->size));
     }
     
     return NULL;
@@ -146,7 +144,7 @@ static objv_class_t vmObjectIteratorClass = {OBJV_KEY(vmObjectIterator),& objv_i
     ,vmObjectIteratorMethods,sizeof(vmObjectIteratorMethods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(vmObjectIterator)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 
@@ -274,10 +272,16 @@ static void vmContextMethodDealloc(objv_class_t * clazz, objv_object_t * obj){
     
     objv_hash_map_dealloc(ctx->classMap);
     
+    if(ctx->binarys.binarys){
+        objv_zone_free(obj->zone, ctx->binarys.binarys);
+    }
+    
     if(clazz->superClass){
         objv_object_dealloc(clazz->superClass,obj);
     }
 }
+
+
 
 static objv_object_t * vmContextMethodInit(objv_class_t * clazz, objv_object_t * object,va_list ap){
     
@@ -289,7 +293,7 @@ static objv_object_t * vmContextMethodInit(objv_class_t * clazz, objv_object_t *
         
         vmContext * ctx = (vmContext *) object;
         
-        ctx->classMap = objv_hash_map_alloc(20, objv_hash_map_hash_code_ptr, objv_map_compare_any);
+        ctx->classMap = objv_hash_map_alloc(20, objv_hash_map_hash_code_key, objv_map_compare_key);
         ctx->keyMap = objv_hash_map_alloc(20, objv_hash_map_hash_code_string, objv_map_compare_string);
     
         ctx->keys.init = vmContextKey(ctx, "init");
@@ -297,9 +301,10 @@ static objv_object_t * vmContextMethodInit(objv_class_t * clazz, objv_object_t *
         ctx->keys.thisKey = vmContextKey(ctx, "this");
         ctx->keys.superKey = vmContextKey(ctx, "super");
         ctx->keys.argumentsKey = vmContextKey(ctx, "arguments");
-
-        vmContextScopePush(ctx);
-
+        ctx->keys.toString = vmContextKey(ctx, "toString");
+        ctx->keys.encodeString = vmContextKey(ctx, "encodeString");
+        ctx->keys.decodeString = vmContextKey(ctx, "decodeString");
+        
     }
     
     return object;
@@ -310,11 +315,11 @@ static objv_method_t vmContextMethods[] = {
     ,{OBJV_KEY(init),"@(*)",(objv_method_impl_t)vmContextMethodInit}
 };
 
-objv_class_t vmContextClass = {OBJV_KEY(vmContext),& objv_object_class
+objv_class_t vmContextClass = {OBJV_KEY(vmContext),& objv_Object_class
     ,vmContextMethods,sizeof(vmContextMethods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(vmContext)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 vmContext * vmContextAlloc(objv_zone_t * zone){
@@ -352,12 +357,9 @@ void vmContextScopePop(vmContext * ctx){
         if(scope->variants){
             for(n=0; n< scope->variants->length;n++){
                 var = objv_hash_map_valueAt(scope->variants, n);
-                if((var->type & vmVariantTypeObject) && var->objectValue && ! (var->type & vmVariantTypeWeak)){
-                    objv_object_release((objv_object_t *) var->objectValue);
-                }
+                vmVariantRelease(* var);
                 objv_zone_free(ctx->base.zone, var);
             }
-            
             objv_hash_map_dealloc(scope->variants);
         }
         
@@ -441,16 +443,26 @@ vmVariant vmContextVariant(vmContext * ctx,objv_key_t * key){
 static void vmObjectClassDealloc (struct _objv_class_t * clazz, objv_object_t * object){
     
     vmClass * vmclass = (vmClass *) clazz;
-
     vmVariant * p = (vmVariant *) ((char *) object + clazz->superClass->size);
     int c = vmclass->vmClass->propertyCount;
+    vmMetaOperator * op;
+    vmMetaOffset * offset = (vmMetaOffset *) (vmclass->vmClass + 1);
+    char * binary = (char *) vmclass->vmClass - vmclass->vmClass->offset;
     
     while (p && c >0) {
         
-        vmVariantRelease(* p);
+        op = (vmMetaOperator *) (binary + * offset);
+        
+        if(op->type & vmOperatorTypeVarWeak){
+            vmVariantUnWeak(* p, & p->objectValue);
+        }
+        else{
+            vmVariantRelease(* p);
+        }
         
         c -- ;
         p ++;
+        offset ++;
     }
     
     if(clazz->superClass){
@@ -515,7 +527,33 @@ static vmVariant vmObjectClassInvoke (struct _objv_class_t * clazz, objv_object_
     
     if(offset){
         op = (vmMetaOperator *) (binary + * offset);
-        vmObjectOperatorFunction(ctx, clazz, object, binary, op, arguments);
+        v = vmObjectOperatorFunction(ctx, clazz, object, binary, op, arguments);
+    }
+    else if(key == ctx->keys.init){
+        v.type = vmVariantTypeObject;
+        v.objectValue = object;
+    }
+    else if(key == ctx->keys.toString){
+        v.type = vmVariantTypeObject;
+        v.objectValue = (objv_object_t *) objv_string_new_format(object->zone, "<%s 0x%x>",object->isa->name->name,(unsigned long) object);
+    }
+    else if(key == ctx->keys.encodeString){
+        v.type = vmVariantTypeObject;
+        if(arguments && arguments->length >0){
+            v.objectValue = (objv_object_t *) objv_json_encode(object->zone,objv_array_objectAt(arguments, 0),objv_true);
+        }
+        else{
+            v.objectValue = (objv_object_t *) objv_json_encode(object->zone,object,objv_true);
+        }
+    }
+    else if(key == ctx->keys.decodeString){
+        {
+            objv_string_t * text = objv_object_stringValue(objv_array_objectAt(arguments, 0), NULL);
+            if(text){
+                v.type = vmVariantTypeObject;
+                v.objectValue = objv_json_decode(object->zone, text->UTF8String);
+            }
+        }
     }
     else if(clazz->superClass){
         v = vmObjectInvoke(clazz->superClass, object, key, arguments);
@@ -546,14 +584,23 @@ static vmVariant vmObjectClassSetProperty (struct _objv_class_t * clazz, objv_ob
     vmMetaOffset * of = objv_hash_map_get(vmclass->propertys, key);
     vmVariant v = {vmVariantTypeVoid,0};
     vmVariant * p = (vmVariant *) ((char *) object + clazz->superClass->size);
+    vmMetaOperator * op;
+    char * binary = (char *) vmclass->vmClass - vmclass->vmClass->offset;
     
     if(of){
         
+        op = (vmMetaOperator *) (binary + * of);
+
         p = p + ((of - bof) / sizeof(vmMetaOffset));
         
-        vmVariantRetain(value);
-        
-        vmVariantRelease(* p);
+        if(op->type == vmOperatorTypeVarWeak){
+            vmVariantWeak(value, & p->objectValue);
+            vmVariantUnWeak(* p, & p->objectValue);
+        }
+        else{
+            vmVariantRetain(value);
+            vmVariantRelease(* p);
+        }
         
         * p = value;
     }
@@ -629,6 +676,12 @@ static objv_iterator_t * vmObjectClassIterator (objv_class_t * clazz,objv_object
     return (objv_iterator_t *) objv_object_autorelease((objv_object_t *) objv_object_alloc(obj->zone, &vmObjectIteratorClass,obj) );
 }
 
+static objv_string_t * vmObjectClassStringValue(objv_class_t * clazz,objv_object_t * object){
+    
+    vmContext * ctx = vmContextWithObject(object);
+    vmVariant v = vmObjectInvoke(clazz, object, ctx->keys.toString, NULL);
+    return vmVariantToString(object->zone, v);
+}
 
 static objv_method_t vmClassMethods[] = {
     {OBJV_KEY(dealloc),"v()",(objv_method_impl_t)vmObjectClassDealloc}
@@ -637,6 +690,11 @@ static objv_method_t vmClassMethods[] = {
     ,{OBJV_KEY(setProperty),"v(*,{})",(objv_method_impl_t)vmObjectClassSetProperty}
     ,{OBJV_KEY(iterator),"@()",(objv_method_impl_t)vmObjectClassIterator}
     ,{OBJV_KEY(init),"@(*)",(objv_method_impl_t)vmObjectClassInit}
+    ,{OBJV_KEY(stringValue),"@()",(objv_method_impl_t)vmObjectClassStringValue}
+};
+
+static objv_property_t vmClassPropertys[] = {
+    {OBJV_KEY(stringValue),& objv_type_object,&vmClassMethods[6],NULL}
 };
 
 objv_boolean_t vmContextLoadBinary(vmContext * ctx,vmMetaBinary * binary,objv_boolean_t copy){
@@ -647,7 +705,7 @@ objv_boolean_t vmContextLoadBinary(vmContext * ctx,vmMetaBinary * binary,objv_bo
         vmMetaClass * mClass;
         vm_uint32_t c;
         char * pKey;
-        objv_key_t * key;
+        objv_key_t * key,* superKey;
         vmClass * clazz, * superClass;
         vmMetaClassBinary * classBinary;
         
@@ -692,43 +750,38 @@ objv_boolean_t vmContextLoadBinary(vmContext * ctx,vmMetaBinary * binary,objv_bo
                 objv_zone_memzero(ctx->base.zone, clazz, sizeof(vmClass));
                 
                 clazz->base.name = key;
-                clazz->base.size = sizeof(vmClass) + mClass->propertyCount * sizeof(vmVariant);
                 clazz->base.initialize = vmClassInitialize;
                 clazz->base.methods = vmClassMethods;
                 clazz->base.methodCount = sizeof(vmClassMethods) / sizeof(objv_method_t);
+                clazz->base.propertys = vmClassPropertys;
+                clazz->base.propertyCount = sizeof(vmClassPropertys) / sizeof(objv_property_t);
                 clazz->vmClass = mClass;
                 clazz->ctx = ctx;
                 
                 if(mClass->superClass){
                     
                     pKey = ((char *) b->binary + mClass->superClass);
-                    key = vmContextKey(ctx, pKey);
-                    superClass = (vmClass *) objv_hash_map_get(ctx->classMap, key);
+                    superKey = vmContextKey(ctx, pKey);
+                    superClass = (vmClass *) objv_hash_map_get(ctx->classMap, superKey);
                     
                     if(superClass){
                         clazz->base.superClass = (objv_class_t *) superClass;
                     }
                     else{
-                        clazz->base.superClass = objv_class(key);
+                        clazz->base.superClass = objv_class(superKey);
                     }
                     
                     if(clazz->base.superClass == NULL){
-                        clazz->base.superClass = & objv_object_class;
-                    }
-                    else{
+                        clazz->base.superClass = & objv_Object_class;
                         objv_log("\nNot Found Class %s\n",pKey);
                     }
+                    
                 }
                 else{
-                    clazz->base.superClass = & objv_object_class;
+                    clazz->base.superClass = & objv_Object_class;
                 }
             
-                if(vmIsClass(clazz->base.superClass)){
-                    clazz->base.size = clazz->base.superClass->size + mClass->propertyCount * sizeof(vmVariant);
-                }
-                else{
-                    clazz->base.size = sizeof(vmObject) + mClass->propertyCount * sizeof(vmVariant);
-                }
+                clazz->base.size = clazz->base.superClass->size + mClass->propertyCount * sizeof(vmVariant);
                 
                 objv_hash_map_put(ctx->classMap, key, clazz);
             }
@@ -781,10 +834,16 @@ vmVariant vmObjectNew(vmContext * ctx,objv_class_t * clazz,objv_array_t * argume
     
     if(ctx && clazz){
         
-        vmObject * object = (vmObject *) objv_object_new(ctx->base.zone, (objv_class_t *) clazz);
-        
-        object->ctx = (vmContext *) objv_object_retain( (objv_object_t *) ctx);
-        
+        objv_object_t * object ;
+
+        if(vmIsClass(clazz)){
+            object = objv_object_alloc_exert(ctx->base.zone, (objv_class_t *) clazz,sizeof(vmObject),ctx);
+            object = objv_object_autorelease(object);
+        }
+        else{
+            object = objv_object_new(ctx->base.zone, clazz,NULL);
+        }
+
         objv_class_t * c = (objv_class_t *) clazz;
         
         objv_method_t * method = NULL;
@@ -797,7 +856,10 @@ vmVariant vmObjectNew(vmContext * ctx,objv_class_t * clazz,objv_array_t * argume
         if(method){
             v = (* (vmObjectMethodInvokeFun) method->impl)(c,(objv_object_t *) object,ctx->keys.init, arguments);
         }
-        
+        else{
+            v.type = vmVariantTypeObject;
+            v.objectValue = object;
+        }
     }
     
     return v;
@@ -821,7 +883,6 @@ vmVariant vmObjectInvoke(objv_class_t * clazz,objv_object_t * object,objv_key_t 
         if(method){
             v = (* (vmObjectMethodInvokeFun) method->impl)(c,(objv_object_t *) object,key, arguments);
         }
-        
     }
     
     return v;
@@ -899,6 +960,10 @@ vmVariant vmObjectGetProperty(objv_class_t * clazz,objv_object_t * object, objv_
                     v.objectValue = objv_property_objectValue(c, object, prop, NULL);
                 }
             }
+            else{
+                objv_string_t * skey = objv_string_new(object->zone, key->name);
+                v = vmObjectToVariant( objv_object_objectForKey(object->isa, object, (objv_object_t *) skey));
+            }
         }
         
     }
@@ -968,6 +1033,11 @@ vmVariant vmObjectSetProperty(objv_class_t * clazz,objv_object_t * object, objv_
                     objv_property_setObjectValue(c, object, prop, vmVariantToObject(object->zone, value).objectValue);
                 }
             }
+            else{
+                objv_string_t * skey = objv_string_new(object->zone, key->name);
+                objv_object_t * ovalue = vmVariantToObject(object->zone, value).objectValue;
+                objv_object_setObjectForKey(object->isa, object, (objv_object_t *) skey,ovalue);
+            }
         }
     }
     
@@ -1000,6 +1070,9 @@ vmVariant vmVariantToObject(objv_zone_t * zone,vmVariant var){
     else if((var.type & vmVariantTypeObject) && var.objectValue){
         rs.objectValue = var.objectValue;
         rs.ofClass = var.ofClass;
+    }
+    else{
+        rs.objectValue = (objv_object_t *) objv_value_new_nullValue(zone);
     }
     return rs;
 }
@@ -1159,7 +1232,7 @@ vm_double_t vmVariantToDouble(vmVariant var){
 vmVariant vmObjectToVariant(objv_object_t * object){
     vmVariant v = {vmVariantTypeVoid,0};
     
-    if(objv_object_isKindOfClass(object, & objv_value_class)){
+    if(objv_object_isKindOfClass(object, OBJV_CLASS(Value))){
         {
             objv_value_t * vv = (objv_value_t *) object;
             if(vv->type == & objv_type_int){
@@ -1221,14 +1294,26 @@ vmContext * vmContextWithObject(objv_object_t * object){
 
 
 void vmVariantRetain(vmVariant value){
-    if((value.type & vmVariantTypeObject) && value.objectValue && ! (value.type & vmVariantTypeWeak)){
+    if((value.type & vmVariantTypeObject) && value.objectValue){
         objv_object_retain(value.objectValue);
     }
 }
 
 void vmVariantRelease(vmVariant value){
-    if((value.type & vmVariantTypeObject) && value.objectValue && ! (value.type & vmVariantTypeWeak)){
+    if((value.type & vmVariantTypeObject) && value.objectValue ){
         objv_object_release(value.objectValue);
+    }
+}
+
+void vmVariantWeak(vmVariant value,objv_object_t ** toObject){
+    if((value.type & vmVariantTypeObject) && value.objectValue){
+        objv_object_weak(value.objectValue,toObject);
+    }
+}
+
+void vmVariantUnWeak(vmVariant value,objv_object_t ** toObject){
+    if((value.type & vmVariantTypeObject) && value.objectValue){
+        objv_object_unweak(value.objectValue,toObject);
     }
 }
 

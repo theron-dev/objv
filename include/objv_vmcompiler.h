@@ -128,6 +128,8 @@ extern "C" {
     
     void vmCompilerErrorSet(objv_array_t * errors,objv_tokenizer_location_t location,const char * format,...);
     
+    void vmCompilerErrorsLog(objv_array_t * errors);
+    
 #ifdef __cplusplus
 }
 #endif

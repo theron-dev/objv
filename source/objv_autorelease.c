@@ -86,11 +86,11 @@ static objv_method_t objv_autorelease_pool_methods[] = {
     {OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_autorelease_pool_methods_dealloc}
 };
 
-static objv_class_t objv_autorelease_pool_class = {OBJV_KEY(AutoreleasePool),& objv_object_class
+static objv_class_t objv_autorelease_pool_class = {OBJV_KEY(AutoreleasePool),& objv_Object_class
     ,objv_autorelease_pool_methods,sizeof(objv_autorelease_pool_methods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(objv_autorelease_pool_t)
-    ,NULL,0,0};
+    ,NULL,0};
 
 
 

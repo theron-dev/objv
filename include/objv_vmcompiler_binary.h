@@ -43,5 +43,4 @@ vm_boolean_t vmCompilerBinaryLength(vmCompilerBinary * binary);
 
 vmMetaBinary * vmCompilerBinaryBytes(vmCompilerBinary * binary);
 
-
 #endif

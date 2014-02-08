@@ -23,7 +23,4 @@ objv_type_t objv_type_ptr = {"*",sizeof(void *)};       //*
 objv_type_t objv_type_object = {"@",sizeof(objv_object_t *)};          //@
 
 
-objv_boolean_t objv_true = 1;
-objv_boolean_t objv_false = 0;
-
 

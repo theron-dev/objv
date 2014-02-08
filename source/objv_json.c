@@ -25,7 +25,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
     if(object == NULL){
         objv_mbuf_format(mbuf,"null");
     }
-    else if(objv_object_isKindOfClass(object, & objv_array_class)){
+    else if(objv_object_isKindOfClass(object,OBJV_CLASS(Array))){
         
         {
             objv_array_t * a = (objv_array_t *) object;
@@ -59,7 +59,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
             objv_mbuf_append(mbuf,"]",1);
         }
     }
-    else if(objv_object_isKindOfClass(object, & objv_dictionary_class)){
+    else if(objv_object_isKindOfClass(object, OBJV_CLASS(Dictionary))){
         
         {
             objv_dictionary_t * d = (objv_dictionary_t *) object;
@@ -106,7 +106,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
         }
         
     }
-    else if(objv_object_isKindOfClass(object, & objv_value_class)){
+    else if(objv_object_isKindOfClass(object, OBJV_CLASS(Value))){
         
         {
             objv_value_t * v = (objv_value_t *) object;
@@ -222,7 +222,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                 
                 while(p && c > 0){
                     
-                    if(p->getter){
+                    if(p->getter && p->serialization){
                         
                         if(p->type == & objv_type_int){
                             
