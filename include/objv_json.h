@@ -24,6 +24,7 @@ extern "C" {
     
     objv_object_t * objv_json_decode(objv_zone_t * zone,const char * text);
     
+    
 #ifdef __cplusplus
 }
 #endif
