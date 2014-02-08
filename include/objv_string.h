@@ -48,6 +48,8 @@ extern "C" {
 
     const char * objv_string_indexOf(const char * string,const char * substring);
     
+    const char * objv_string_lastIndexOf(const char * string,const char * substring);
+    
 #ifdef __cplusplus
 }
 #endif

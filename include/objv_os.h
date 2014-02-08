@@ -41,6 +41,8 @@ extern "C" {
   
 #ifdef _POSIX_THREADS
     
+#define DIR_SEPARATED  "/"
+    
     typedef pthread_t objv_thread_t;
     
     static inline objv_thread_t objv_thread_self(){
@@ -194,6 +196,7 @@ extern "C" {
     
 #elif defined(TARGET_OS_WIN32)
     
+    #define DIR_SEPARATED  "\\"
     
     typedef pthread_mutex_t objv_mutex_t;
     

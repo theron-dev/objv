@@ -63,6 +63,7 @@ objv_class_t ConsoleTaskClass = { OBJV_KEY(ConsoleTask),& objv_dispatch_task_cla
 int main(int argc, const char * argv[])
 {
     
+    
     objv_zombie_t zombie;
     
     objv_zombie_init(& zombie, 102400);

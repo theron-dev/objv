@@ -330,3 +330,26 @@ const char * objv_string_indexOf(const char * string,const char * substring){
     }
     return NULL;
 }
+
+const char * objv_string_lastIndexOf(const char * string,const char * substring){
+    if(string && substring){
+        char * p = (char *) string + strlen(string) - 1;
+        char * s = (char *) substring + strlen(substring) - 1;
+        char * es = s;
+        
+        while(p >= string && s >= substring ){
+            
+            if(*p == *s){
+                s --;
+            }
+            else{
+                p = p + (es - s);
+                s = es ;
+            }
+            
+            p --;
+        }
+        return s < substring ? p + (es - s) : NULL;
+    }
+    return NULL;
+}

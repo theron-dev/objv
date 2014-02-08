@@ -15,6 +15,8 @@
 #include "objv_tokenizer.h"
 #include "objv_vermin.h"
 
+#define objv_tokenizer_log(a,b)
+
 static vmCompilerMeta * vmCompilerExecExpression(objv_tokenizer_t * tokenizer,objv_array_t * errors);
 
 static vmCompilerMeta * vmCompilerExecInvokes(objv_tokenizer_t * tokenizer,objv_array_t * errors);

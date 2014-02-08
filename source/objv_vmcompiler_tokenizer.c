@@ -14,6 +14,8 @@
 #include "objv_vmcompiler_tokenizer.h"
 #include "objv_log.h"
 
+#define objv_log(a)
+
 /*
  
  ++
