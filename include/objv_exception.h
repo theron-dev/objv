@@ -24,8 +24,8 @@ extern "C" {
         objv_string_t * READONLY message;
     } objv_exception_t;
    
-    extern objv_class_t objv_exception_class;
-   
+    OBJV_CLASS_DEC(Exception)
+    
     objv_exception_t * objv_exception_alloc(objv_zone_t * zone,int code,const char * format,...);
     
     objv_exception_t * objv_exception_allocv(objv_zone_t * zone,int code,const char * format,va_list ap);

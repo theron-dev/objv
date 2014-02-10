@@ -25,8 +25,7 @@ extern "C" {
         objv_boolean_t READONLY copyed;
     } objv_string_t;
     
-    
-    extern objv_class_t objv_string_class;
+    OBJV_CLASS_DEC(String)
     
     objv_string_t * objv_string_alloc(objv_zone_t * zone,const char * UTF8String);
     
@@ -35,6 +34,8 @@ extern "C" {
     objv_string_t * objv_string_alloc_formatv(objv_zone_t * zone,const char * format,va_list ap);
     
     objv_string_t * objv_string_new(objv_zone_t * zone,const char * UTF8String);
+    
+    objv_string_t * objv_string_new_nocopy(objv_zone_t * zone,const char * UTF8String);
     
     objv_string_t * objv_string_new_format(objv_zone_t * zone,const char * format,...);
     

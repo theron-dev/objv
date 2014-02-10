@@ -41,22 +41,21 @@ static objv_string_t * objv_exception_methods_stringValue(objv_class_t * clazz, 
     return ex->message;
 }
 
-static objv_method_t objv_exception_methods[] = {
-    {OBJV_KEY(dealloc),"v()",(objv_method_impl_t) objv_exception_methods_dealloc},
-    {OBJV_KEY(init),"@(*)",(objv_method_impl_t) objv_exception_methods_init},
-    {OBJV_KEY(stringValue),"@()",(objv_method_impl_t) objv_exception_methods_stringValue}
-};
+OBJV_CLASS_METHOD_IMP_BEGIN(Exception)
 
-static objv_property_t objv_exception_propertys[] = {
-    {OBJV_KEY(stringValue),& objv_type_object,& objv_exception_methods[2],NULL}
-};
+OBJV_CLASS_METHOD_IMP(dealloc, "v()", objv_exception_methods_dealloc)
+OBJV_CLASS_METHOD_IMP(init, "@(*)", objv_exception_methods_init)
+OBJV_CLASS_METHOD_IMP(stringValue, "@()", objv_exception_methods_stringValue)
 
-objv_class_t objv_exception_class = {OBJV_KEY(Exception),& objv_Object_class
-    ,objv_exception_methods,sizeof(objv_exception_methods) / sizeof(objv_method_t)
-    ,objv_exception_propertys,sizeof(objv_exception_propertys) / sizeof(objv_property_t)
-    ,sizeof(objv_exception_t)
-    ,NULL,0};
+OBJV_CLASS_METHOD_IMP_END(Exception)
 
+OBJV_CLASS_PROPERTY_IMP_BEGIN(Exception)
+
+OBJV_CLASS_PROPERTY_IMP(stringValue, object, objv_exception_methods_stringValue, NULL, objv_false)
+
+OBJV_CLASS_PROPERTY_IMP_END(Exception)
+
+OBJV_CLASS_IMP_P_M(Exception, OBJV_CLASS(Object), objv_exception_t)
 
 objv_exception_t * objv_exception_alloc(objv_zone_t * zone,int code,const char * format,...){
     
@@ -75,7 +74,7 @@ objv_exception_t * objv_exception_alloc(objv_zone_t * zone,int code,const char *
 objv_exception_t * objv_exception_allocv(objv_zone_t * zone,int code,const char * format,va_list ap){
     objv_exception_t * ex;
     objv_string_t * s = objv_string_alloc_formatv(zone, format, ap);
-    ex = (objv_exception_t *) objv_object_alloc(zone, & objv_exception_class,code,s);
+    ex = (objv_exception_t *) objv_object_alloc(zone, OBJV_CLASS(Exception),code,s);
     objv_object_release((objv_object_t *) s);
     return ex;
 }

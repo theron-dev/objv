@@ -130,7 +130,7 @@ OBJV_CLASS_METHOD_IMP_END(Dictionary)
 
 OBJV_CLASS_PROPERTY_IMP_BEGIN(Dictionary)
 
-OBJV_CLASS_PROPERTY_IMP(length, uint, OBJV_CLASS_METHOD(Dictionary, 2), NULL, objv_false)
+OBJV_CLASS_PROPERTY_IMP(length, uint, objv_dictionary_methods_length, NULL, objv_false)
 
 OBJV_CLASS_PROPERTY_IMP_END(Dictionary)
 

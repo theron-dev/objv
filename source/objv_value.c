@@ -252,25 +252,25 @@ OBJV_CLASS_METHOD_IMP_END(Value)
 
 OBJV_CLASS_PROPERTY_IMP_BEGIN(Value)
 
-OBJV_CLASS_PROPERTY_IMP(stringValue, object, OBJV_CLASS_METHOD(Value, 3), NULL, objv_false)
+OBJV_CLASS_PROPERTY_IMP(stringValue, object, objv_value_methods_stringValue, NULL, objv_false)
 
-OBJV_CLASS_PROPERTY_IMP(intValue,int,OBJV_CLASS_METHOD(Value,4),NULL,objv_false)
+OBJV_CLASS_PROPERTY_IMP(intValue,int,objv_value_methods_intValue,NULL,objv_false)
                         
-OBJV_CLASS_PROPERTY_IMP(uintValue,uint,OBJV_CLASS_METHOD(Value,5),NULL,objv_false)
+OBJV_CLASS_PROPERTY_IMP(uintValue,uint,objv_value_methods_uintValue,NULL,objv_false)
 
-OBJV_CLASS_PROPERTY_IMP(longValue,long,OBJV_CLASS_METHOD(Value,6),NULL,objv_false)
+OBJV_CLASS_PROPERTY_IMP(longValue,long,objv_value_methods_longValue,NULL,objv_false)
 
-OBJV_CLASS_PROPERTY_IMP(ulongValue,ulong,OBJV_CLASS_METHOD(Value,7),NULL,objv_false)
+OBJV_CLASS_PROPERTY_IMP(ulongValue,ulong,objv_value_methods_ulongValue,NULL,objv_false)
 
-OBJV_CLASS_PROPERTY_IMP(longLongValue,longLong,OBJV_CLASS_METHOD(Value,8),NULL,objv_false)
+OBJV_CLASS_PROPERTY_IMP(longLongValue,longLong,objv_value_methods_longLongValue,NULL,objv_false)
 
-OBJV_CLASS_PROPERTY_IMP(ulongLongValue,ulongLong,OBJV_CLASS_METHOD(Value,9),NULL,objv_false)
+OBJV_CLASS_PROPERTY_IMP(ulongLongValue,ulongLong,objv_value_methods_ulongLongValue,NULL,objv_false)
 
-OBJV_CLASS_PROPERTY_IMP(floatValue,float,OBJV_CLASS_METHOD(Value,10),NULL,objv_false)
+OBJV_CLASS_PROPERTY_IMP(floatValue,float,objv_value_methods_floatValue,NULL,objv_false)
 
-OBJV_CLASS_PROPERTY_IMP(doubleValue,double,OBJV_CLASS_METHOD(Value,11),NULL,objv_false)
+OBJV_CLASS_PROPERTY_IMP(doubleValue,double,objv_value_methods_doubleValue,NULL,objv_false)
 
-OBJV_CLASS_PROPERTY_IMP(booleanValue,boolean,OBJV_CLASS_METHOD(Value,12),NULL,objv_false)
+OBJV_CLASS_PROPERTY_IMP(booleanValue,boolean,objv_value_methods_booleanValue,NULL,objv_false)
 
 OBJV_CLASS_PROPERTY_IMP_END(Value)
 
@@ -936,7 +936,7 @@ int objv_object_intValue(objv_object_t * object,int defaultValue){
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_intValue_t)prop->getter->impl)(c,object);
+            return (* (objv_object_property_intValue_t)prop->getter)(c,object);
             
         }
         
@@ -963,7 +963,7 @@ unsigned int objv_object_uintValue(objv_object_t * object,unsigned int defaultVa
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_uintValue_t)prop->getter->impl)(c,object);
+            return (* (objv_object_property_uintValue_t)prop->getter)(c,object);
             
         }
         
@@ -990,7 +990,7 @@ long objv_object_longValue(objv_object_t * object,long defaultValue){
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_longValue_t)prop->getter->impl)(c,object);
+            return (* (objv_object_property_longValue_t)prop->getter)(c,object);
             
         }
         
@@ -1018,7 +1018,7 @@ unsigned long objv_object_ulongValue(objv_object_t * object,unsigned long defaul
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_ulongValue_t)prop->getter->impl)(c,object);
+            return (* (objv_object_property_ulongValue_t)prop->getter)(c,object);
             
         }
         
@@ -1046,7 +1046,7 @@ long long objv_object_longLongValue(objv_object_t * object,long long defaultValu
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_longLongValue_t)prop->getter->impl)(c,object);
+            return (* (objv_object_property_longLongValue_t)prop->getter)(c,object);
             
         }
         
@@ -1074,7 +1074,7 @@ unsigned long long objv_object_ulongLongValue(objv_object_t * object,unsigned lo
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_ulongLongValue_t)prop->getter->impl)(c,object);
+            return (* (objv_object_property_ulongLongValue_t)prop->getter)(c,object);
             
         }
         
@@ -1102,7 +1102,7 @@ float objv_object_floatValue(objv_object_t * object,float defaultValue){
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_floatValue_t)prop->getter->impl)(c,object);
+            return (* (objv_object_property_floatValue_t)prop->getter)(c,object);
             
         }
         
@@ -1129,7 +1129,7 @@ double objv_object_doubleValue(objv_object_t * object,double defaultValue){
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_uintValue_t)prop->getter->impl)(c,object);
+            return (* (objv_object_property_uintValue_t)prop->getter)(c,object);
             
         }
         
@@ -1156,7 +1156,7 @@ objv_boolean_t objv_object_booleanValue(objv_object_t * object,objv_boolean_t de
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_booleanValue_t)prop->getter->impl)(c,object);
+            return (* (objv_object_property_booleanValue_t)prop->getter)(c,object);
             
         }
         
@@ -1169,7 +1169,7 @@ objv_string_t * objv_object_stringValue(objv_object_t * object,objv_string_t * d
     
     if(object){
         
-        if(objv_object_isKindOfClass(object, &objv_string_class)){
+        if(objv_object_isKindOfClass(object, OBJV_CLASS(String))){
             return (objv_string_t *) object;
         }
         
@@ -1183,7 +1183,7 @@ objv_string_t * objv_object_stringValue(objv_object_t * object,objv_string_t * d
         
         if(prop && prop->getter){
             
-            return (* (objv_object_property_stringValue_t)prop->getter->impl)(c,object);
+            return (* (objv_object_property_stringValue_t)prop->getter)(c,object);
             
         }
         
@@ -1896,6 +1896,85 @@ objv_object_t * objv_object_objectForKey(objv_class_t * clazz,objv_object_t * ob
     
     return NULL;
 }
+
+int objv_object_intValueForKey(objv_object_t * object,objv_object_t * key,int defaultValue){
+    if(object && key){
+        return objv_object_intValue(objv_object_objectForKey(object->isa,object,key), defaultValue);
+    }
+    return defaultValue;
+}
+
+unsigned int objv_object_uintValueForKey(objv_object_t * object,objv_object_t * key,unsigned int defaultValue){
+    if(object && key){
+        return objv_object_uintValue(objv_object_objectForKey(object->isa,object,key), defaultValue);
+    }
+    return defaultValue;
+}
+
+long objv_object_longValueForKey(objv_object_t * object,objv_object_t * key,long defaultValue){
+    if(object && key){
+        return objv_object_longValue(objv_object_objectForKey(object->isa,object,key), defaultValue);
+    }
+    return defaultValue;
+}
+
+unsigned long objv_object_ulongValueForKey(objv_object_t * object,objv_object_t * key,unsigned long defaultValue){
+    if(object && key){
+        return objv_object_ulongValue(objv_object_objectForKey(object->isa,object,key), defaultValue);
+    }
+    return defaultValue;
+}
+
+long long objv_object_longLongValueForKey(objv_object_t * object,objv_object_t * key,long long defaultValue){
+    if(object && key){
+        return objv_object_longLongValue(objv_object_objectForKey(object->isa,object,key), defaultValue);
+    }
+    return defaultValue;
+}
+
+unsigned long long objv_object_ulongLongValueForKey(objv_object_t * object,objv_object_t * key,unsigned long long defaultValue){
+    if(object && key){
+        return objv_object_ulongLongValue(objv_object_objectForKey(object->isa,object,key), defaultValue);
+    }
+    return defaultValue;
+}
+
+float objv_object_floatValueForKey(objv_object_t * object,objv_object_t * key,float defaultValue){
+    if(object && key){
+        return objv_object_floatValue(objv_object_objectForKey(object->isa,object,key), defaultValue);
+    }
+    return defaultValue;
+}
+
+double objv_object_doubleValueForKey(objv_object_t * object,objv_object_t * key,double defaultValue){
+    if(object && key){
+        return objv_object_doubleValue(objv_object_objectForKey(object->isa,object,key), defaultValue);
+    }
+    return defaultValue;
+}
+
+objv_boolean_t objv_object_booleanValueForKey(objv_object_t * object,objv_object_t * key,objv_boolean_t defaultValue){
+    if(object && key){
+        return objv_object_booleanValue(objv_object_objectForKey(object->isa,object,key), defaultValue);
+    }
+    return defaultValue;
+}
+
+objv_string_t * objv_object_stringValueForKey(objv_object_t * object,objv_object_t * key,objv_string_t * defaultValue){
+    if(object && key){
+        return objv_object_stringValue(objv_object_objectForKey(object->isa,object,key), defaultValue);
+    }
+    return defaultValue;
+}
+
+objv_object_t * objv_object_objectValueForKey(objv_object_t * object,objv_object_t * key,objv_object_t * defaultValue){
+    if(object && key){
+        objv_object_t * v = objv_object_objectForKey(object->isa,object,key);
+        return v ? v : defaultValue;
+    }
+    return defaultValue;
+}
+
 
 void objv_object_setObjectForKey(objv_class_t * clazz,objv_object_t * object,objv_object_t * key,objv_object_t * value){
     

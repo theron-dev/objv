@@ -13,6 +13,9 @@
 #include "objv_private.h"
 #include "objv_hash_map.h"
 #include "objv_log.h"
+#include "objv_iterator.h"
+#include "objv_autorelease.h"
+#include "objv_value.h"
 
 OBJV_KEY_IMP(init)
 OBJV_KEY_IMP(dealloc)
@@ -22,6 +25,44 @@ OBJV_KEY_IMP(hashCode)
 OBJV_KEY_IMP(copy)
 OBJV_KEY_IMP(Object)
 
+static objv_hash_map_t * objv_keys = NULL;
+static objv_mutex_t objv_keys_mutex;
+
+objv_key_t * objv_key(const char * key){
+    
+    if(objv_keys == NULL){
+        
+        objv_mutex_init(& objv_keys_mutex);
+        
+        objv_mutex_lock(& objv_keys_mutex);
+        
+        if(objv_keys == NULL){
+            objv_keys = objv_hash_map_alloc(32, objv_hash_map_hash_code_string, objv_map_compare_string);
+        }
+        
+        objv_mutex_unlock(& objv_keys_mutex);
+    }
+    
+    objv_mutex_lock(& objv_keys_mutex);
+    
+    objv_key_t * k = (objv_key_t *) objv_hash_map_get(objv_keys, (void *) key);
+    
+    if(k == NULL){
+        
+        k = (objv_key_t *) objv_zone_malloc(NULL, sizeof(objv_key_t) + strlen(key) + 1);
+        
+        k->name = (const char *) (k + 1);
+        k->type = objv_key_type_dynamic;
+        
+        strcpy((char *) k->name, key);
+        
+        objv_hash_map_put(objv_keys, (void *) k->name, k);
+    }
+    
+    objv_mutex_unlock(& objv_keys_mutex);
+    
+    return k;
+}
 
 objv_boolean_t objv_key_equal(objv_key_t * key1,objv_key_t * key2){
     
@@ -58,8 +99,81 @@ static objv_boolean_t objv_object_method_equal(objv_class_t * clazz, objv_object
 }
 
 
-static int objv_object_methods_retainCount(objv_object_t * obj){
+static int objv_object_methods_retainCount(objv_class_t * clazz,objv_object_t * obj){
     return obj->retainCount;
+}
+
+static objv_iterator_t * objv_object_methods_keyIterator(objv_class_t * clazz,objv_object_t * obj){
+    return (objv_iterator_t * ) objv_object_autorelease( (objv_object_t *) objv_object_iterator_alloc(obj));
+}
+
+static objv_object_t * objv_object_methods_objectForKey(objv_class_t * clazz,objv_object_t * obj,objv_object_t * key){
+    
+    
+    objv_class_t * c = obj->isa;
+    objv_property_t * prop;
+    unsigned int propCount;
+    
+    objv_string_t * skey = objv_object_stringValue(key, NULL);
+    
+    if(skey){
+
+        while(c){
+            
+            prop = c->propertys;
+            propCount = c->propertyCount;
+            
+            while(prop && propCount >0){
+                
+                if(prop->name->name == skey->UTF8String || strcmp(prop->name->name, skey->UTF8String)){
+                    
+                    return objv_property_objectValue(c, obj, prop, NULL);
+                    
+                }
+                
+                prop ++;
+                propCount --;
+            }
+            
+            c = c->superClass;
+        }
+    }
+    
+    return NULL;
+}
+
+static void objv_object_methods_setObjectForKey(objv_class_t * clazz,objv_object_t * obj
+                                                ,objv_object_t * key,objv_object_t * value){
+    objv_class_t * c = obj->isa;
+    objv_property_t * prop;
+    unsigned int propCount;
+    
+    objv_string_t * skey = objv_object_stringValue(key, NULL);
+    
+    if(skey){
+        
+        while(c){
+            
+            prop = c->propertys;
+            propCount = c->propertyCount;
+            
+            while(prop && propCount >0){
+                
+                if(prop->name->name == skey->UTF8String || strcmp(prop->name->name, skey->UTF8String)){
+                    
+                    objv_property_setObjectValue(c, obj, prop, value);
+
+                    return;
+                }
+                
+                prop ++;
+                propCount --;
+            }
+            
+            c = c->superClass;
+        }
+    }
+    
 }
 
 static objv_method_t objv_object_methods[] = {
@@ -67,6 +181,9 @@ static objv_method_t objv_object_methods[] = {
     ,{OBJV_KEY(hashCode),"l()",(objv_method_impl_t)objv_object_method_hashCode}
     ,{OBJV_KEY(equal),"b()",(objv_method_impl_t)objv_object_method_equal}
     ,{OBJV_KEY(retainCount),"i()",(objv_method_impl_t)objv_object_methods_retainCount}
+    ,{OBJV_KEY(keyIterator),"@()",(objv_method_impl_t)objv_object_methods_keyIterator}
+    ,{OBJV_KEY(objectForKey),"@(@)",(objv_method_impl_t)objv_object_methods_objectForKey}
+    ,{OBJV_KEY(setObjectForKey),"v(@,@)",(objv_method_impl_t)objv_object_methods_setObjectForKey}
 };
 
 

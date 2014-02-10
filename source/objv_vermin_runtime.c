@@ -1186,7 +1186,11 @@ vmVariant vmObjectOperatorExecute(vmContext * ctx,objv_class_t * clazz,objv_obje
                 
                 if(objectClass && obj.objectValue){
                     
-                    iterator = objv_object_iterator(objectClass, obj.objectValue);
+                    iterator = objv_object_keyIterator(objectClass, obj.objectValue);
+                    
+                    if(iterator == NULL){
+                        iterator = objv_object_iterator(objectClass, obj.objectValue);
+                    }
                     
                     while(iterator && (item = objv_iterator_next(iterator->base.isa,iterator))){
                         

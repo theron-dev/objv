@@ -48,6 +48,10 @@
 		11BD798018A3356F00F028AC /* objv_exception.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD797F18A3356F00F028AC /* objv_exception.c */; };
 		11BD798318A3A94600F028AC /* objv_iterator.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD798218A3A94600F028AC /* objv_iterator.c */; };
 		11BD798C18A3B73C00F028AC /* objv_tokenizer.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD798B18A3B73C00F028AC /* objv_tokenizer.c */; };
+		11D0BAD718A86E24009761A8 /* objv_channel.c in Sources */ = {isa = PBXBuildFile; fileRef = 11D0BAD618A86E24009761A8 /* objv_channel.c */; };
+		11D0BADA18A87302009761A8 /* objv_channel_tcp.c in Sources */ = {isa = PBXBuildFile; fileRef = 11D0BAD918A87302009761A8 /* objv_channel_tcp.c */; };
+		11D0BADD18A883DE009761A8 /* objv_clchannel.c in Sources */ = {isa = PBXBuildFile; fileRef = 11D0BADC18A883DE009761A8 /* objv_clchannel.c */; };
+		11D0BAE118A8D1A9009761A8 /* objv_clcontext.c in Sources */ = {isa = PBXBuildFile; fileRef = 11D0BADF18A8AEC3009761A8 /* objv_clcontext.c */; };
 		11F67EB118A4B00F006E4EC1 /* objv_vmcompiler_expression.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EB018A4B00F006E4EC1 /* objv_vmcompiler_expression.c */; };
 		11F67EB418A4B266006E4EC1 /* objv_vmcompiler_invokes.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EB318A4B266006E4EC1 /* objv_vmcompiler_invokes.c */; };
 		11F67EB718A4B3FF006E4EC1 /* objv_vmcompiler_class.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EB618A4B3FF006E4EC1 /* objv_vmcompiler_class.c */; };
@@ -137,6 +141,14 @@
 		11BD798218A3A94600F028AC /* objv_iterator.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_iterator.c; sourceTree = "<group>"; };
 		11BD798A18A3B6CA00F028AC /* objv_tokenizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_tokenizer.h; sourceTree = "<group>"; };
 		11BD798B18A3B73C00F028AC /* objv_tokenizer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_tokenizer.c; sourceTree = "<group>"; };
+		11D0BAD518A86DAB009761A8 /* objv_channel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_channel.h; sourceTree = "<group>"; };
+		11D0BAD618A86E24009761A8 /* objv_channel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_channel.c; sourceTree = "<group>"; };
+		11D0BAD818A8729D009761A8 /* objv_channel_tcp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_channel_tcp.h; sourceTree = "<group>"; };
+		11D0BAD918A87302009761A8 /* objv_channel_tcp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_channel_tcp.c; sourceTree = "<group>"; };
+		11D0BADB18A88365009761A8 /* objv_clchannel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_clchannel.h; sourceTree = "<group>"; };
+		11D0BADC18A883DE009761A8 /* objv_clchannel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_clchannel.c; sourceTree = "<group>"; };
+		11D0BADE18A8AE61009761A8 /* objv_clcontext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_clcontext.h; sourceTree = "<group>"; };
+		11D0BADF18A8AEC3009761A8 /* objv_clcontext.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_clcontext.c; sourceTree = "<group>"; };
 		11F67EAF18A4AFD6006E4EC1 /* objv_vmcompiler_expression.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_vmcompiler_expression.h; sourceTree = "<group>"; };
 		11F67EB018A4B00F006E4EC1 /* objv_vmcompiler_expression.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_vmcompiler_expression.c; sourceTree = "<group>"; };
 		11F67EB218A4B243006E4EC1 /* objv_vmcompiler_invokes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_vmcompiler_invokes.h; sourceTree = "<group>"; };
@@ -181,6 +193,10 @@
 			children = (
 				119EBDBD18A70D1300B745D7 /* objv_cloud.h */,
 				119EBDBE18A70D2600B745D7 /* objv_cloud.c */,
+				11D0BADB18A88365009761A8 /* objv_clchannel.h */,
+				11D0BADC18A883DE009761A8 /* objv_clchannel.c */,
+				11D0BADE18A8AE61009761A8 /* objv_clcontext.h */,
+				11D0BADF18A8AEC3009761A8 /* objv_clcontext.c */,
 			);
 			name = cloud;
 			path = ../cloud;
@@ -241,6 +257,8 @@
 				11F67EC518A4C73C006E4EC1 /* md5.h */,
 				11F67ECF18A6173B006E4EC1 /* objv_gc.h */,
 				119EBDB818A65A3E00B745D7 /* objv_inifile.h */,
+				11D0BAD518A86DAB009761A8 /* objv_channel.h */,
+				11D0BAD818A8729D009761A8 /* objv_channel_tcp.h */,
 			);
 			name = include;
 			path = ../include;
@@ -282,6 +300,8 @@
 				11F67ECD18A4EC98006E4EC1 /* objv_vm.c */,
 				11F67ED018A61833006E4EC1 /* objv_gc.c */,
 				119EBDB918A65A9400B745D7 /* objv_inifile.c */,
+				11D0BAD618A86E24009761A8 /* objv_channel.c */,
+				11D0BAD918A87302009761A8 /* objv_channel_tcp.c */,
 			);
 			name = source;
 			path = ../source;
@@ -399,6 +419,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				11D0BADD18A883DE009761A8 /* objv_clchannel.c in Sources */,
+				11D0BAE118A8D1A9009761A8 /* objv_clcontext.c in Sources */,
 				11BD7942189A0FD400F028AC /* objv_dictionary.c in Sources */,
 				11BD79201899540A00F028AC /* objv_types.c in Sources */,
 				11BD79331899EDB600F028AC /* objv_map.c in Sources */,
@@ -421,6 +443,7 @@
 				113206A218A49630006C9112 /* objv_vmcompiler.c in Sources */,
 				11BD792B189978D400F028AC /* objv_array.c in Sources */,
 				11F67ED118A61833006E4EC1 /* objv_gc.c in Sources */,
+				11D0BADA18A87302009761A8 /* objv_channel_tcp.c in Sources */,
 				11BD7973189FB50500F028AC /* objv_json.c in Sources */,
 				11BD793E189A0C1D00F028AC /* objv_log.c in Sources */,
 				119EBDBF18A70D2600B745D7 /* objv_cloud.c in Sources */,
@@ -432,6 +455,7 @@
 				11BD797B18A0F04A00F028AC /* objv_vermin.c in Sources */,
 				11BD798C18A3B73C00F028AC /* objv_tokenizer.c in Sources */,
 				11BD798318A3A94600F028AC /* objv_iterator.c in Sources */,
+				11D0BAD718A86E24009761A8 /* objv_channel.c in Sources */,
 				11BD79191899427E00F028AC /* objv.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

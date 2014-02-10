@@ -11,19 +11,36 @@
 
 #ifdef TARGET_OS_MAC
 
-#include <stddef.h>
-#include <assert.h>
-#include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <stdarg.h>
-#include <stdio.h>
-#ifdef _POSIX_THREADS
+#include <string.h>
+#include <signal.h>
 #include <pthread.h>
-#endif
-#include <sys/time.h>
+#include <time.h>
+#include <netinet/in.h>
+#include <dns.h>
+#include <dns_util.h>
+#include <resolv.h>
+#include <sys/stat.h>
+#include <utime.h>
+#include <zlib.h>
+#include <stdarg.h>
+#include <dlfcn.h>
+#include <assert.h>
 #include <fcntl.h>
+#include <netdb.h>
 #include <errno.h>
+#include <math.h>
+#include <net/if.h>
+#include <net/if_dl.h>
+#include <sys/ioctl.h>
+#include <sys/sockio.h>
+#include <net/ethernet.h>
+#include <sys/types.h>
+
+
+#define closesocket(c) close(c)
 
 #endif
 
@@ -192,6 +209,79 @@ extern "C" {
         ssize_t rc;
         do{ rc = write(file, bytes, length); }while( rc<0 && errno==EINTR );
         return rc;
+    }
+    
+    static inline void objv_os_socket_close(objv_os_socket_t sock){
+        
+        fd_set ds,ws;
+        struct timeval timeo = {0, 0};
+        char buffer[1024];
+        ssize_t len,res;
+        
+        timeo.tv_usec = 100;
+        
+        while(1){
+            FD_ZERO(&ws);
+            FD_SET(sock, &ws);
+            res = select(sock +1, NULL,&ws, NULL, &timeo);
+            if(res == 0){
+                continue;
+            }
+            if(res < 0){
+                if(errno == EINTR){
+                    continue;
+                }
+                break;
+            }
+            shutdown(sock, SHUT_WR);
+            break;
+        }
+        
+        while(1){
+            FD_ZERO(&ds);
+            FD_SET(sock, &ds);
+            res = select(sock +1, &ds,NULL, NULL, &timeo);
+            if(res == 0){
+                shutdown(sock, SHUT_RD);
+                break;
+            }
+            if(res < 0){
+                if(errno == EINTR){
+                    shutdown(sock, SHUT_RD);
+                }
+                break;
+            }
+            else if(FD_ISSET(sock, &ds)){
+                while((len = recv(sock, buffer, sizeof(buffer), 0)) >0);
+                shutdown(sock, SHUT_RD);
+                break;
+            }
+        }
+        
+        close(sock);
+
+    }
+    
+    static inline struct in_addr objv_os_resolv(const char *domain){
+        struct in_addr addr;
+        struct hostent *host;
+        
+        addr.s_addr = inet_addr(domain);
+        
+        if(addr.s_addr != INADDR_BROADCAST){
+            return addr;
+        }
+        
+        host = gethostbyname(domain);
+        if(host && host->h_addr_list && host->h_length >0){
+#if defined( TARGET_OS_WIN32) || defined( TARGET_OS_ANDROID)
+            addr.s_addr = *(unsigned long *)host->h_addr_list[0];
+#else
+            addr.s_addr = *(in_addr_t *)host->h_addr_list[0];
+#endif
+        }
+        
+        return addr;
     }
     
 #elif defined(TARGET_OS_WIN32)

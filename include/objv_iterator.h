@@ -14,17 +14,18 @@
 extern "C" {
 #endif
     
+#include "objv_hash_map.h"
     
     OBJV_KEY_DEC(Iterator)
     OBJV_KEY_DEC(next)
     OBJV_KEY_DEC(iterator)
+    OBJV_KEY_DEC(keyIterator)
     
     typedef struct _objv_iterator_t {
         objv_object_t base;
     } objv_iterator_t;
     
-    
-    extern objv_class_t objv_iterator_class;
+    OBJV_CLASS_DEC(Iterator)
     
     typedef objv_object_t * (* objv_iterator_next_t ) (objv_class_t * clazz,objv_object_t * object);
     
@@ -33,6 +34,20 @@ extern "C" {
     typedef objv_iterator_t * (* objv_object_method_iterator_t) (objv_class_t * clazz,objv_object_t * object);
     
     objv_iterator_t * objv_object_iterator(objv_class_t * clazz,objv_object_t * object);
+    
+    objv_iterator_t * objv_object_keyIterator(objv_class_t * clazz,objv_object_t * object);
+    
+    typedef struct _objv_object_iterator_t {
+        objv_iterator_t base;
+        objv_hash_map_t * READONLY keys;
+        int READONLY index;
+    } objv_object_iterator_t;
+    
+    OBJV_KEY_DEC(ObjectIterator)
+    
+    OBJV_CLASS_DEC(ObjectIterator)
+    
+    objv_object_iterator_t * objv_object_iterator_alloc(objv_object_t * object);
     
 #ifdef __cplusplus
 }

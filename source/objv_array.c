@@ -68,7 +68,7 @@ static objv_method_t objv_array_iterator_methods[] = {
 };
 
 
-static objv_class_t objv_array_iterator_class = {OBJV_KEY(ArrayIterator),& objv_iterator_class
+static objv_class_t objv_array_iterator_class = {OBJV_KEY(ArrayIterator),OBJV_CLASS(Iterator)
     ,objv_array_iterator_methods,sizeof(objv_array_iterator_methods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(objv_array_iterator_t)
@@ -167,7 +167,7 @@ OBJV_CLASS_METHOD_IMP_END(Array)
 
 OBJV_CLASS_PROPERTY_IMP_BEGIN(Array)
 
-OBJV_CLASS_PROPERTY_IMP(length, uint, OBJV_CLASS_METHOD(Array, 2), NULL, objv_false)
+OBJV_CLASS_PROPERTY_IMP(length, uint, objv_array_methods_length, NULL, objv_false)
 
 OBJV_CLASS_PROPERTY_IMP_END(Array)
 

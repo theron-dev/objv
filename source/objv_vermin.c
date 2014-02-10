@@ -140,7 +140,7 @@ static objv_method_t vmObjectIteratorMethods[] = {
 };
 
 
-static objv_class_t vmObjectIteratorClass = {OBJV_KEY(vmObjectIterator),& objv_iterator_class
+static objv_class_t vmObjectIteratorClass = {OBJV_KEY(vmObjectIterator),OBJV_CLASS(Iterator)
     ,vmObjectIteratorMethods,sizeof(vmObjectIteratorMethods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(vmObjectIterator)
@@ -694,7 +694,7 @@ static objv_method_t vmClassMethods[] = {
 };
 
 static objv_property_t vmClassPropertys[] = {
-    {OBJV_KEY(stringValue),& objv_type_object,&vmClassMethods[6],NULL}
+    {OBJV_KEY(stringValue),& objv_type_object,(objv_method_impl_t) vmObjectClassStringValue,NULL,vm_false}
 };
 
 objv_boolean_t vmContextLoadBinary(vmContext * ctx,vmMetaBinary * binary,objv_boolean_t copy){
@@ -818,7 +818,7 @@ objv_key_t * vmContextKey(vmContext * ctx, const char * key){
         if(k == NULL){
             k = (objv_key_t *) objv_zone_malloc(ctx->base.zone, sizeof(objv_key_t));
             k->name = key;
-            k->type = objv_key_type_dynamic;
+            k->type = (unsigned long) ctx;
             objv_hash_map_put(ctx->keyMap, (void *) k->name, k);
         }
         return k;

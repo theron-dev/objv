@@ -39,7 +39,7 @@ static long objv_string_method_hashCode (objv_class_t * clazz, objv_object_t * o
 
 static objv_boolean_t objv_string_method_equal(objv_class_t * clazz, objv_object_t * object,objv_object_t * value){
     
-    if(object != value && objv_object_isKindOfClass(value, & objv_string_class)){
+    if(object != value && objv_object_isKindOfClass(value, OBJV_CLASS(String))){
         
         objv_string_t * v1 = (objv_string_t *) object;
         objv_string_t * v2 = (objv_string_t *) value;
@@ -151,46 +151,47 @@ static objv_boolean_t objv_string_methods_booleanValue(objv_class_t * clazz,objv
     return atoi(string->UTF8String) ? objv_true : objv_false;
 }
 
+OBJV_CLASS_METHOD_IMP_BEGIN(String)
 
-static objv_method_t objv_string_methods[] = {
-    {OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_string_methods_dealloc}
-    ,{OBJV_KEY(init),"@(*)",(objv_method_impl_t) objv_string_methods_init}
-    ,{OBJV_KEY(hashCode),"l()",(objv_method_impl_t)objv_string_method_hashCode}
-    ,{OBJV_KEY(equal),"l()",(objv_method_impl_t)objv_string_method_equal}
-    ,{OBJV_KEY(stringValue),"@()",(objv_method_impl_t)objv_string_methods_stringValue}
-    ,{OBJV_KEY(intValue),"i()",(objv_method_impl_t)objv_string_methods_intValue}
-    ,{OBJV_KEY(uintValue),"I()",(objv_method_impl_t)objv_string_methods_uintValue}
-    ,{OBJV_KEY(longValue),"l()",(objv_method_impl_t)objv_string_methods_longValue}
-    ,{OBJV_KEY(ulongValue),"L()",(objv_method_impl_t)objv_string_methods_ulongValue}
-    ,{OBJV_KEY(longLongValue),"q()",(objv_method_impl_t)objv_string_methods_longLongValue}
-    ,{OBJV_KEY(ulongLongValue),"Q()",(objv_method_impl_t)objv_string_methods_ulongLongValue}
-    ,{OBJV_KEY(floatValue),"f()",(objv_method_impl_t)objv_string_methods_floatValue}
-    ,{OBJV_KEY(doubleValue),"d()",(objv_method_impl_t)objv_string_methods_doubleValue}
-    ,{OBJV_KEY(booleanValue),"b()",(objv_method_impl_t)objv_string_methods_booleanValue}
-};
+OBJV_CLASS_METHOD_IMP(dealloc,"v()",objv_string_methods_dealloc)
 
-static objv_property_t objv_string_propertys[] = {
-    {OBJV_KEY(stringValue),&objv_type_object,&objv_string_methods[3],NULL}
-    ,{OBJV_KEY(intValue),&objv_type_int,&objv_string_methods[4],NULL}
-    ,{OBJV_KEY(uintValue),&objv_type_uint,&objv_string_methods[5],NULL}
-    ,{OBJV_KEY(longValue),&objv_type_long,&objv_string_methods[6],NULL}
-    ,{OBJV_KEY(ulongValue),&objv_type_ulong,&objv_string_methods[7],NULL}
-    ,{OBJV_KEY(longLongValue),&objv_type_longLong,&objv_string_methods[8],NULL}
-    ,{OBJV_KEY(ulongLongValue),&objv_type_ulongLong,&objv_string_methods[9],NULL}
-    ,{OBJV_KEY(floatValue),&objv_type_float,&objv_string_methods[10],NULL}
-    ,{OBJV_KEY(doubleValue),&objv_type_double,&objv_string_methods[11],NULL}
-    ,{OBJV_KEY(booleanValue),&objv_type_boolean,&objv_string_methods[12],NULL}
-};
+OBJV_CLASS_METHOD_IMP(init,"@(*)",objv_string_methods_init)
 
-objv_class_t objv_string_class = {OBJV_KEY(String),& objv_Object_class
-    ,objv_string_methods,sizeof(objv_string_methods) / sizeof(objv_method_t)
-    ,objv_string_propertys,sizeof(objv_string_propertys) / sizeof(objv_property_t)
-    ,sizeof(objv_string_t)
-    ,NULL,0};
+OBJV_CLASS_METHOD_IMP(hashCode,"l()",objv_string_method_hashCode)
+OBJV_CLASS_METHOD_IMP(equal,"l()",objv_string_method_equal)
+OBJV_CLASS_METHOD_IMP(stringValue,"@()",objv_string_methods_stringValue)
+OBJV_CLASS_METHOD_IMP(intValue,"i()",objv_string_methods_intValue)
+OBJV_CLASS_METHOD_IMP(uintValue,"I()",objv_string_methods_uintValue)
+OBJV_CLASS_METHOD_IMP(longValue,"l()",objv_string_methods_longValue)
+OBJV_CLASS_METHOD_IMP(ulongValue,"L()",objv_string_methods_ulongValue)
+OBJV_CLASS_METHOD_IMP(longLongValue,"q()",objv_string_methods_longLongValue)
+OBJV_CLASS_METHOD_IMP(ulongLongValue,"Q()",objv_string_methods_ulongLongValue)
+OBJV_CLASS_METHOD_IMP(floatValue,"f()",objv_string_methods_floatValue)
+OBJV_CLASS_METHOD_IMP(doubleValue,"d()",objv_string_methods_doubleValue)
+OBJV_CLASS_METHOD_IMP(booleanValue,"b()",objv_string_methods_booleanValue)
+
+OBJV_CLASS_METHOD_IMP_END(String)
+
+OBJV_CLASS_PROPERTY_IMP_BEGIN(String)
+
+OBJV_CLASS_PROPERTY_IMP(stringValue, object, objv_string_methods_stringValue, NULL, objv_false)
+OBJV_CLASS_PROPERTY_IMP(intValue, object, objv_string_methods_intValue, NULL, objv_false)
+OBJV_CLASS_PROPERTY_IMP(uintValue, object, objv_string_methods_uintValue, NULL, objv_false)
+OBJV_CLASS_PROPERTY_IMP(longValue, object, objv_string_methods_longValue, NULL, objv_false)
+OBJV_CLASS_PROPERTY_IMP(ulongValue, object, objv_string_methods_ulongValue, NULL, objv_false)
+OBJV_CLASS_PROPERTY_IMP(longLongValue, object, objv_string_methods_longLongValue, NULL, objv_false)
+OBJV_CLASS_PROPERTY_IMP(ulongLongValue, object, objv_string_methods_ulongLongValue, NULL, objv_false)
+OBJV_CLASS_PROPERTY_IMP(floatValue, object, objv_string_methods_floatValue, NULL, objv_false)
+OBJV_CLASS_PROPERTY_IMP(doubleValue, object, objv_string_methods_doubleValue, NULL, objv_false)
+OBJV_CLASS_PROPERTY_IMP(booleanValue, object, objv_string_methods_booleanValue, NULL, objv_false)
+
+OBJV_CLASS_PROPERTY_IMP_END(String)
+
+OBJV_CLASS_IMP_P_M(String, OBJV_CLASS(Object), objv_string_t);
 
 
 objv_string_t * objv_string_alloc(objv_zone_t * zone,const char * UTF8String){
-    return (objv_string_t *) objv_object_alloc(zone,&objv_string_class,UTF8String,objv_true);
+    return (objv_string_t *) objv_object_alloc(zone,OBJV_CLASS(String),UTF8String,objv_true);
 }
 
 objv_string_t * objv_string_alloc_format(objv_zone_t * zone,const char * format,...){
@@ -223,6 +224,10 @@ objv_string_t * objv_string_alloc_formatv(objv_zone_t * zone,const char * format
 
 objv_string_t * objv_string_new(objv_zone_t * zone,const char * UTF8String){
     return (objv_string_t *) objv_object_autorelease( (objv_object_t *) objv_string_alloc(zone, UTF8String));
+}
+
+objv_string_t * objv_string_new_nocopy(objv_zone_t * zone,const char * UTF8String){
+    return (objv_string_t *) objv_object_autorelease( (objv_object_t *) objv_string_alloc_nocopy(zone, UTF8String));
 }
 
 objv_string_t * objv_string_new_format(objv_zone_t * zone,const char * format,...){
@@ -262,7 +267,7 @@ objv_string_t * objv_string_unicode_new(objv_zone_t * zone,unsigned short * unic
 }
 
 objv_string_t * objv_string_alloc_nocopy(objv_zone_t * zone,const char * UTF8String){
-    return (objv_string_t *) objv_object_alloc(zone,&objv_string_class,UTF8String,objv_false);
+    return (objv_string_t *) objv_object_alloc(zone,OBJV_CLASS(String),UTF8String,objv_false);
 }
 
 size_t objv_unicode_to_utf8(unsigned short * unicode, size_t length, objv_mbuf_t * mbuf){

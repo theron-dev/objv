@@ -48,9 +48,11 @@ extern "C" {
     
     void objv_zone_release(objv_zone_t * zone,void * ptr,const char * file,int line);
     
-    typedef enum {
+    enum {
         objv_key_type_static = 0,objv_key_type_dynamic = 1
-    } objv_key_type;
+    };
+    
+    typedef unsigned long objv_key_type;
     
     typedef struct _objv_key_t {
         const char * name;
@@ -70,6 +72,8 @@ extern "C" {
     OBJV_KEY_DEC(Object)
     
     objv_boolean_t objv_key_equal(objv_key_t * key1,objv_key_t * key2);
+    
+    objv_key_t * objv_key(const char * key);
     
     typedef struct _objv_type_t {
         const char * READONLY name;
@@ -104,8 +108,8 @@ extern "C" {
     typedef struct _objv_property_t {
         objv_key_t * READONLY name;
         objv_type_t * READONLY type;
-        objv_method_t * READONLY getter;
-        objv_method_t * READONLY setter;
+        objv_method_impl_t * READONLY getter;
+        objv_method_impl_t * READONLY setter;
         objv_boolean_t serialization;
     } objv_property_t;
     
@@ -204,11 +208,9 @@ extern "C" {
     
 #define OBJV_CLASS_METHOD_IMP_END(clazz) };
     
-#define OBJV_CLASS_METHOD(clazz,index)  (objv_##clazz##_methods + (index))
-    
 #define OBJV_CLASS_PROPERTY_IMP_BEGIN(clazz) static objv_property_t objv_##clazz##_propertys[] = {
     
-#define OBJV_CLASS_PROPERTY_IMP(name,type,getter,setter,serialization) {OBJV_KEY(name),OBJV_TYPE(type),(getter),(setter),(serialization)},
+#define OBJV_CLASS_PROPERTY_IMP(name,type,getter,setter,serialization) {OBJV_KEY(name),OBJV_TYPE(type),(objv_method_impl_t)(getter),(objv_method_impl_t)(setter),(serialization)},
     
 #define OBJV_CLASS_PROPERTY_IMP_END(clazz) };
     

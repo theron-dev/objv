@@ -95,7 +95,7 @@ OBJV_CLASS_METHOD_IMP_BEGIN(Dispatch)
 
 OBJV_CLASS_METHOD_IMP(dealloc, "v()", objv_dispatch_method_dealloc)
 
-OBJV_CLASS_METHOD_IMP(dealloc, "@(*)", objv_dispatch_method_init)
+OBJV_CLASS_METHOD_IMP(init, "@(*)", objv_dispatch_method_init)
 
 OBJV_CLASS_METHOD_IMP_END(Dispatch)
 

@@ -155,6 +155,31 @@ extern "C" {
     
     void objv_object_setObjectForKey(objv_class_t * clazz,objv_object_t * object,objv_object_t * key,objv_object_t * value);
     
+    
+    int objv_object_intValueForKey(objv_object_t * object,objv_object_t * key,int defaultValue);
+    
+    unsigned int objv_object_uintValueForKey(objv_object_t * object,objv_object_t * key,unsigned int defaultValue);
+    
+    long objv_object_longValueForKey(objv_object_t * object,objv_object_t * key,long defaultValue);
+    
+    unsigned long objv_object_ulongValueForKey(objv_object_t * object,objv_object_t * key,unsigned long defaultValue);
+    
+    long long objv_object_longLongValueForKey(objv_object_t * object,objv_object_t * key,long long defaultValue);
+    
+    unsigned long long objv_object_ulongLongValueForKey(objv_object_t * object,objv_object_t * key,unsigned long long defaultValue);
+    
+    float objv_object_floatValueForKey(objv_object_t * object,objv_object_t * key,float defaultValue);
+    
+    double objv_object_doubleValueForKey(objv_object_t * object,objv_object_t * key,double defaultValue);
+    
+    objv_boolean_t objv_object_booleanValueForKey(objv_object_t * object,objv_object_t * key,objv_boolean_t defaultValue);
+    
+    objv_string_t * objv_object_stringValueForKey(objv_object_t * object,objv_object_t * key,objv_string_t * defaultValue);
+    
+    objv_object_t * objv_object_objectValueForKey(objv_object_t * object,objv_object_t * key,objv_object_t * defaultValue);
+    
+    
+    
     int objv_object_intValue(objv_object_t * object,int defaultValue);
     
     unsigned int objv_object_uintValue(objv_object_t * object,unsigned int defaultValue);
