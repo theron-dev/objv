@@ -38,27 +38,39 @@ static void objv_dispatch_queue_method_dealloc (objv_class_t * clazz
     }
 }
 
-static objv_method_t objv_dispatch_queue_methods[] = {
-    {OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_dispatch_queue_method_dealloc}
-};
+static objv_object_t * objv_dispatch_queue_method_init (objv_class_t * clazz
+                                                , objv_object_t * object,va_list ap){
+    
+    if(clazz->superClass){
+        object = objv_object_initv(clazz->superClass, object, ap);
+    }
+    
+    if(object){
+    
+        objv_dispatch_queue_t * queue = (objv_dispatch_queue_t *) object;
+        queue->name = va_arg(ap, const char *);
+        queue->maxThreadCount = va_arg(ap, unsigned int);
+        queue->dispatchs = objv_array_alloc(object->zone, 20);
+        queue->threadCount = 0;
+        queue->dispatch = (objv_dispatch_t *) objv_object_retain( (objv_object_t *) objv_dispatch_get_current() );
+    }
+    
+    return object;
+}
 
-objv_class_t objv_dispatch_queue_class = {OBJV_KEY(DispatchQueue),& objv_Object_class
-    ,objv_dispatch_queue_methods,sizeof(objv_dispatch_queue_methods) / sizeof(objv_method_t)
-    ,NULL,0
-    ,sizeof(objv_dispatch_queue_t)
-    ,NULL,0};
+OBJV_CLASS_METHOD_IMP_BEGIN(DispatchQueue)
+
+OBJV_CLASS_METHOD_IMP(dealloc, "v()", objv_dispatch_queue_method_dealloc)
+
+OBJV_CLASS_METHOD_IMP(init, "@(*)", objv_dispatch_queue_method_init)
+
+OBJV_CLASS_METHOD_IMP_END(DispatchQueue)
+
+OBJV_CLASS_IMP_M(DispatchQueue, OBJV_CLASS(Object), objv_dispatch_queue_t)
 
 
 objv_dispatch_queue_t * objv_dispatch_queue_alloc(objv_zone_t * zone,const char * name,unsigned int maxThreadCount){
-    
-    objv_dispatch_queue_t * dispatch = (objv_dispatch_queue_t *) objv_object_alloc(zone, &objv_dispatch_queue_class);
-    
-    dispatch->dispatchs = objv_array_alloc(zone, 20);
-    dispatch->threadCount = 0;
-    dispatch->maxThreadCount = maxThreadCount;
-    dispatch->dispatch = (objv_dispatch_t *) objv_object_retain( (objv_object_t *) objv_dispatch_get_current() );
-    
-    return dispatch;
+    return (objv_dispatch_queue_t *) objv_object_alloc(zone, OBJV_CLASS(DispatchQueue),name,maxThreadCount,NULL);
 }
 
 OBJV_KEY_DEC(DispatchQueueTask)
@@ -144,7 +156,7 @@ static objv_method_t objv_dispatch_queue_task_methods[] = {
 };
 
 objv_class_t objv_dispatch_queue_task_class = {OBJV_KEY(DispatchQueueTask)
-    ,& objv_dispatch_task_class
+    ,OBJV_CLASS(DispatchTask)
     ,objv_dispatch_queue_task_methods
     ,sizeof(objv_dispatch_queue_task_methods) / sizeof(objv_method_t)
     ,NULL,0

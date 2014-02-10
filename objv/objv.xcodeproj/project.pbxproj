@@ -10,6 +10,7 @@
 		1121043118A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c in Sources */ = {isa = PBXBuildFile; fileRef = 1121043018A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c */; };
 		113206A218A49630006C9112 /* objv_vmcompiler.c in Sources */ = {isa = PBXBuildFile; fileRef = 113206A118A49630006C9112 /* objv_vmcompiler.c */; };
 		119EBDBA18A65A9400B745D7 /* objv_inifile.c in Sources */ = {isa = PBXBuildFile; fileRef = 119EBDB918A65A9400B745D7 /* objv_inifile.c */; };
+		119EBDBF18A70D2600B745D7 /* objv_cloud.c in Sources */ = {isa = PBXBuildFile; fileRef = 119EBDBE18A70D2600B745D7 /* objv_cloud.c */; };
 		11BD79191899427E00F028AC /* objv.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD79181899427E00F028AC /* objv.c */; };
 		11BD791E189953EB00F028AC /* objv_zone.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD791D189953EB00F028AC /* objv_zone.c */; };
 		11BD79201899540A00F028AC /* objv_types.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD791F1899540A00F028AC /* objv_types.c */; };
@@ -89,6 +90,8 @@
 		113206A118A49630006C9112 /* objv_vmcompiler.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_vmcompiler.c; sourceTree = "<group>"; };
 		119EBDB818A65A3E00B745D7 /* objv_inifile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_inifile.h; sourceTree = "<group>"; };
 		119EBDB918A65A9400B745D7 /* objv_inifile.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_inifile.c; sourceTree = "<group>"; };
+		119EBDBD18A70D1300B745D7 /* objv_cloud.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_cloud.h; sourceTree = "<group>"; };
+		119EBDBE18A70D2600B745D7 /* objv_cloud.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_cloud.c; sourceTree = "<group>"; };
 		11BD79091899409000F028AC /* libobjv.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libobjv.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		11BD7911189940E800F028AC /* objv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = objv.h; sourceTree = "<group>"; };
 		11BD79161899426B00F028AC /* objv_os.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = objv_os.h; sourceTree = "<group>"; };
@@ -173,9 +176,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		119EBDBB18A70CD700B745D7 /* cloud */ = {
+			isa = PBXGroup;
+			children = (
+				119EBDBD18A70D1300B745D7 /* objv_cloud.h */,
+				119EBDBE18A70D2600B745D7 /* objv_cloud.c */,
+			);
+			name = cloud;
+			path = ../cloud;
+			sourceTree = "<group>";
+		};
 		11BD79001899409000F028AC = {
 			isa = PBXGroup;
 			children = (
+				119EBDBB18A70CD700B745D7 /* cloud */,
 				11BD79211899568A00F028AC /* private */,
 				11BD79151899424700F028AC /* source */,
 				11BD7910189940B300F028AC /* include */,
@@ -409,6 +423,7 @@
 				11F67ED118A61833006E4EC1 /* objv_gc.c in Sources */,
 				11BD7973189FB50500F028AC /* objv_json.c in Sources */,
 				11BD793E189A0C1D00F028AC /* objv_log.c in Sources */,
+				119EBDBF18A70D2600B745D7 /* objv_cloud.c in Sources */,
 				11BD79361899F9A800F028AC /* objv_hash_map.c in Sources */,
 				11F67EB418A4B266006E4EC1 /* objv_vmcompiler_invokes.c in Sources */,
 				11F67EB118A4B00F006E4EC1 /* objv_vmcompiler_expression.c in Sources */,

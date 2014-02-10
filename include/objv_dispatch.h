@@ -17,7 +17,6 @@ extern "C" {
 #include "objv_array.h"
  
     OBJV_KEY_DEC(DispatchTask)
-    OBJV_KEY_DEC(DispatchDelayTask)
     OBJV_KEY_DEC(Dispatch)
     OBJV_KEY_DEC(run)
     
@@ -32,7 +31,7 @@ extern "C" {
     
     void objv_dispatch_task_run(objv_class_t * clazz, objv_dispatch_task_t * task);
     
-    extern objv_class_t objv_dispatch_task_class;
+    OBJV_CLASS_DEC(DispatchTask)
     
     typedef struct _objv_dispatch_t {
         objv_object_t base;
@@ -43,8 +42,8 @@ extern "C" {
         objv_timeinval_t READONLY idleTimeinval;
     } objv_dispatch_t;
     
-    extern objv_class_t objv_dispatch_class;
- 
+    OBJV_CLASS_DEC(Dispatch)
+    
     objv_dispatch_t * objv_dispatch_alloc(objv_zone_t * zone,const char * name);
     
     int objv_dispatch_run(objv_dispatch_t * dispatch,objv_timeinval_t timeout);
@@ -74,7 +73,7 @@ extern "C" {
         unsigned int READONLY threadCount;
     } objv_dispatch_queue_t;
     
-    extern objv_class_t objv_dispatch_queue_class;
+    OBJV_CLASS_DEC(DispatchQueue)
     
     objv_dispatch_queue_t * objv_dispatch_queue_alloc(objv_zone_t * zone,const char * name,unsigned int maxThreadCount);
     

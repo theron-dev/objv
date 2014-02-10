@@ -54,7 +54,7 @@ static objv_method_t ConsoleTaskMethods[] = {
     ,{OBJV_KEY(dealloc),"v()",(objv_method_impl_t)ConsoleTaskMethodDealloc}
 };
 
-objv_class_t ConsoleTaskClass = { OBJV_KEY(ConsoleTask),& objv_dispatch_task_class
+objv_class_t ConsoleTaskClass = { OBJV_KEY(ConsoleTask), OBJV_CLASS(DispatchTask)
     ,ConsoleTaskMethods,sizeof(ConsoleTaskMethods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(objv_dispatch_task_t)

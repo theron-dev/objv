@@ -23,15 +23,13 @@ static void objv_dispatch_task_method_run (objv_class_t * clazz, objv_object_t *
     
 }
 
-static objv_method_t objv_dispatch_task_methods[] = {
-    {OBJV_KEY(run),"v()",(objv_method_impl_t)objv_dispatch_task_method_run}
-};
+OBJV_CLASS_METHOD_IMP_BEGIN(DispatchTask)
 
-objv_class_t objv_dispatch_task_class = { OBJV_KEY(DispatchTask),& objv_Object_class
-    ,objv_dispatch_task_methods,sizeof(objv_dispatch_task_methods) / sizeof(objv_method_t)
-    ,NULL,0
-    ,sizeof(objv_dispatch_task_t)
-    ,NULL,0};
+OBJV_CLASS_METHOD_IMP(run, "v()", objv_dispatch_task_method_run)
+
+OBJV_CLASS_METHOD_IMP_END(DispatchTask)
+
+OBJV_CLASS_IMP_M(DispatchTask, OBJV_CLASS(Object), objv_dispatch_task_t)
 
 
 void objv_dispatch_task_run(objv_class_t * clazz,objv_dispatch_task_t * task){
@@ -75,28 +73,38 @@ static void objv_dispatch_method_dealloc (objv_class_t * clazz, objv_object_t * 
     }
 }
 
-static objv_method_t objv_dispatch_methods[] = {
-    {OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_dispatch_method_dealloc}
-};
+static objv_object_t * objv_dispatch_method_init (objv_class_t * clazz, objv_object_t * object,va_list ap){
+    
+    if(clazz->superClass){
+        object = objv_object_initv(clazz->superClass, object, ap);
+    }
+    
+    if(object){
+        objv_dispatch_t * dispatch = (objv_dispatch_t *) object;
+        dispatch->name = va_arg(ap, const char *);
+        dispatch->tasks = objv_array_alloc(object->zone, 20);
+        
+        objv_mutex_init(& dispatch->mutex);
+        objv_waiter_init(& dispatch->waiter);
+    }
+    
+    return object;
+}
 
-objv_class_t objv_dispatch_class = {OBJV_KEY(Dispatch),& objv_Object_class
-    ,objv_dispatch_methods,sizeof(objv_dispatch_methods) / sizeof(objv_method_t)
-    ,NULL,0
-    ,sizeof(objv_dispatch_t)
-    ,NULL,0};
+OBJV_CLASS_METHOD_IMP_BEGIN(Dispatch)
+
+OBJV_CLASS_METHOD_IMP(dealloc, "v()", objv_dispatch_method_dealloc)
+
+OBJV_CLASS_METHOD_IMP(dealloc, "@(*)", objv_dispatch_method_init)
+
+OBJV_CLASS_METHOD_IMP_END(Dispatch)
+
+OBJV_CLASS_IMP_M(Dispatch, OBJV_CLASS(Object), objv_dispatch_t)
+
 
 objv_dispatch_t * objv_dispatch_alloc(objv_zone_t * zone,const char * name){
-    
-    objv_dispatch_t * dispatch = (objv_dispatch_t *) objv_object_alloc(zone
-                                                                       , & objv_dispatch_class);
-    
-    dispatch->name = name;
-    dispatch->tasks = objv_array_alloc(zone, 20);
-    
-    objv_mutex_init(& dispatch->mutex);
-    objv_waiter_init(& dispatch->waiter);
-    
-    return dispatch;
+    return (objv_dispatch_t *) objv_object_alloc(zone
+                                                 , OBJV_CLASS(Dispatch),name);
 }
 
 int objv_dispatch_run(objv_dispatch_t * dispatch,objv_timeinval_t timeout){

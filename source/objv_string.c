@@ -349,7 +349,70 @@ const char * objv_string_lastIndexOf(const char * string,const char * substring)
             
             p --;
         }
-        return s < substring ? p + (es - s) : NULL;
+        return s < substring ? p + 1 : NULL;
+    }
+    return NULL;
+}
+
+const char * objv_string_hasPrefix(const char * string,const char * substring){
+    if(string && substring){
+        char * p = (char *) string;
+        char * s = (char *) substring;
+        
+        while(*p !=0 && * s != 0){
+            
+            if(*p == *s){
+                s ++;
+            }
+            else{
+                break;
+            }
+            
+            p ++;
+        }
+        return * s == 0 ? string : NULL;
+    }
+    return NULL;
+}
+
+const char * objv_string_hasPrefixTo(const char * string,const char * substring,const char * toSubstring){
+    if(string && substring){
+        char * p = (char *) string;
+        char * s = (char *) substring;
+        
+        while(*p !=0 && s != toSubstring){
+            
+            if(*p == *s){
+                s ++;
+            }
+            else{
+                break;
+            }
+            
+            p ++;
+        }
+        return s == toSubstring ? string : NULL;
+    }
+    return NULL;
+}
+
+const char * objv_string_hasSuffix(const char * string,const char * substring){
+    if(string && substring){
+        char * p = (char *) string + strlen(string) - 1;
+        char * s = (char *) substring + strlen(substring) - 1;
+        
+        while(p >= string && s >= substring ){
+            
+            if(*p == *s){
+                s --;
+            }
+            else{
+                break;
+            }
+            
+            p --;
+        }
+        return s < substring ? p + 1 : NULL;
     }
     return NULL;
 }
