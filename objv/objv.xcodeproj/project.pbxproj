@@ -9,8 +9,11 @@
 /* Begin PBXBuildFile section */
 		1121043118A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c in Sources */ = {isa = PBXBuildFile; fileRef = 1121043018A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c */; };
 		113206A218A49630006C9112 /* objv_vmcompiler.c in Sources */ = {isa = PBXBuildFile; fileRef = 113206A118A49630006C9112 /* objv_vmcompiler.c */; };
+		1143DD9B18BF27E0006BECBC /* objv_clchannel_http.c in Sources */ = {isa = PBXBuildFile; fileRef = 1143DD9A18BF27E0006BECBC /* objv_clchannel_http.c */; };
+		1167A91E18BED89C00AEA7B5 /* objv_http.c in Sources */ = {isa = PBXBuildFile; fileRef = 1167A91D18BED89C00AEA7B5 /* objv_http.c */; };
 		119EBDBA18A65A9400B745D7 /* objv_inifile.c in Sources */ = {isa = PBXBuildFile; fileRef = 119EBDB918A65A9400B745D7 /* objv_inifile.c */; };
 		119EBDBF18A70D2600B745D7 /* objv_cloud.c in Sources */ = {isa = PBXBuildFile; fileRef = 119EBDBE18A70D2600B745D7 /* objv_cloud.c */; };
+		11BB350F18BAF55100BF0C4F /* objv_server_posix.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BB350E18BAF55100BF0C4F /* objv_server_posix.c */; };
 		11BD79191899427E00F028AC /* objv.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD79181899427E00F028AC /* objv.c */; };
 		11BD791E189953EB00F028AC /* objv_zone.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD791D189953EB00F028AC /* objv_zone.c */; };
 		11BD79201899540A00F028AC /* objv_types.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD791F1899540A00F028AC /* objv_types.c */; };
@@ -92,10 +95,16 @@
 		1121043018A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_vmcompiler_tokenizer.c; sourceTree = "<group>"; };
 		113206A018A49601006C9112 /* objv_vmcompiler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_vmcompiler.h; sourceTree = "<group>"; };
 		113206A118A49630006C9112 /* objv_vmcompiler.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_vmcompiler.c; sourceTree = "<group>"; };
+		1143DD9918BF27D5006BECBC /* objv_clchannel_http.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_clchannel_http.h; sourceTree = "<group>"; };
+		1143DD9A18BF27E0006BECBC /* objv_clchannel_http.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_clchannel_http.c; sourceTree = "<group>"; };
+		1167A91C18BED87F00AEA7B5 /* objv_http.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_http.h; sourceTree = "<group>"; };
+		1167A91D18BED89C00AEA7B5 /* objv_http.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_http.c; sourceTree = "<group>"; };
 		119EBDB818A65A3E00B745D7 /* objv_inifile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_inifile.h; sourceTree = "<group>"; };
 		119EBDB918A65A9400B745D7 /* objv_inifile.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_inifile.c; sourceTree = "<group>"; };
 		119EBDBD18A70D1300B745D7 /* objv_cloud.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_cloud.h; sourceTree = "<group>"; };
 		119EBDBE18A70D2600B745D7 /* objv_cloud.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_cloud.c; sourceTree = "<group>"; };
+		11BB350D18BAF33700BF0C4F /* objv_server.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_server.h; sourceTree = "<group>"; };
+		11BB350E18BAF55100BF0C4F /* objv_server_posix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_server_posix.c; sourceTree = "<group>"; };
 		11BD79091899409000F028AC /* libobjv.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libobjv.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		11BD7911189940E800F028AC /* objv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = objv.h; sourceTree = "<group>"; };
 		11BD79161899426B00F028AC /* objv_os.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = objv_os.h; sourceTree = "<group>"; };
@@ -188,6 +197,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1167A91B18BED84D00AEA7B5 /* http */ = {
+			isa = PBXGroup;
+			children = (
+				1167A91C18BED87F00AEA7B5 /* objv_http.h */,
+				1167A91D18BED89C00AEA7B5 /* objv_http.c */,
+			);
+			name = http;
+			path = ../http;
+			sourceTree = "<group>";
+		};
 		119EBDBB18A70CD700B745D7 /* cloud */ = {
 			isa = PBXGroup;
 			children = (
@@ -197,14 +216,28 @@
 				11D0BADC18A883DE009761A8 /* objv_clchannel.c */,
 				11D0BADE18A8AE61009761A8 /* objv_clcontext.h */,
 				11D0BADF18A8AEC3009761A8 /* objv_clcontext.c */,
+				1143DD9918BF27D5006BECBC /* objv_clchannel_http.h */,
+				1143DD9A18BF27E0006BECBC /* objv_clchannel_http.c */,
 			);
 			name = cloud;
 			path = ../cloud;
 			sourceTree = "<group>";
 		};
+		11BB350C18BAF24600BF0C4F /* server */ = {
+			isa = PBXGroup;
+			children = (
+				11BB350D18BAF33700BF0C4F /* objv_server.h */,
+				11BB350E18BAF55100BF0C4F /* objv_server_posix.c */,
+			);
+			name = server;
+			path = ../server;
+			sourceTree = "<group>";
+		};
 		11BD79001899409000F028AC = {
 			isa = PBXGroup;
 			children = (
+				1167A91B18BED84D00AEA7B5 /* http */,
+				11BB350C18BAF24600BF0C4F /* server */,
 				119EBDBB18A70CD700B745D7 /* cloud */,
 				11BD79211899568A00F028AC /* private */,
 				11BD79151899424700F028AC /* source */,
@@ -437,7 +470,10 @@
 				11BD7967189A98F000F028AC /* objv_dispatch_queue.c in Sources */,
 				11BD798018A3356F00F028AC /* objv_exception.c in Sources */,
 				11F67EBA18A4B543006E4EC1 /* objv_vmcompiler_meta.c in Sources */,
+				11BB350F18BAF55100BF0C4F /* objv_server_posix.c in Sources */,
 				11BD79301899E17D00F028AC /* objv_dispatch.c in Sources */,
+				1167A91E18BED89C00AEA7B5 /* objv_http.c in Sources */,
+				1143DD9B18BF27E0006BECBC /* objv_clchannel_http.c in Sources */,
 				11F67EB718A4B3FF006E4EC1 /* objv_vmcompiler_class.c in Sources */,
 				11F67EBD18A4C42A006E4EC1 /* objv_vmcompiler_binary.c in Sources */,
 				113206A218A49630006C9112 /* objv_vmcompiler.c in Sources */,

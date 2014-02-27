@@ -69,27 +69,16 @@ OBJV_KEY_IMP(CLChannelContext);
 static void CLChannelContextMethodDealloc(objv_class_t * clazz,objv_object_t * object){
     
     CLChannelContext * ctx = (CLChannelContext *) object;
-    CLChannelContextSendTask * p,*t;
-    
-    objv_mutex_lock( & ctx->mutex);
-    
-    p = ctx->beginTask;
-    
-    while (p) {
-        
-        objv_object_release((objv_object_t *) p->task);
-        
-        t = p;
-        p = t->next;
-        
-        objv_zone_free(object->zone, t);
-    }
 
-    objv_mutex_unlock( & ctx->mutex);
+    objv_mutex_lock(& ctx->channels_mutex);
+    
+    objv_object_release((objv_object_t *) ctx->channels );
+    
+    ctx->channels = NULL;
+    
+    objv_mutex_unlock(& ctx->channels_mutex);
     
     objv_object_release((objv_object_t *) ctx->queue);
-    
-    objv_mutex_destroy(& ctx->mutex);
     
     if(clazz->superClass){
         objv_object_dealloc(clazz->superClass, object);
@@ -103,8 +92,19 @@ static objv_object_t * CLChannelContextMethodInit(objv_class_t * clazz,objv_obje
     }
     
     if(object){
+        
+        objv_zone_t * zone = object->zone;
+        
         CLChannelContext * ctx = (CLChannelContext *) object;
-        objv_mutex_init(& ctx->mutex);
+        
+        objv_mutex_init(& ctx->channels_mutex);
+        
+        objv_mutex_lock(& ctx->channels_mutex);
+        
+        ctx->channels = objv_array_alloc(zone, 4);
+        
+        objv_mutex_unlock(& ctx->channels_mutex);
+        
     }
     
     return object;
@@ -118,26 +118,21 @@ static void  CLChannelContextMethodSendTaskFun (objv_class_t * clazz,CLChannelCo
     }
     else{
         
-        objv_zone_t * zone = ctx->base.base.base.zone;
+        objv_mutex_lock(& ctx->channels_mutex);
         
-        CLChannelContextSendTask * p = (CLChannelContextSendTask *) objv_zone_malloc(zone, sizeof(CLChannelContextSendTask));
-        
-        objv_zone_memzero(zone, p, sizeof(CLChannelContextSendTask));
-        
-        p->taskType = taskType;
-        p->task = (CLTask *) objv_object_retain((objv_object_t *) task);
-        
-        objv_mutex_lock( & ctx->mutex);
-        
-        if(ctx->endTask){
-            ctx->endTask->next = p;
-            ctx->endTask = p;
-        }
-        else{
-            ctx->beginTask = ctx->endTask = p;
+        if( ctx->channels && ctx->channels->length > 0){
+            
+            if(ctx->channel_index >= ctx->channels->length){
+                ctx->channel_index = 0;
+            }
+            
+            CLChannel * channel = (CLChannel *) objv_array_objectAt(ctx->channels, ctx->channel_index ++);
+            
+            CLChannelPostTask(channel->base.isa, channel, task, taskType);
+            
         }
         
-        objv_mutex_unlock( & ctx->mutex);
+        objv_mutex_unlock(& ctx->channels_mutex);
     }
 }
 
@@ -151,7 +146,6 @@ static void CLChannelContextMethodSetConfig(objv_class_t * clazz,CLChannelContex
     
     if(ctx->queue == NULL){
         ctx->queue = objv_dispatch_queue_alloc(zone, "CLChannelContext", objv_object_uintValueForKey(config, (objv_object_t *)objv_string_new_nocopy(zone, "maxThreadCount"), 20));
-        
     }
     
 }
@@ -191,15 +185,14 @@ static void CLChannelContextTaskRun(objv_class_t * clazz, CLChannelContextTask *
     
     objv_timeinval_t delay = 0.02;
     
-    
-    if((status = CLChannelConnect(task->channel, 0.02)) == OBJVChannelStatusOK){
+    if((status = CLChannelConnect(task->channel->base.isa, task->channel, 0.02)) == OBJVChannelStatusOK){
         
         
         {
             CLTask * t = NULL;
             objv_class_t * tType = NULL;
             
-            if((status = CLChannelReadTask(task->channel, & t, & tType, 0.02)) != OBJVChannelStatusError){
+            if((status = CLChannelReadTask(task->channel->base.isa,task->channel, & t, & tType, 0.02)) == OBJVChannelStatusOK){
                 
                 if(t && tType){
                     
@@ -212,19 +205,15 @@ static void CLChannelContextTaskRun(objv_class_t * clazz, CLChannelContextTask *
         }
         
         if(status != OBJVChannelStatusError){
-            
-            if(task->channel->task == NULL){
-                CLChannelContextDequeueSendTask(task->ctx,& task->channel->task,& task->channel->taskType);
-            }
-            
-            
-            status = CLChannelTick(task->channel, 0.02);
+            status = CLChannelTick(task->channel->base.isa,task->channel, 0.02);
         }
         
     }
     
-    
-    if(status != OBJVChannelStatusError){
+    if(status == OBJVChannelStatusError){
+        CLChannelContextRemoveChannel(task->ctx, task->channel);
+    }
+    else {
         task->base.delay = delay;
         objv_dispatch_queue_addTask(task->ctx->queue, (objv_dispatch_task_t *) task);
     }
@@ -270,7 +259,6 @@ OBJV_CLASS_METHOD_IMP_END(CLChannelContextTask)
 
 OBJV_CLASS_IMP_M(CLChannelContextTask, OBJV_CLASS(DispatchTask), CLChannelContextTask)
 
-
 void CLChannelContextAddChannel(CLChannelContext * ctx,CLChannel * channel){
     if(ctx && channel && ctx->queue){
         
@@ -284,26 +272,14 @@ void CLChannelContextAddChannel(CLChannelContext * ctx,CLChannel * channel){
     }
 }
 
-void CLChannelContextDequeueSendTask(CLChannelContext * ctx, CLTask ** task,objv_class_t ** taskType){
-    if(ctx && task && taskType){
-        CLChannelContextSendTask * t;
-        objv_zone_t * zone = ctx->base.base.base.zone;
+void CLChannelContextRemoveChannel(CLChannelContext * ctx,CLChannel * channel){
+    if(ctx && channel ){
         
-        objv_mutex_lock( & ctx->mutex);
-        if(ctx->beginTask){
-            * task = ctx->beginTask->task;
-            * taskType = ctx->beginTask->taskType;
-            objv_object_autorelease(( objv_object_t *)ctx->beginTask->task);
-            if(ctx->beginTask == ctx->endTask){
-                objv_zone_free(zone, ctx->beginTask);
-                ctx->beginTask = ctx->endTask = NULL;
-            }
-            else{
-                t = ctx->beginTask;
-                ctx->beginTask = t->next;
-                objv_zone_free(zone, t);
-            }
-        }
-        objv_mutex_unlock( & ctx->mutex);
+        objv_mutex_lock(& ctx->channels_mutex);
+        
+        objv_array_remove(ctx->channels,(objv_object_t *) channel);
+        
+        objv_mutex_unlock(& ctx->channels_mutex);
+
     }
 }

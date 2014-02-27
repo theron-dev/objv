@@ -17,46 +17,14 @@ extern "C" {
 #include "objv_channel.h"
 #include "objv_cloud.h"
 #include "objv_array.h"  
+#include "objv_string.h"
     
-    typedef struct _CLChannelConnectBlock {
-        char protocol[8];
-        char version[8];
-        char encoding[16];
-        char contentType[16];
-        unsigned int verify;
-    } CLChannelConnectBlock;
-    
-    objv_boolean_t CLChannelConnectBlockValidate(CLChannelConnectBlock * block);
-    
-    void CLChannelConnectBlockSignature(CLChannelConnectBlock * block);
-    
-    typedef struct _CLChannelRequestBlock {
-        char length[8];
-    } CLChannelRequestBlock;
-    
-    void CLChannelRequestBlockSetLength(CLChannelRequestBlock * block,size_t length);
-    
-    size_t CLChannelRequestBlockLength(CLChannelRequestBlock * block);
     
     typedef struct _CLChannel{
         objv_object_t base;
         objv_boolean_t READONLY connected;
-        objv_channel_t * READONLY channel;
-        CLChannelConnectBlock READONLY block;
-        CLTask * task;
-        objv_class_t * taskType;
-        
-        struct {
-            objv_mbuf_t data;
-            int state;
-            size_t dataLength;
-        } read;
-        
-        struct {
-            objv_mbuf_t data;
-            size_t writeLength;
-            int state;
-        } write;
+        objv_channel_t * READONLY oChannel;
+        objv_string_t * READONLY domain;
         
         objv_timeinval_t READONLY tickTimeinval;
         
@@ -68,15 +36,39 @@ extern "C" {
     
     OBJV_KEY_DEC(CLChannel)
     
-    CLChannel * CLChannelAlloc(objv_zone_t * zone,objv_channel_t * channel);
+    OBJV_CLASS_DEC(CLChannel)
     
-    OBJVChannelStatus CLChannelConnect(CLChannel * channel,objv_timeinval_t timeout);
+    OBJV_KEY_DEC(connect)
     
-    OBJVChannelStatus CLChannelReadTask(CLChannel * channel,CLTask ** task,objv_class_t ** taskType,objv_timeinval_t timeout);
+    OBJV_KEY_DEC(readTask)
     
-    void CLChannelSetTask(CLChannel * channel,CLTask * task,objv_class_t * taskType);
+    OBJV_KEY_DEC(postTask)
     
-    OBJVChannelStatus CLChannelTick(CLChannel * channel,objv_timeinval_t timeout);
+    OBJV_KEY_DEC(tick)
+    
+    typedef OBJVChannelStatus ( * CLChannelMethodConnect)(objv_class_t * clazz,CLChannel * channel,objv_timeinval_t timeout);
+    
+    typedef OBJVChannelStatus ( * CLChannelMethodReadTask)(objv_class_t * clazz,CLChannel * channel,CLTask ** task,objv_class_t ** taskType,objv_timeinval_t timeout);
+    
+    typedef void ( * CLChannelMethodPostTask)(objv_class_t * clazz,CLChannel * channel,CLTask * task,objv_class_t * taskType);
+    
+    typedef OBJVChannelStatus ( * CLChannelMethodTick)(objv_class_t * clazz,CLChannel * channel,objv_timeinval_t timeout);
+    
+    typedef void ( * CLChannelMethodSetChannel)(objv_class_t * clazz,CLChannel * channel,objv_channel_t * oChannel);
+    
+    objv_object_t * CLChannelInit(objv_class_t * clazz,CLChannel * clChannel, objv_channel_t * channel);
+    
+    OBJVChannelStatus CLChannelConnect(objv_class_t * clazz,CLChannel * channel,objv_timeinval_t timeout);
+    
+    OBJVChannelStatus CLChannelReadTask(objv_class_t * clazz,CLChannel * channel,CLTask ** task,objv_class_t ** taskType,objv_timeinval_t timeout);
+    
+    void CLChannelPostTask(objv_class_t * clazz,CLChannel * channel,CLTask * task,objv_class_t * taskType);
+    
+    OBJVChannelStatus CLChannelTick(objv_class_t * clazz,CLChannel * channel,objv_timeinval_t timeout);
+    
+    void CLChannelSetChannel(CLChannel * channel,objv_channel_t * oChannel);
+    
+    void CLChannelSetDomain(CLChannel * channel,objv_string_t * domain);
     
 #ifdef __cplusplus
 }

@@ -30,19 +30,13 @@ extern "C" {
     OBJV_CLASS_DEC(CLServiceContext)
     
     void CLServiceContextSetContainer(CLServiceContext * ctx,CLServiceContainer * container);
-                                      
-    typedef struct _CLChannelContextSendTask {
-        CLTask * task;
-        objv_class_t * taskType;
-        struct _CLChannelContextSendTask * next;
-    } CLChannelContextSendTask;
     
     typedef struct _CLChannelContext {
         CLServiceContext base;
         objv_dispatch_queue_t * READONLY queue;
-        CLChannelContextSendTask * READONLY beginTask;
-        CLChannelContextSendTask * READONLY endTask;
-        objv_mutex_t mutex;
+        objv_array_t * READONLY channels;
+        objv_mutex_t READONLY channels_mutex;
+        unsigned int READONLY channel_index;
     } CLChannelContext;
     
     OBJV_KEY_DEC(CLChannelContext);
@@ -53,8 +47,7 @@ extern "C" {
     
     void CLChannelContextAddChannel(CLChannelContext * ctx,CLChannel * channel);
     
-    void CLChannelContextDequeueSendTask(CLChannelContext * ctx, CLTask ** task,objv_class_t ** taskType);
-    
+    void CLChannelContextRemoveChannel(CLChannelContext * ctx,CLChannel * channel);
     
 #ifdef __cplusplus
 }
