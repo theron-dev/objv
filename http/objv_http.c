@@ -18,11 +18,11 @@ void OBJVHTTPRequestReset(OBJVHttpRequest * request){
     objv_zone_memzero(NULL, request,sizeof(OBJVHttpRequest));
 }
 
-OBJVHttpRequestState OBJVHTTPRequestRead(OBJVHttpRequest * request,unsigned int offset,unsigned int length,char * ofString){
+OBJVHttpRequestState OBJVHTTPRequestRead(OBJVHttpRequest * request,size_t offset,size_t length,char * ofString){
     
-    unsigned int c = length;
+    size_t c = length;
     char * p = ofString + offset;
-    unsigned int off = offset;
+    size_t off = offset;
     OBJVHttpHeader * h;
     
     request->ofString = ofString;
@@ -138,7 +138,7 @@ OBJVHttpRequestState OBJVHTTPRequestRead(OBJVHttpRequest * request,unsigned int 
             }
                 break;
             default:
-                return length - c;
+                return OBJVHttpRequestStateOK;
                 break;
         }
         
@@ -156,7 +156,7 @@ objv_boolean_t OBJVHttpStringEqual(OBJVHttpString string,const char * cString,ch
     
     char * p1 = ofString + string.location;
     char * p2 = (char *) cString;
-    unsigned int len = string.length;
+    size_t len = string.length;
     
     while(p2 && p1 && len >0 && *p1 == * p2){
         
@@ -173,7 +173,7 @@ objv_boolean_t OBJVHttpStringEqual(OBJVHttpString string,const char * cString,ch
 objv_boolean_t OBJVHttpStringEqualNoCase(OBJVHttpString string,const char * cString, char * ofString){
     char * p1 = ofString + string.location;
     char * p2 = (char *) cString;
-    unsigned int len = string.length;
+    size_t len = string.length;
     
     while(p2 && p1 && len >0 && TOLOWER(*p1) == TOLOWER(*p2)){
 
@@ -188,7 +188,7 @@ objv_boolean_t OBJVHttpStringEqualNoCase(OBJVHttpString string,const char * cStr
 objv_boolean_t OBJVHttpStringHasPrefix(OBJVHttpString string,const char * cString,char * ofString){
     char * p1 = ofString + string.location;
     char * p2 = (char *) cString;
-    unsigned int len = string.length;
+    size_t len = string.length;
     
     while(p2 && p1 && len >0 && *p1 == * p2){
         

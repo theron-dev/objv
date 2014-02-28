@@ -18,8 +18,8 @@ extern "C" {
 #include "objv.h"
     
     typedef struct _OBJVHttpString {
-        unsigned int location;
-        unsigned int length;
+        size_t location;
+        size_t length;
     } OBJVHttpString;
 
     
@@ -62,12 +62,12 @@ extern "C" {
             OBJVHttpString value;
         } state;
         char * ofString;
-        unsigned int length;
+        size_t length;
     } OBJVHttpRequest;
     
     void OBJVHTTPRequestReset(OBJVHttpRequest * request);
     
-    OBJVHttpRequestState OBJVHTTPRequestRead(OBJVHttpRequest * request,unsigned int offset,unsigned int length,char * ofString);
+    OBJVHttpRequestState OBJVHTTPRequestRead(OBJVHttpRequest * request,size_t,size_t,char * ofString);
     
     OBJVHttpHeader * OBJVHttpRequestGetHeader(OBJVHttpRequest * request,const char * key);
     

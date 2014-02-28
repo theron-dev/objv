@@ -13,6 +13,7 @@
 #include "objv_array.h"
 #include "objv_autorelease.h"
 #include "objv_value.h"
+#include "objv_string.h"
 
 OBJV_KEY_DEC(ArrayIterator)
 OBJV_KEY_IMP(ArrayIterator)
@@ -337,3 +338,37 @@ void objv_array_removeFirst(objv_array_t * array){
     objv_array_removeAt(array, 0);
 }
 
+struct _objv_string_t * objv_array_joinString(objv_array_t * array,const char * splitString){
+    
+    if(array){
+        
+        objv_string_t * s = NULL, * v;
+        int i;
+        size_t l = splitString ? strlen(splitString) : 0;
+        objv_mbuf_t mbuf;
+        
+        objv_mbuf_init(& mbuf, 64);
+        
+        for(i=0;i<array->length;i++){
+            v = objv_object_stringValue(objv_array_objectAt(array, i), NULL);
+            if(i != 0){
+                if(l >0){
+                    objv_mbuf_append(& mbuf, (void *)splitString, l);
+                }
+            }
+
+            if(v){
+                objv_mbuf_append(& mbuf, v->UTF8String, v->length);
+            }
+        }
+        
+        s = objv_string_new(array->base.zone, objv_mbuf_str(& mbuf));
+        
+        objv_mbuf_destroy(& mbuf);
+        
+        return s;
+        
+    }
+    
+    return NULL;
+}

@@ -18,15 +18,27 @@ extern "C" {
 #include "objv_http.h"
     
     typedef enum _CLHttpChannelContentType {
-        CLHttpChannelContentTypeChunked,
+        CLHttpChannelContentTypeChunked = 1<<0,
+        CLHttpChannelContentTypeJSON = 2<<0,
     } CLHttpChannelContentType;
+    
+    typedef struct _CLHttpChannelPostTask {
+        CLTask * task;
+        objv_class_t * taskType;
+        struct _CLHttpChannelPostTask * next;
+    } CLHttpChannelPostTask;
     
     typedef struct _CLHttpChannel{
         CLChannel base;
         OBJVHttpRequest httpRequest;
+        CLHttpChannelPostTask * beginTask;
+        CLHttpChannelPostTask * endTask;
+        objv_mutex_t tasks_mutex;
         
         struct {
             objv_mbuf_t mbuf;
+            objv_mbuf_t data;
+            size_t dataLength;
             size_t off;
             int state;
         } read;
@@ -44,6 +56,12 @@ extern "C" {
     
     OBJV_CLASS_DEC(CLHttpChannel)
     
+    
+    OBJVChannelStatus CLHttpChannelUnpackageTask(objv_zone_t * zone, CLTask ** task,objv_class_t ** taskType,objv_mbuf_t * data,CLHttpChannelContentType contentType);
+    
+    OBJVChannelStatus CLHttpChannelPackageTask(objv_zone_t * zone, CLTask * task,objv_class_t * taskType,objv_mbuf_t * mbuf,CLHttpChannelContentType contentType);
+
+        
 #ifdef __cplusplus
 }
 #endif

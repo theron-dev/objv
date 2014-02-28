@@ -56,6 +56,11 @@ extern "C" {
     objv_object_t * objv_array_first(objv_array_t * array);
     
     void objv_array_removeFirst(objv_array_t * array);
+    
+    struct _objv_string_t;
+    
+    struct _objv_string_t * objv_array_joinString(objv_array_t * array,const char * splitString);
+    
 
 #ifdef __cplusplus
 }

@@ -15,6 +15,7 @@
 #include "objv_autorelease.h"
 #include "objv_value.h"
 #include "objv_mbuf.h"
+#include "objv_array.h"
 
 OBJV_KEY_IMP(String)
 
@@ -191,7 +192,7 @@ OBJV_CLASS_IMP_P_M(String, OBJV_CLASS(Object), objv_string_t);
 
 
 objv_string_t * objv_string_alloc(objv_zone_t * zone,const char * UTF8String){
-    return (objv_string_t *) objv_object_alloc(zone,OBJV_CLASS(String),UTF8String,objv_true);
+    return (objv_string_t *) objv_object_alloc(zone,OBJV_CLASS(String),UTF8String,objv_true,NULL);
 }
 
 objv_string_t * objv_string_alloc_format(objv_zone_t * zone,const char * format,...){
@@ -267,7 +268,60 @@ objv_string_t * objv_string_unicode_new(objv_zone_t * zone,unsigned short * unic
 }
 
 objv_string_t * objv_string_alloc_nocopy(objv_zone_t * zone,const char * UTF8String){
-    return (objv_string_t *) objv_object_alloc(zone,OBJV_CLASS(String),UTF8String,objv_false);
+    return (objv_string_t *) objv_object_alloc(zone,OBJV_CLASS(String),UTF8String,objv_false,NULL);
+}
+
+struct _objv_array_t * objv_string_split_UTF8String(objv_zone_t * zone,const char * UTF8String,const char * splitString){
+    
+    if(UTF8String && splitString){
+        
+        objv_array_t * array = objv_array_new(zone, 4);
+        objv_string_t * s;
+        objv_mbuf_t mbuf;
+        char * p = (char *) UTF8String;
+        size_t l = strlen(splitString);
+        
+        objv_mbuf_init(& mbuf, 64);
+        
+        while (p && *p != 0) {
+            
+            if(l == 0){
+                
+                objv_mbuf_append(& mbuf, p, 1);
+                
+                s = objv_string_alloc(zone, objv_mbuf_str(& mbuf));
+                objv_array_add(array, (objv_object_t *) s );
+                objv_object_release((objv_object_t *) s);
+                objv_mbuf_clear(& mbuf);
+                
+                p ++;
+            }
+            else if(strncmp(p, splitString, l) == 0){
+                s = objv_string_alloc(zone, objv_mbuf_str(& mbuf));
+                objv_array_add(array, (objv_object_t *) s );
+                objv_object_release((objv_object_t *) s);
+                objv_mbuf_clear(& mbuf);
+                p += l;
+            }
+            else{
+                objv_mbuf_append(& mbuf, p, 1);
+                p ++;
+            }
+        }
+        
+        objv_mbuf_destroy(& mbuf);
+        
+        return array;
+    }
+    
+    return NULL;
+}
+
+struct _objv_array_t * objv_string_split(objv_string_t * string,const char * splitString){
+    if(string && splitString){
+        return objv_string_split_UTF8String(string->base.zone,string->UTF8String,splitString);
+    }
+    return NULL;
 }
 
 size_t objv_unicode_to_utf8(unsigned short * unicode, size_t length, objv_mbuf_t * mbuf){
@@ -375,7 +429,7 @@ const char * objv_string_hasPrefix(const char * string,const char * substring){
             
             p ++;
         }
-        return * s == 0 ? string : NULL;
+        return * s == 0 ? p : NULL;
     }
     return NULL;
 }

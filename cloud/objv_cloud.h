@@ -19,8 +19,11 @@ extern "C" {
 #include "objv_dispatch.h"
 #include "objv_string.h"
 #include "objv_hash_map.h"
+#include "objv_dictionary.h"
+#include "objv_actree.h"
     
     typedef unsigned long long CLIdentifier;
+
     
     typedef struct _CLContext {
         objv_object_t base;
@@ -30,6 +33,7 @@ extern "C" {
         struct _CLContext * READONLY parent;
         objv_array_t * READONLY childs;
         objv_object_t * READONLY config;
+        objv_actree_t * READONLY childsTree;
     } CLContext;
     
     OBJV_KEY_DEC(CLContext)
@@ -46,18 +50,25 @@ extern "C" {
     OBJV_CLASS_DEC(CLService)
     
 
-    
     typedef struct _CLTask {
         objv_object_t base;
         CLIdentifier READONLY identifier;
         CLIdentifier READONLY replyIdentifier;
         CLContext * READONLY source;
-        objv_string_t * READONLY target;
     } CLTask;
     
     OBJV_KEY_DEC(CLTask)
     OBJV_CLASS_DEC(CLTask)
     
+    typedef struct _CLDomainSetTask {
+        CLTask base;
+        objv_string_t * READONLY domain;
+    } CLDomainSetTask;
+    
+    OBJV_KEY_DEC(CLDomainSetTask)
+    OBJV_CLASS_DEC(CLDomainSetTask)
+    
+    CLDomainSetTask * CLDomainSetTaskAlloc(objv_zone_t * zone,objv_string_t * domain);
     
     typedef struct _CLServiceContainer {
         objv_object_t base;
@@ -92,12 +103,15 @@ extern "C" {
     typedef void ( * CLContextSendTaskFun ) (objv_class_t * clazz,CLContext * context,objv_class_t * taskType,CLTask * task);
     
     void CLContextHandleTask(CLContext * context, objv_class_t * taskType, CLTask * task);
-    
-    void CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * task);
+
+    void CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * task, objv_string_t * target);
     
     void CLContextAddChild(CLContext * context, CLContext * child);
     
+    void CLContextRemoveChild(CLContext * context,CLContext * child);
     
+    void CLContextSetDomain(CLContext * context, objv_string_t * domain);
+
     OBJV_KEY_DEC(setConfig)
     
     typedef void ( * CLContextSetConfigFun ) (objv_class_t * clazz,CLContext * context,objv_object_t * config);

@@ -13,7 +13,7 @@
 #include "objv_channel_tcp.h"
 
 
-OBJV_KEY_IMP(ChannelTcp)
+OBJV_KEY_IMP(TCPChannel)
 
 static OBJVChannelStatus objv_channel_tcp_canWrite(objv_class_t * clazz,objv_channel_tcp_t * channel,objv_timeinval_t timeout);
 

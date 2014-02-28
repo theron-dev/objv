@@ -20,7 +20,6 @@
 #include "objv_dictionary.h"
 
 OBJV_KEY_IMP(CLChannel)
-OBJV_KEY_IMP(connect)
 OBJV_KEY_IMP(readTask)
 OBJV_KEY_IMP(postTask)
 OBJV_KEY_IMP(tick)

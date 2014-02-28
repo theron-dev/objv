@@ -19,6 +19,11 @@ extern "C" {
 #include "objv_array.h"  
 #include "objv_string.h"
     
+    typedef enum _CLChannelMode {
+        CLChannelModeNone = 0
+        ,CLChannelModeRead = 1 << 0
+        ,CLChannelModeWrite = 1 << 1
+    } CLChannelMode;
     
     typedef struct _CLChannel{
         objv_object_t base;
@@ -31,6 +36,8 @@ extern "C" {
         objv_timeinval_t READONLY idleTimeinval;
         
         objv_timeinval_t heartbeatTimeinval; // 心跳时间
+        
+        CLChannelMode mode;
         
     } CLChannel;
     

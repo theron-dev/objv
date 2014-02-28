@@ -122,13 +122,10 @@ static void  CLChannelContextMethodSendTaskFun (objv_class_t * clazz,CLChannelCo
         
         if( ctx->channels && ctx->channels->length > 0){
             
-            if(ctx->channel_index >= ctx->channels->length){
-                ctx->channel_index = 0;
+            for(int i=0;i<ctx->channels->length;i++){
+                CLChannel * channel = (CLChannel *) objv_array_objectAt(ctx->channels, i);
+                CLChannelPostTask(channel->base.isa, channel, task, taskType);
             }
-            
-            CLChannel * channel = (CLChannel *) objv_array_objectAt(ctx->channels, ctx->channel_index ++);
-            
-            CLChannelPostTask(channel->base.isa, channel, task, taskType);
             
         }
         
@@ -180,7 +177,6 @@ OBJV_KEY_IMP(CLChannelContextTask)
 
 static void CLChannelContextTaskRun(objv_class_t * clazz, CLChannelContextTask * task){
     
-    
     OBJVChannelStatus status = OBJVChannelStatusOK;
     
     objv_timeinval_t delay = 0.02;
@@ -188,7 +184,8 @@ static void CLChannelContextTaskRun(objv_class_t * clazz, CLChannelContextTask *
     if((status = CLChannelConnect(task->channel->base.isa, task->channel, 0.02)) == OBJVChannelStatusOK){
         
         
-        {
+        if(task->channel->mode & CLChannelModeRead){
+            
             CLTask * t = NULL;
             objv_class_t * tType = NULL;
             
@@ -204,7 +201,7 @@ static void CLChannelContextTaskRun(objv_class_t * clazz, CLChannelContextTask *
             
         }
         
-        if(status != OBJVChannelStatusError){
+        if(status != OBJVChannelStatusError && (task->channel->mode & CLChannelModeWrite)){
             status = CLChannelTick(task->channel->base.isa,task->channel, 0.02);
         }
         
@@ -273,7 +270,10 @@ void CLChannelContextAddChannel(CLChannelContext * ctx,CLChannel * channel){
 }
 
 void CLChannelContextRemoveChannel(CLChannelContext * ctx,CLChannel * channel){
+    
     if(ctx && channel ){
+        
+        CLChannelContextWillRemoveChannel(ctx->base.base.base.isa,ctx,channel);
         
         objv_mutex_lock(& ctx->channels_mutex);
         
@@ -281,5 +281,52 @@ void CLChannelContextRemoveChannel(CLChannelContext * ctx,CLChannel * channel){
         
         objv_mutex_unlock(& ctx->channels_mutex);
 
+        CLChannelContextDidRemoveChannel(ctx->base.base.base.isa,ctx);
+        
+    }
+    
+}
+
+OBJV_KEY_IMP(willRemoveChannel)
+
+OBJV_KEY_IMP(didRemoveChannel)
+
+void CLChannelContextWillRemoveChannel(objv_class_t * clazz,CLChannelContext * ctx,CLChannel * channel){
+    
+    if(clazz && ctx){
+        
+        objv_class_t * c = clazz;
+        
+        objv_method_t * method = NULL;
+        
+        while(c && (method = objv_class_getMethod(c, OBJV_KEY(dealloc))) == NULL){
+            
+            c = c->superClass;
+        }
+        
+        if(method){
+            (* (CLChannelContextMethodWillRemoveChannel) method->impl)(c,ctx,channel);
+        }
     }
 }
+
+void CLChannelContextDidRemoveChannel(objv_class_t * clazz,CLChannelContext * ctx){
+    
+    if(clazz && ctx){
+        
+        objv_class_t * c = clazz;
+        
+        objv_method_t * method = NULL;
+        
+        while(c && (method = objv_class_getMethod(c, OBJV_KEY(dealloc))) == NULL){
+            
+            c = c->superClass;
+        }
+        
+        if(method){
+            (* (CLChannelContextMethodDidRemoveChannel) method->impl)(c,ctx);
+        }
+    }
+    
+}
+

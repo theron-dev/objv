@@ -36,10 +36,13 @@ extern "C" {
         objv_dispatch_queue_t * READONLY queue;
         objv_array_t * READONLY channels;
         objv_mutex_t READONLY channels_mutex;
-        unsigned int READONLY channel_index;
     } CLChannelContext;
     
     OBJV_KEY_DEC(CLChannelContext);
+    
+    OBJV_KEY_DEC(willRemoveChannel);
+    
+    OBJV_KEY_DEC(didRemoveChannel);
     
     OBJV_CLASS_DEC(CLChannelContext)
     
@@ -48,6 +51,14 @@ extern "C" {
     void CLChannelContextAddChannel(CLChannelContext * ctx,CLChannel * channel);
     
     void CLChannelContextRemoveChannel(CLChannelContext * ctx,CLChannel * channel);
+    
+    typedef void ( * CLChannelContextMethodWillRemoveChannel )(objv_class_t * clazz,CLChannelContext * ctx,CLChannel * channel);
+    
+    void CLChannelContextWillRemoveChannel(objv_class_t * clazz,CLChannelContext * ctx,CLChannel * channel);
+    
+    typedef void ( * CLChannelContextMethodDidRemoveChannel )(objv_class_t * clazz,CLChannelContext * ctx);
+    
+    void CLChannelContextDidRemoveChannel(objv_class_t * clazz,CLChannelContext * ctx);
     
 #ifdef __cplusplus
 }
