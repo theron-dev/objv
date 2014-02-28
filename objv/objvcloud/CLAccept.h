@@ -19,6 +19,7 @@ extern "C" {
 #include "objv_channel.h"
 #include "objv_http.h"
 #include "objv_channel_tcp.h"
+#include "objv_clchannel_http.h"
     
     typedef struct _CLAccept {
         objv_dispatch_task_t base;
@@ -38,8 +39,7 @@ extern "C" {
         CLContext * READONLY ctx;
         objv_channel_tcp_t * READONLY channel;
         struct sockaddr_in from;
-        OBJVHttpRequest httpRequest;
-        objv_mbuf_t mbuf;
+        CLHttpChannel * httpChannel;
     } CLAcceptConnect;
     
     OBJV_KEY_DEC(CLAcceptConnect)
@@ -49,7 +49,6 @@ extern "C" {
     CLAccept * CLAcceptAlloc(objv_zone_t * zone,int port);
     
     OBJVChannelStatus CLAcceptGetConnect(CLAccept * accept,objv_timeinval_t timeout,CLAcceptConnect ** connenct );
-    
     
     
 #ifdef __cplusplus

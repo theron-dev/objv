@@ -12,9 +12,11 @@
 #include "objv_zombie.h"
 #include "objv_log.h"
 
+#include <execinfo.h>
+
 #define EXTEND_SIZE 64
 
-static void * objv_zone_zombie_malloc(struct _objv_zone_t *zone, size_t size,const char * file,int line){
+static void * objv_zone_zombie_malloc(struct _objv_zone_t *zone, size_t size){
     
     objv_zombie_t * zombie = (objv_zombie_t *) zone;
     
@@ -22,8 +24,11 @@ static void * objv_zone_zombie_malloc(struct _objv_zone_t *zone, size_t size,con
     
     memset(block, 0, sizeof(objv_zombie_block_t));
     
-    block->file = file;
-    block->line = line;
+    void * array[10];
+    
+    block->backtrace_size = backtrace(array,10);
+    block->backtrace_symbols = backtrace_symbols(array,block->backtrace_size);
+    
     block->size = size;
     block->retainCount = 1;
     
@@ -60,16 +65,18 @@ static void objv_zone_zombie_free(struct _objv_zone_t *zone, void *ptr){
     
 }
 
-static void * objv_zone_zombie_realloc(struct _objv_zone_t *zone, void *ptr, size_t size,const char * file,int line){
+static void * objv_zone_zombie_realloc(struct _objv_zone_t *zone, void *ptr, size_t size){
     
     objv_zombie_t * zombie = (objv_zombie_t *) zone;
+    void * array[10];
     
     objv_zombie_block_t * block = (objv_zombie_block_t *) ptr - 1;
     
     block = ( objv_zombie_block_t *) realloc(block , size + sizeof(objv_zombie_block_t));
     block->size = size;
-    block->file = file;
-    block->line = line;
+    block->backtrace_size = backtrace(array,10);
+    block->backtrace_symbols = backtrace_symbols(array,block->backtrace_size);
+    
     
     objv_mutex_lock(& zombie->mutex);
     
@@ -85,11 +92,13 @@ static void objv_zone_zombie_memzero(struct _objv_zone_t *zone, void *ptr, size_
 }
 
 
-static void objv_zone_zombie_retain(struct _objv_zone_t *zone, void *ptr,const char * file,int line){
+static void objv_zone_zombie_retain(struct _objv_zone_t *zone, void *ptr){
     
     objv_zombie_t * zombie = (objv_zombie_t *) zone;
     
     objv_zombie_block_t * block = (objv_zombie_block_t *) ptr - 1;
+    
+    void * array[10];
     
     objv_mutex_lock(& zombie->mutex);
     
@@ -102,8 +111,9 @@ static void objv_zone_zombie_retain(struct _objv_zone_t *zone, void *ptr,const c
     memset(location, 0, sizeof(objv_zombie_block_location_t));
     
     location->method = "retain";
-    location->file = file;
-    location->line = line;
+    
+    location->backtrace_size = backtrace(array,10);
+    location->backtrace_symbols = backtrace_symbols(array,block->backtrace_size);
     location->retainCount = block->retainCount;
     
     if(block->begin == NULL){
@@ -118,11 +128,13 @@ static void objv_zone_zombie_retain(struct _objv_zone_t *zone, void *ptr,const c
     
 }
 
-static void objv_zone_zombie_release(struct _objv_zone_t *zone, void *ptr,const char * file,int line){
+static void objv_zone_zombie_release(struct _objv_zone_t *zone, void *ptr){
     
     objv_zombie_t * zombie = (objv_zombie_t *) zone;
     
     objv_zombie_block_t * block = (objv_zombie_block_t *) ptr - 1;
+    
+    void * array[10];
     
     objv_mutex_lock(& zombie->mutex);
     
@@ -135,8 +147,8 @@ static void objv_zone_zombie_release(struct _objv_zone_t *zone, void *ptr,const 
     memset(location, 0, sizeof(objv_zombie_block_location_t));
     
     location->method = "release";
-    location->file = file;
-    location->line = line;
+    location->backtrace_size = backtrace(array,10);
+    location->backtrace_symbols = backtrace_symbols(array,block->backtrace_size);
     location->retainCount = block->retainCount;
     
     if(block->begin == NULL){
@@ -175,10 +187,29 @@ void objv_zombie_destroy(objv_zombie_t * zombie){
     
     int c = 0;
     
+    objv_zombie_block_location_t * location ;
+    
     for(int i=0;i< zombie->length;i++){
         objv_zombie_block_t * block = zombie->blocks[i];
         if(block->size){
-            objv_log("%d,%d,(%d)%s\n",i,block->size,block->line,block->file);
+            objv_log("%d,%d\n",i,block->size);
+            for(int n=0; n< block->backtrace_size;n++){
+                objv_log("\t%s\n",block->backtrace_symbols[n]);
+            }
+            
+            location = block->begin;
+            while (location) {
+                objv_log("\t%s retainCount:%u \n",location->method, location->retainCount);
+                
+                for(int n=0; n< location->backtrace_size;n++){
+                    if(location->backtrace_symbols[n]){
+                        objv_log("\t\t%s\n",location->backtrace_symbols[n]);
+                    }
+                }
+                
+                location = location->next;
+            }
+            
             c ++;
         }
         else{
@@ -197,23 +228,45 @@ void objv_zombie_destroy(objv_zombie_t * zombie){
 
 void objv_zombie_print(objv_zombie_t * zombie){
     
+    objv_zombie_block_location_t * location ;
+    
     objv_log("\n");
     
     objv_mutex_lock(& zombie->mutex);
     
     size_t size = 0;
-    
+
     for(int i=0;i< zombie->length;i++){
         objv_zombie_block_t * block = zombie->blocks[i];
         if(block->size){
-            objv_log("%d,(%d)%s\n",block->size,block->line,block->size);
+            
+            objv_log("index: %d size: %d \n",i,block->size);
+            
+            for(int n=0; n< block->backtrace_size;n++){
+                if(block->backtrace_symbols[n]){
+                    objv_log("\t%s\n",block->backtrace_symbols[n]);
+                }
+            }
+            
+            location = block->begin;
+            while (location) {
+                objv_log("\t%s retainCount:%u \n",location->method,location->retainCount);
+                
+                for(int n=0; n< location->backtrace_size;n++){
+                    if(location->backtrace_symbols[n]){
+                        objv_log("\t\t%s\n",location->backtrace_symbols[n]);
+                    }
+                }
+                
+                location = location->next;
+            }
             size += block->size;
         }
     }
     
     objv_mutex_unlock(& zombie->mutex);
 
-    objv_log("malloced size: %d\n",size);
+    objv_log("malloced size: %d , block count: %d\n",size,zombie->length);
 }
 
 

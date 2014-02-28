@@ -12,6 +12,7 @@
 #include "objv.h"
 #include "CLAccept.h"
 #include "objv_autorelease.h"
+#include "objv_clcontext.h"
 
 static void CLAcceptSIGNAN(int signo){
 
@@ -20,6 +21,8 @@ static void CLAcceptSIGNAN(int signo){
 static void CLAcceptMethodDealloc(objv_class_t * clazz,objv_object_t * object){
     
     CLAccept * accept = (CLAccept *) object;
+    
+    objv_dispatch_queue_cancelAllTasks(accept->connectQueue);
     
     if(accept->sock > 0){
         
@@ -160,7 +163,7 @@ static void CLAcceptConnectMethodDealloc(objv_class_t * clazz,objv_object_t * ob
 
     objv_object_release((objv_object_t *) conn->ctx);
     
-    objv_mbuf_destroy(& conn->mbuf);
+    objv_object_release((objv_object_t *) conn->httpChannel);
     
     if(clazz->superClass){
         objv_object_dealloc(clazz->superClass, object);
@@ -171,16 +174,23 @@ static void CLAcceptConnectMethodDealloc(objv_class_t * clazz,objv_object_t * ob
 static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * object){
     
     CLAcceptConnect * conn = (CLAcceptConnect *) object;
-
+    objv_zone_t * zone = conn->base.base.zone;
+    
     OBJVChannelStatus status = OBJVChannelStatusNone;
     
-    if(conn->mbuf.size == 0){
-        objv_mbuf_init(& conn->mbuf, 1024);
+    if(conn->httpChannel == NULL){
+        
+        conn->httpChannel = (CLHttpChannel *) objv_object_alloc(zone, OBJV_CLASS(CLHttpChannel),NULL);
+        
+        CLChannelSetChannel((CLChannel *) conn->httpChannel, (objv_channel_t *) conn->channel);
+        
     }
+    
+    CLHttpChannel * httpChannel = conn->httpChannel;
     
     while(1){
         
-        if(conn->httpRequest.state.state == OBJVHttpRequestStateNone){
+        if(httpChannel->httpRequest.state.state == OBJVHttpRequestStateNone){
             
             status = objv_channel_canRead(conn->channel->base.base.isa, (objv_channel_t *) conn->channel, 0.02);
             
@@ -188,23 +198,156 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
                 break;
             }
             
-            ssize_t len = objv_channel_read(conn->channel->base.base.isa, (objv_channel_t *) conn->channel, conn->mbuf.data , conn->mbuf.size );
+            ssize_t len = objv_channel_read(conn->channel->base.base.isa, (objv_channel_t *) conn->channel, httpChannel->read.mbuf.data , httpChannel->read.mbuf.size );
             
             if(len <=0){
                 status = (OBJVChannelStatus) len;
                 break;
             }
             
-            conn->mbuf.length = len;
+            httpChannel->read.mbuf.length = len;
             
-            OBJVHTTPRequestRead(& conn->httpRequest, 0, (unsigned int) conn->mbuf.length, (char *) conn->mbuf.data);
+            OBJVHTTPRequestRead(& httpChannel->httpRequest, 0
+                                , httpChannel->read.mbuf.length, (char *) httpChannel->read.mbuf.data);
         }
         
-        if(conn->httpRequest.state.state == OBJVHttpRequestStateOK){
+        if(httpChannel->httpRequest.state.state == OBJVHttpRequestStateOK){
             
+            {
+                OBJVHttpHeader * h = OBJVHttpRequestGetHeader(&httpChannel->httpRequest, "Transfer-Encoding");
+                
+                if(h){
+                    
+                    if(OBJVHttpStringEqual(h->value, "chunked", httpChannel->httpRequest.ofString)){
+                        httpChannel->contentType |= CLHttpChannelContentTypeChunked;
+                    }
+                    
+                }
+                
+                h = OBJVHttpRequestGetHeader(&httpChannel->httpRequest, "Content-Type");
+                
+                if(h){
+                    
+                    if(OBJVHttpStringEqual(h->value, "text/json", httpChannel->httpRequest.ofString)){
+                        httpChannel->contentType |= CLHttpChannelContentTypeJSON;
+                    }
+                    
+                }
+                
+                if(OBJVHttpStringHasPrefix(httpChannel->httpRequest.path, "/channel/", httpChannel->httpRequest.ofString)){
+                    
+                    {
+                        char * p = httpChannel->httpRequest.ofString + httpChannel->httpRequest.path.location ;
+                        CLChannelContext * context ;
+                        
+                        p[httpChannel->httpRequest.path.length] = 0;
+                        p += 9;
+                        
+                        httpChannel->base.mode = CLChannelModeNone;
+                        
+                        if(OBJVHttpStringEqual(httpChannel->httpRequest.method, "GET", httpChannel->httpRequest.ofString)){
+                            httpChannel->base.mode |= CLChannelModeWrite;
+                        }
+                        else if(OBJVHttpStringEqual(httpChannel->httpRequest.method, "POST", httpChannel->httpRequest.ofString)){
+                            httpChannel->base.mode |= CLChannelModeWrite | CLChannelModeRead;
+                        }
+                        else if(OBJVHttpStringEqual(httpChannel->httpRequest.method, "PUT", httpChannel->httpRequest.ofString)){
+                            httpChannel->base.mode |= CLChannelModeRead;
+                        }
+                        
+                        objv_mbuf_clear(&httpChannel->write.mbuf);
+                        
+                        objv_mbuf_format(&httpChannel->write.mbuf, "HTTP/1.1 200 OK\r\nContent-Type: json\r\nTransfer-Encoding: chunked\r\n\r\n");
+                        
+                        status = objv_channel_canWrite(conn->channel->base.base.isa, (objv_channel_t *) conn->channel, 0.02);
+                        
+                        if(status == OBJVChannelStatusOK){
+                            
+                            if(objv_channel_write(conn->channel->base.base.isa, (objv_channel_t *) conn->channel, httpChannel->write.mbuf.data, httpChannel->write.mbuf.length) != httpChannel->write.mbuf.length){
+                                status = OBJVChannelStatusError;
+                                break;
+                            }
+                            
+                        }
+                        else{
+                            status = OBJVChannelStatusError;
+                            break;
+                        }
+                        
+                        
+                        objv_mbuf_clear(&httpChannel->write.mbuf);
+                        
+                        context = (CLChannelContext *) objv_object_new(zone, OBJV_CLASS(CLChannelContext),NULL);
+                        
+                        context->allowRemovedFromParent = objv_true;
+                        
+                        CLContextSetDomain((CLContext *) context, objv_string_new(zone, p));
+                        
+                        CLChannelContextAddChannel(context, (CLChannel *) httpChannel);
+                        
+                        CLContextAddChild(conn->ctx, (CLContext *) context);
+                        
+                    }
+                    
+                }
+                else{
+                    
+                    objv_mbuf_clear(&httpChannel->write.mbuf);
+                    
+                    objv_mbuf_format(&httpChannel->write.mbuf, "HTTP/1.1 200 OK\r\nContent-Type: text/json\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n");
+                    
+                    status = objv_channel_canWrite(conn->channel->base.base.isa, (objv_channel_t *) conn->channel, 0.02);
+                    
+                    if(status == OBJVChannelStatusOK){
+                        
+                        if(objv_channel_write(conn->channel->base.base.isa, (objv_channel_t *) conn->channel, httpChannel->write.mbuf.data, httpChannel->write.mbuf.length) != httpChannel->write.mbuf.length){
+                            status = OBJVChannelStatusError;
+                            break;
+                        }
+                        
+                    }
+                    else{
+                        status = OBJVChannelStatusError;
+                        break;
+                    }
+                }
+                
+            }
+            
+            
+            status = OBJVChannelStatusOK;
+            break;
         }
+        else if(httpChannel->httpRequest.state.state == OBJVHttpRequestStateFail){
+            status = OBJVChannelStatusError;
+            break;
+        }
+        else if(httpChannel->read.mbuf.length - httpChannel->httpRequest.length == 0){
+            
+            objv_mbuf_extend(& httpChannel->read.mbuf, httpChannel->httpRequest.length + 1024);
+            
+            status = objv_channel_canRead(conn->channel->base.base.isa, (objv_channel_t *) conn->channel, 0.02);
+            
+            if(status != OBJVChannelStatusOK){
+                break;
+            }
+            
+            ssize_t len = objv_channel_read(conn->channel->base.base.isa, (objv_channel_t *) conn->channel
+                                            , (char *) httpChannel->read.mbuf.data + httpChannel->httpRequest.length
+                                            , httpChannel->read.mbuf.size - httpChannel->httpRequest.length );
+            
+            if(len <=0){
+                status = (OBJVChannelStatus) len;
+                break;
+            }
+        
+            httpChannel->read.mbuf.length += len;
+            
+            OBJVHTTPRequestRead(& httpChannel->httpRequest, httpChannel->httpRequest.length
+                                , len, (char *) httpChannel->read.mbuf.data);
+        }
+        
     }
-    
     
     
     if(status == OBJVChannelStatusNone){
@@ -299,3 +442,4 @@ OBJVChannelStatus CLAcceptGetConnect(CLAccept * ac,objv_timeinval_t timeout,CLAc
     }
     return OBJVChannelStatusError;
 }
+

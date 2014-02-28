@@ -19,12 +19,12 @@ extern "C" {
   
     typedef struct _objv_zone_t {
         const char * READONLY name;
-        void *(* malloc)(struct _objv_zone_t *zone, size_t size,const char * file,int line);
+        void *(* malloc)(struct _objv_zone_t *zone, size_t size);
         void (*free)(struct _objv_zone_t *zone, void *ptr);
-        void *(*realloc)(struct _objv_zone_t *zone, void *ptr, size_t size,const char * file,int line);
+        void *(*realloc)(struct _objv_zone_t *zone, void *ptr, size_t size);
         void (* memzero)(struct _objv_zone_t *zone, void *ptr, size_t size);
-        void (* retain)(struct _objv_zone_t *zone, void *ptr,const char * file,int line);
-        void (* release)(struct _objv_zone_t *zone, void *ptr,const char * file,int line);
+        void (* retain)(struct _objv_zone_t *zone, void *ptr);
+        void (* release)(struct _objv_zone_t *zone, void *ptr);
     } objv_zone_t;
     
     objv_zone_t * objv_zone_default();
@@ -32,21 +32,17 @@ extern "C" {
     void objv_zone_default_set(objv_zone_t * zone);
     
     
-    void * objv_zone_malloc(objv_zone_t * zone,size_t size,const char * file,int line);
-    
-#define objv_zone_malloc(zone,size) objv_zone_malloc((zone),(size),__FILE__,__LINE__)
+    void * objv_zone_malloc(objv_zone_t * zone,size_t size);
     
     void objv_zone_free(objv_zone_t * zone,void * ptr);
     
-    void * objv_zone_realloc(objv_zone_t * zone,void * ptr,size_t size,const char * file,int line);
+    void * objv_zone_realloc(objv_zone_t * zone,void * ptr,size_t size);
 
-#define objv_zone_realloc(zone,ptr,size) objv_zone_realloc((zone),(ptr),(size),__FILE__,__LINE__)
-    
     void objv_zone_memzero(objv_zone_t * zone,void * ptr,size_t size);
     
-    void objv_zone_retain(objv_zone_t * zone,void * ptr,const char * file,int line);
+    void objv_zone_retain(objv_zone_t * zone,void * ptr);
     
-    void objv_zone_release(objv_zone_t * zone,void * ptr,const char * file,int line);
+    void objv_zone_release(objv_zone_t * zone,void * ptr);
     
     enum {
         objv_key_type_static = 0,objv_key_type_dynamic = 1
@@ -164,14 +160,9 @@ extern "C" {
     
     objv_object_t * objv_object_alloc_exert(objv_zone_t * zone,objv_class_t * clazz,size_t exert,...);
 
-    
-    objv_object_t * objv_object_retain(objv_object_t * object,const char * file,int line);
-    
-#define objv_object_retain(object) objv_object_retain((object),__FILE__,__LINE__)
-    
-    void objv_object_release(objv_object_t * object,const char * file,int line);
-    
-#define objv_object_release(object) objv_object_release((object),__FILE__,__LINE__)
+    objv_object_t * objv_object_retain(objv_object_t * object);
+
+    void objv_object_release(objv_object_t * object);
     
     objv_object_t * objv_object_weak(objv_object_t * object, objv_object_t ** toObject);
     

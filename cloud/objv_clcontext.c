@@ -273,16 +273,29 @@ void CLChannelContextRemoveChannel(CLChannelContext * ctx,CLChannel * channel){
     
     if(ctx && channel ){
         
+        size_t channelCount = 0;
+        
+        objv_object_retain((objv_object_t *) ctx);
+        
         CLChannelContextWillRemoveChannel(ctx->base.base.base.isa,ctx,channel);
         
         objv_mutex_lock(& ctx->channels_mutex);
         
         objv_array_remove(ctx->channels,(objv_object_t *) channel);
         
+        channelCount = ctx->channels->length;
+        
         objv_mutex_unlock(& ctx->channels_mutex);
 
         CLChannelContextDidRemoveChannel(ctx->base.base.base.isa,ctx);
         
+        if(channelCount == 0 && ctx->allowRemovedFromParent && ctx->base.base.parent){
+            
+            CLContextRemoveChild(ctx->base.base.parent, (CLContext *) ctx);
+            
+        }
+        
+        objv_object_release((objv_object_t *) ctx);
     }
     
 }

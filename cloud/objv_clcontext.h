@@ -36,6 +36,7 @@ extern "C" {
         objv_dispatch_queue_t * READONLY queue;
         objv_array_t * READONLY channels;
         objv_mutex_t READONLY channels_mutex;
+        objv_boolean_t allowRemovedFromParent;
     } CLChannelContext;
     
     OBJV_KEY_DEC(CLChannelContext);

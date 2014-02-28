@@ -35,7 +35,7 @@ static void objv_channel_dealloc(objv_class_t * clazz,objv_object_t * object){
     
     if(clazz->superClass){
         
-        objv_object_dealloc(clazz, object);
+        objv_object_dealloc(clazz->superClass, object);
     }
     
 }

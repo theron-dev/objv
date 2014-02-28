@@ -11,7 +11,7 @@
 #include "objv_os.h"
 #include "objv_gc.h"
 
-static void * objv_zone_gc_malloc(struct _objv_zone_t *zone, size_t size,const char * file,int line){
+static void * objv_zone_gc_malloc(struct _objv_zone_t *zone, size_t size){
     
     objv_gc_t * gc = (objv_gc_t *) zone;
     
@@ -55,7 +55,7 @@ static void objv_zone_gc_free(struct _objv_zone_t * zone, void *ptr){
     objv_mutex_unlock(& gc->mutex);
 }
 
-static void * objv_zone_gc_realloc(struct _objv_zone_t *zone, void *ptr, size_t size,const char * file,int line){
+static void * objv_zone_gc_realloc(struct _objv_zone_t *zone, void *ptr, size_t size){
     
     objv_gc_t * gc = (objv_gc_t *) zone;
     

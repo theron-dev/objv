@@ -10,12 +10,7 @@
 #include "objv.h"
 #include "objv_log.h"
 
-#undef objv_zone_malloc
-#undef objv_zone_realloc
-#undef objv_zone_retain
-#undef objv_zone_release
-
-static void * objv_zone_default_malloc(struct _objv_zone_t *zone, size_t size,const char * file,int line){
+static void * objv_zone_default_malloc(struct _objv_zone_t *zone, size_t size){
     return malloc(size);
 }
 
@@ -23,7 +18,7 @@ static void objv_zone_default_free(struct _objv_zone_t *zone, void *ptr){
     free(ptr);
 }
 
-static void * objv_zone_default_realloc(struct _objv_zone_t *zone, void *ptr, size_t size,const char * file,int line){
+static void * objv_zone_default_realloc(struct _objv_zone_t *zone, void *ptr, size_t size){
     
     return realloc(ptr,size);
 }
@@ -56,13 +51,13 @@ void objv_zone_default_set(objv_zone_t * zone){
     }
 }
 
-void * objv_zone_malloc(objv_zone_t * zone,size_t size,const char * file,int line){
+void * objv_zone_malloc(objv_zone_t * zone,size_t size){
     
     if(zone == NULL){
         zone = objv_zone_default();
     }
     
-    return (* zone->malloc)(zone,size,file,line);
+    return (* zone->malloc)(zone,size);
 }
 
 void objv_zone_free(objv_zone_t * zone,void * ptr){
@@ -74,13 +69,13 @@ void objv_zone_free(objv_zone_t * zone,void * ptr){
     (* zone->free)(zone,ptr);
 }
 
-void * objv_zone_realloc(objv_zone_t * zone,void * ptr,size_t size,const char * file,int line){
+void * objv_zone_realloc(objv_zone_t * zone,void * ptr,size_t size){
     
     if(zone == NULL){
         zone = objv_zone_default();
     }
     
-    return (* zone->realloc)( zone ,ptr , size,file,line);
+    return (* zone->realloc)( zone ,ptr , size);
 }
 
 
@@ -93,24 +88,24 @@ void objv_zone_memzero(objv_zone_t * zone,void * ptr,size_t size){
     (* zone->memzero)( zone ,ptr , size);
 }
 
-void objv_zone_retain(objv_zone_t * zone,void * ptr,const char * file,int line){
+void objv_zone_retain(objv_zone_t * zone,void * ptr){
     
     if(zone == NULL){
         zone = objv_zone_default();
     }
     
     if(zone->retain){
-        (* zone->retain)( zone ,ptr ,file,line);
+        (* zone->retain)( zone ,ptr );
     }
 }
 
 
-void objv_zone_release(objv_zone_t * zone,void * ptr,const char * file,int line){
+void objv_zone_release(objv_zone_t * zone,void * ptr){
     if(zone == NULL){
         zone = objv_zone_default();
     }
     
     if(zone->retain){
-        (* zone->release)( zone ,ptr ,file,line);
+        (* zone->release)( zone ,ptr);
     }
 }

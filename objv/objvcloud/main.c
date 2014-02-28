@@ -14,6 +14,7 @@
 #include "objv_autorelease.h"
 #include "objv_clcontext.h"
 #include "CLAccept.h"
+#include "objv_zombie.h"
 
 int main(int argc, const char * argv[])
 {
@@ -24,8 +25,11 @@ int main(int argc, const char * argv[])
         cfgp = argv[1];
     }
     
+    objv_zombie_t zombie;
     
-    objv_zone_t * zone = objv_zone_default();
+    objv_zombie_init(& zombie, 102400);
+    
+    objv_zone_t * zone = (objv_zone_t *) & zombie;
     CLAccept * ac = NULL;
     
     objv_autorelease_pool_push();
@@ -82,6 +86,8 @@ int main(int argc, const char * argv[])
     
     objv_dispatch_addTask(objv_dispatch_get_current(), (objv_dispatch_task_t *) ac);
     
+    objv_timeinval_t t = objv_timestamp();
+    
     while (1) {
         
         objv_autorelease_pool_push();
@@ -90,14 +96,21 @@ int main(int argc, const char * argv[])
         
         objv_autorelease_pool_pop();
         
+        if(objv_timestamp() - t > 10){
+            break;
+        }
     }
     
     
 toexit:
     
+    objv_dispatch_cancelAllTasks(objv_dispatch_get_current());
+    
     objv_object_release((objv_object_t *) ac);
     
     objv_autorelease_pool_pop();
+    
+    objv_zombie_destroy(& zombie);
     
     return 0;
 }

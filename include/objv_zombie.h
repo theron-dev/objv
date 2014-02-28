@@ -18,8 +18,8 @@ extern "C" {
     
     typedef struct _objv_zombie_block_location_t {
         const char * method;
-        const char * file;
-        int line;
+        char** backtrace_symbols;
+        int backtrace_size;
         unsigned int retainCount;
         struct _objv_zombie_block_location_t * next;
     } objv_zombie_block_location_t;
@@ -27,8 +27,8 @@ extern "C" {
     typedef struct _objv_zombie_block_t {
         size_t size;
         size_t index;
-        const char * file;
-        int line;
+        char** backtrace_symbols;
+        int backtrace_size;
         unsigned int retainCount;
         objv_zombie_block_location_t * begin;
         objv_zombie_block_location_t * end;

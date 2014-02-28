@@ -415,11 +415,11 @@ objv_object_t * objv_object_alloc(objv_zone_t * zone,objv_class_t * clazz,...){
 
 #undef objv_object_retain
 
-objv_object_t * objv_object_retain(objv_object_t * object,const char * file,int line){
+objv_object_t * objv_object_retain(objv_object_t * object){
     
     if(object){
         
-        objv_zone_retain(object->zone, object,file,line);
+        objv_zone_retain(object->zone, object);
         
         objv_mutex_lock(& object->mutex);
         
@@ -437,11 +437,11 @@ objv_object_t * objv_object_retain(objv_object_t * object,const char * file,int 
 
 #undef objv_object_release
 
-void objv_object_release(objv_object_t * object,const char * file,int line){
+void objv_object_release(objv_object_t * object){
     
     if(object){
         
-        objv_zone_release(object->zone, object,file,line);
+        objv_zone_release(object->zone, object);
         
         objv_mutex_lock(& object->mutex);
         

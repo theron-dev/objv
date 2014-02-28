@@ -201,37 +201,32 @@ extern "C" {
     
     static inline ssize_t objv_os_socket_read(objv_os_socket_t file,void * bytes,size_t length){
         ssize_t rc;
-        do{ rc = read(file, bytes, length); }while( rc<0 && errno==EINTR );
+        do{ rc = recv(file, bytes, length,0); }while( rc<0 && errno==EINTR );
         return rc;
     }
     
     static inline ssize_t objv_os_socket_write(objv_os_socket_t file,void * bytes,size_t length){
         ssize_t rc;
-        do{ rc = write(file, bytes, length); }while( rc<0 && errno==EINTR );
+        do{ rc = send(file, bytes, length,0); }while( rc<0 && errno==EINTR );
         return rc;
     }
     
     static inline void objv_os_socket_close(objv_os_socket_t sock){
         
         fd_set ds,ws;
-        struct timeval timeo = {0, 0};
+        struct timeval timeo = {0, 1};
         char buffer[1024];
         ssize_t len,res;
-        
+        int c = 6;
         timeo.tv_usec = 100;
         
         while(1){
             FD_ZERO(&ws);
             FD_SET(sock, &ws);
             res = select(sock +1, NULL,&ws, NULL, &timeo);
-            if(res == 0){
+            if(res == 0 && c < 0){
+                c --;
                 continue;
-            }
-            if(res < 0){
-                if(errno == EINTR){
-                    continue;
-                }
-                break;
             }
             shutdown(sock, SHUT_WR);
             break;
