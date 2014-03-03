@@ -370,6 +370,8 @@ static OBJVChannelStatus CLHttpChannelMethodTick(objv_class_t * clazz,CLChannel 
     
     if( httpChannel->base.mode & CLChannelModeWrite ){
         
+        OBJVChannelStatus status = OBJVChannelStatusNone;
+        
         if(httpChannel->write.state == 0){
             
             objv_zone_t * zone = channel->base.zone;
@@ -406,9 +408,10 @@ static OBJVChannelStatus CLHttpChannelMethodTick(objv_class_t * clazz,CLChannel 
             }
             
         }
-        else if(httpChannel->write.state == 1){
+        
+        if(httpChannel->write.state == 1){
             
-            OBJVChannelStatus status = OBJVChannelStatusNone;
+            
             ssize_t len;
             
             while (1) {
@@ -439,10 +442,8 @@ static OBJVChannelStatus CLHttpChannelMethodTick(objv_class_t * clazz,CLChannel 
             
             return status;
         }
-        else {
-            assert(0);
-        }
         
+        return status;
     }
     
     return OBJVChannelStatusError;

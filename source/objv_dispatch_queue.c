@@ -201,6 +201,8 @@ static void * objv_dispatch_queue_thread(void * userInfo){
     
     objv_autorelease_pool_pop();
     
+    objv_thread_exit(NULL);
+    
     return NULL;
 }
 

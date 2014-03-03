@@ -70,6 +70,8 @@ static void CLChannelContextMethodDealloc(objv_class_t * clazz,objv_object_t * o
     
     CLChannelContext * ctx = (CLChannelContext *) object;
 
+    objv_dispatch_queue_cancelAllTasks(ctx->queue);
+    
     objv_mutex_lock(& ctx->channels_mutex);
     
     objv_object_release((objv_object_t *) ctx->channels );
@@ -105,6 +107,8 @@ static objv_object_t * CLChannelContextMethodInit(objv_class_t * clazz,objv_obje
         
         objv_mutex_unlock(& ctx->channels_mutex);
         
+        ctx->queue = objv_dispatch_queue_alloc(zone, "CLChannelContextQueue", 16);
+        
     }
     
     return object;
@@ -138,13 +142,7 @@ static void CLChannelContextMethodSetConfig(objv_class_t * clazz,CLChannelContex
     if(clazz->superClass){
         CLContextSetConfig(clazz->superClass, (CLContext *) ctx, config);
     }
-    
-    objv_zone_t * zone = ctx->base.base.base.zone;
-    
-    if(ctx->queue == NULL){
-        ctx->queue = objv_dispatch_queue_alloc(zone, "CLChannelContext", objv_object_uintValueForKey(config, (objv_object_t *)objv_string_new_nocopy(zone, "maxThreadCount"), 20));
-    }
-    
+
 }
 
 
@@ -210,7 +208,7 @@ static void CLChannelContextTaskRun(objv_class_t * clazz, CLChannelContextTask *
     if(status == OBJVChannelStatusError){
         CLChannelContextRemoveChannel(task->ctx, task->channel);
     }
-    else {
+    else if(task->ctx) {
         task->base.delay = delay;
         objv_dispatch_queue_addTask(task->ctx->queue, (objv_dispatch_task_t *) task);
     }
@@ -220,7 +218,10 @@ static void CLChannelContextTaskDealloc(objv_class_t * clazz, objv_object_t * ob
     
     CLChannelContextTask * task =(CLChannelContextTask *) object;
     
-    objv_object_release((objv_object_t *)task->ctx);
+    objv_object_unweak((objv_object_t *)task->ctx, (objv_object_t **)& task->ctx);
+    
+    task->ctx = NULL;
+    
     objv_object_release((objv_object_t *)task->channel);
     
     if(clazz->superClass){
@@ -238,8 +239,11 @@ static objv_object_t * CLChannelContextTaskInit(objv_class_t * clazz, objv_objec
         
         CLChannelContextTask * task =(CLChannelContextTask *) object;
         
-        task->ctx = (CLChannelContext *) objv_object_retain(va_arg(ap, objv_object_t *));
-        task->channel = (CLChannel *) objv_object_retain(va_arg(ap, objv_object_t *));
+        objv_object_t * ctx = va_arg(ap, objv_object_t *);
+        objv_object_t * channel = va_arg(ap, objv_object_t *);
+        objv_object_t ** toObject = (objv_object_t **)& task->ctx;
+        task->ctx = (CLChannelContext *) objv_object_weak(ctx, toObject);
+        task->channel = (CLChannel *) objv_object_retain(channel);
         
     }
     
@@ -281,9 +285,13 @@ void CLChannelContextRemoveChannel(CLChannelContext * ctx,CLChannel * channel){
         
         objv_mutex_lock(& ctx->channels_mutex);
         
-        objv_array_remove(ctx->channels,(objv_object_t *) channel);
+        if(ctx->channels){
+            
+            objv_array_remove(ctx->channels,(objv_object_t *) channel);
         
-        channelCount = ctx->channels->length;
+            channelCount = ctx->channels->length;
+        
+        }
         
         objv_mutex_unlock(& ctx->channels_mutex);
 
@@ -312,7 +320,7 @@ void CLChannelContextWillRemoveChannel(objv_class_t * clazz,CLChannelContext * c
         
         objv_method_t * method = NULL;
         
-        while(c && (method = objv_class_getMethod(c, OBJV_KEY(dealloc))) == NULL){
+        while(c && (method = objv_class_getMethod(c, OBJV_KEY(willRemoveChannel))) == NULL){
             
             c = c->superClass;
         }
@@ -331,7 +339,7 @@ void CLChannelContextDidRemoveChannel(objv_class_t * clazz,CLChannelContext * ct
         
         objv_method_t * method = NULL;
         
-        while(c && (method = objv_class_getMethod(c, OBJV_KEY(dealloc))) == NULL){
+        while(c && (method = objv_class_getMethod(c, OBJV_KEY(didRemoveChannel))) == NULL){
             
             c = c->superClass;
         }

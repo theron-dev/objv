@@ -162,6 +162,10 @@ extern "C" {
         return t;
     }
     
+    static inline void objv_thread_exit(void * userInfo){
+        pthread_exit(userInfo);
+    }
+    
     typedef int objv_os_file_t;
     
     static inline objv_os_file_t objv_os_file_open(const char * path,int flags,mode_t mode){

@@ -69,7 +69,7 @@ OBJVChannelStatus objv_channel_connect(objv_class_t * clazz,objv_channel_t * cha
         return channel->connected ? OBJVChannelStatusOK : OBJVChannelStatusError;
     }
     
-    return channel ? OBJVChannelStatusError : OBJVChannelStatusNone;
+    return channel && channel->connected ? OBJVChannelStatusOK : OBJVChannelStatusError;
 }
 
 OBJVChannelStatus objv_channel_canRead(objv_class_t * clazz,objv_channel_t * channel,objv_timeinval_t timeout){

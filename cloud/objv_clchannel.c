@@ -144,7 +144,7 @@ OBJVChannelStatus CLChannelTick(objv_class_t * clazz,CLChannel * channel,objv_ti
         
         objv_method_t * method = NULL;
         
-        while(c && (method = objv_class_getMethod(c, OBJV_KEY(readTask))) == NULL){
+        while(c && (method = objv_class_getMethod(c, OBJV_KEY(tick))) == NULL){
             
             c = c->superClass;
         }

@@ -21,12 +21,20 @@ extern "C" {
 #include "objv_channel_tcp.h"
 #include "objv_clchannel_http.h"
     
+#define CL_ENV_MAX_THREAD_COUNT_KEY     "cl-max-thread-count"
+#define CL_ENV_CONFIG_KEY               "cl-config"
+    
+    typedef struct _CLAcceptHandler {
+        objv_os_socket_t READONLY sock;
+        objv_mutex_t READONLY mutex;
+    } CLAcceptHandler;
+    
     typedef struct _CLAccept {
         objv_dispatch_task_t base;
-        CLContext * READONLY ctx;
-        objv_os_socket_t READONLY sock;
+        CLContext * ctx;
         int READONLY port;
-        objv_mutex_t READONLY mutex;
+        CLAcceptHandler READONLY handler;
+        objv_boolean_t READONLY copyed;
         objv_dispatch_queue_t * READONLY connectQueue;
     } CLAccept;
     
@@ -47,6 +55,8 @@ extern "C" {
     OBJV_CLASS_DEC(CLAcceptConnect)
     
     CLAccept * CLAcceptAlloc(objv_zone_t * zone,int port);
+    
+    CLAccept * CLAcceptAllocWithHandler(objv_zone_t * zone,CLAcceptHandler * handler);
     
     OBJVChannelStatus CLAcceptGetConnect(CLAccept * accept,objv_timeinval_t timeout,CLAcceptConnect ** connenct );
     

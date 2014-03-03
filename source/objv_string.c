@@ -75,7 +75,7 @@ static objv_object_t * objv_string_methods_init(objv_class_t * clazz, objv_objec
     if(object){
         
         objv_string_t * value = (objv_string_t *) object;
-        const char * s = va_arg(ap, const char *);
+        char * s = va_arg(ap, char *);
         objv_boolean_t copyed = va_arg(ap, objv_boolean_t);
         
         if(copyed){
@@ -86,7 +86,7 @@ static objv_object_t * objv_string_methods_init(objv_class_t * clazz, objv_objec
         }
         else{
             value->length = strlen(s);
-            value->UTF8String = objv_zone_malloc(object->zone, value->length + 1);
+            value->UTF8String = s;
             value->copyed = objv_false;
         }
     }

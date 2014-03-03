@@ -24,17 +24,21 @@ static void CLAcceptMethodDealloc(objv_class_t * clazz,objv_object_t * object){
     
     objv_dispatch_queue_cancelAllTasks(accept->connectQueue);
     
-    if(accept->sock > 0){
+    if(accept->copyed){
         
-        objv_mutex_lock(& accept->mutex);
+        if(accept->handler.sock > 0){
+            
+            objv_mutex_lock(& accept->handler.mutex);
+            
+            objv_os_socket_close(accept->handler.sock);
+            
+            objv_mutex_unlock(& accept->handler.mutex);
+        }
         
-        objv_os_socket_close(accept->sock);
         
-        objv_mutex_unlock(& accept->mutex);
+        objv_mutex_destroy(& accept->handler.mutex);
+        
     }
-    
-    
-    objv_mutex_destroy(& accept->mutex);
     
     objv_object_release((objv_object_t *) accept->ctx);
     objv_object_release((objv_object_t *) accept->connectQueue);
@@ -55,60 +59,20 @@ static objv_object_t * CLAcceptMethodInit(objv_class_t * clazz,objv_object_t * o
     if(object){
         
         CLAccept * accept = (CLAccept *) object;
-        int port = va_arg(ap, int);
         
-        objv_mutex_init(& accept->mutex);
+        char * s = getenv(CL_ENV_MAX_THREAD_COUNT_KEY);
         
-        {
-            int res;
-            struct sockaddr_in addr ;
-            socklen_t socklen = sizeof(struct sockaddr_in);
-            int fl;
-            int fn = 1;
-            
-            memset(&addr, 0, sizeof(struct sockaddr_in));
-            addr.sin_family = AF_INET;
-            addr.sin_port = htons(port);
-            addr.sin_addr.s_addr = INADDR_ANY;
-            
-            accept->sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-            
-            if(accept->sock <=0 ){
-                objv_object_release(object);
-                return NULL;
-            }
-            
-            res = bind(accept->sock, (struct sockaddr *) & addr, sizeof(struct sockaddr_in));
-            
-            if(res != 0){
-                objv_object_release(object);
-                return NULL;
-            }
-            
-            getsockname(accept->sock, (struct sockaddr *) & addr, &socklen);
-            
-            accept->port = ntohs(addr.sin_port);
-            
-            res = listen(accept->sock, SOMAXCONN);
-            
-            if(res != 0){
-                objv_object_release(object);
-                return NULL;
-            }
-            
-            fl =  fcntl(accept->sock, F_GETFL) ;
-            fcntl(accept->sock, F_SETFL, fl | O_NONBLOCK);
-            
-            setsockopt(accept->sock, SOL_SOCKET, SO_RCVLOWAT, (void *)&fn, sizeof(fn));
-            setsockopt(accept->sock, SOL_SOCKET, SO_SNDLOWAT, (void *)&fn, sizeof(fn));
-            
+        unsigned int maxThreadCount = 256;
+        
+        if(s) {
+            maxThreadCount = atoi(s);
         }
         
-        signal(SIGPIPE, CLAcceptSIGNAN);
-        signal(SIGTTOU, CLAcceptSIGNAN);
-        signal(ETIMEDOUT, CLAcceptSIGNAN);
+        if(maxThreadCount < 1){
+            maxThreadCount = 1;
+        }
         
-        accept->connectQueue = objv_dispatch_queue_alloc(object->zone, "connnects", 128);
+        accept->connectQueue = objv_dispatch_queue_alloc(object->zone, "connnects", maxThreadCount);
         
     }
     
@@ -257,7 +221,7 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
                         
                         objv_mbuf_clear(&httpChannel->write.mbuf);
                         
-                        objv_mbuf_format(&httpChannel->write.mbuf, "HTTP/1.1 200 OK\r\nContent-Type: json\r\nTransfer-Encoding: chunked\r\n\r\n");
+                        objv_mbuf_format(&httpChannel->write.mbuf, "HTTP/1.1 200 OK\r\nContent-Type: text/json\r\nTransfer-Encoding: chunked\r\n\r\n");
                         
                         status = objv_channel_canWrite(conn->channel->base.base.isa, (objv_channel_t *) conn->channel, 0.02);
                         
@@ -370,7 +334,76 @@ OBJV_CLASS_IMP_M(CLAcceptConnect, OBJV_CLASS(DispatchTask), CLAcceptConnect)
 
 
 CLAccept * CLAcceptAlloc(objv_zone_t * zone,int port){
-    return (CLAccept *) objv_object_alloc(zone, OBJV_CLASS(CLAccept),port,NULL);
+    
+    CLAcceptHandler h;
+    
+    objv_zone_memzero(zone, & h, sizeof(h));
+    
+    objv_mutex_init(& h.mutex);
+    
+    {
+        int res;
+        struct sockaddr_in addr ;
+        int fl;
+        int fn = 1;
+        
+        memset(&addr, 0, sizeof(struct sockaddr_in));
+        addr.sin_family = AF_INET;
+        addr.sin_port = htons(port);
+        addr.sin_addr.s_addr = INADDR_ANY;
+        
+        h.sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+        
+        if(h.sock <=0 ){
+            return NULL;
+        }
+        
+        res = bind(h.sock, (struct sockaddr *) & addr, sizeof(struct sockaddr_in));
+        
+        if(res != 0){
+            closesocket(h.sock);
+            return NULL;
+        }
+        
+        res = listen(h.sock, SOMAXCONN);
+        
+        if(res != 0){
+            closesocket(h.sock);
+            return NULL;
+        }
+        
+        fl =  fcntl(h.sock, F_GETFL) ;
+        fcntl(h.sock, F_SETFL, fl | O_NONBLOCK);
+        
+        setsockopt(h.sock, SOL_SOCKET, SO_RCVLOWAT, (void *)&fn, sizeof(fn));
+        setsockopt(h.sock, SOL_SOCKET, SO_SNDLOWAT, (void *)&fn, sizeof(fn));
+        
+    }
+    
+    signal(SIGPIPE, CLAcceptSIGNAN);
+    signal(SIGTTOU, CLAcceptSIGNAN);
+    signal(ETIMEDOUT, CLAcceptSIGNAN);
+    
+    CLAccept * ac = CLAcceptAllocWithHandler (zone,& h);
+    
+    ac->copyed = objv_true;
+    
+    return ac;
+}
+
+
+CLAccept * CLAcceptAllocWithHandler(objv_zone_t * zone,CLAcceptHandler * handler){
+    CLAccept * ac = (CLAccept *) objv_object_alloc(zone, OBJV_CLASS(CLAccept),NULL);
+    ac->handler = * handler;
+    
+    {
+        struct sockaddr_in addr ;
+        socklen_t socklen = sizeof(struct sockaddr_in);
+        getsockname(handler->sock, (struct sockaddr *) & addr, &socklen);
+        ac->port = ntohs(addr.sin_port);
+    }
+    
+    return ac;
 }
 
 OBJVChannelStatus CLAcceptGetConnect(CLAccept * ac,objv_timeinval_t timeout,CLAcceptConnect ** connenct ){
@@ -386,13 +419,13 @@ OBJVChannelStatus CLAcceptGetConnect(CLAccept * ac,objv_timeinval_t timeout,CLAc
         
         struct timeval timeo = {(int)timeout, (timeout - (int) timeout) * 1000000};
         
-        objv_mutex_lock(& ac->mutex);
+        objv_mutex_lock(& ac->handler.mutex);
         
         FD_ZERO(&rds);
         
-        FD_SET(ac->sock, &rds);
+        FD_SET(ac->handler.sock, &rds);
         
-        res = select(ac->sock + 1, &rds, NULL, NULL, &timeo);
+        res = select(ac->handler.sock + 1, &rds, NULL, NULL, &timeo);
         
         if(res == 0){
             
@@ -406,20 +439,20 @@ OBJVChannelStatus CLAcceptGetConnect(CLAccept * ac,objv_timeinval_t timeout,CLAc
             }
         }
         else{
-            if(FD_ISSET(ac->sock, &rds)){
+            if(FD_ISSET(ac->handler.sock, &rds)){
                 
-                client = accept(ac->sock, (struct sockaddr *) & addr,& socklen);
+                client = accept(ac->handler.sock, (struct sockaddr *) & addr,& socklen);
                 
                 if(client != -1){
                     fl =  fcntl(client, F_GETFL) ;
                     fcntl(client, F_SETFL, fl | O_NONBLOCK);
-                    setsockopt(ac->sock, SOL_SOCKET, SO_RCVLOWAT, (void *)&fn, sizeof(fn));
-                    setsockopt(ac->sock, SOL_SOCKET, SO_SNDLOWAT, (void *)&fn, sizeof(fn));
+                    setsockopt(ac->handler.sock, SOL_SOCKET, SO_RCVLOWAT, (void *)&fn, sizeof(fn));
+                    setsockopt(ac->handler.sock, SOL_SOCKET, SO_SNDLOWAT, (void *)&fn, sizeof(fn));
                 }
             }
         }
         
-        objv_mutex_unlock(& ac->mutex);
+        objv_mutex_unlock(& ac->handler.mutex);
         
         if(client >0 ){
             

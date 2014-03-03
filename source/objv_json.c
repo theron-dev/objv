@@ -656,6 +656,8 @@ static objv_string_t * objv_json_decode_key(objv_json_t * json){
     objv_string_t * s = NULL;
     objv_mbuf_t mbuf;
     
+    objv_json_skipSpace(json);
+    
     if( * json->p == '\'' || * json->p == '"'){
         json->p ++;
         return objv_json_decode_string(json,json->p[-1]);

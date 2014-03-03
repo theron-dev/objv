@@ -55,12 +55,12 @@ static long objv_value_method_hashCode (objv_class_t * clazz, objv_object_t * ob
     
     if(value->type == & objv_type_longLong){
         
-        return value->longLongValue;
+        return (long) value->longLongValue;
     }
     
     if(value->type == & objv_type_ulongLong){
         
-        return value->ulongLongValue;
+        return (long) value->ulongLongValue;
     }
     
     if(value->type == & objv_type_float){
@@ -573,12 +573,12 @@ long objv_value_longValue(objv_value_t * value,long defaultValue){
     
     if(value->type == & objv_type_longLong){
         
-        return value->longLongValue;
+        return (long) value->longLongValue;
     }
     
     if(value->type == & objv_type_ulongLong){
         
-        return value->ulongLongValue;
+        return (long) value->ulongLongValue;
     }
     
     if(value->type == & objv_type_float){
@@ -619,12 +619,12 @@ unsigned long objv_value_ulongValue(objv_value_t * value,unsigned long defaultVa
     
     if(value->type == & objv_type_longLong){
         
-        return value->longLongValue;
+        return (long) value->longLongValue;
     }
     
     if(value->type == & objv_type_ulongLong){
         
-        return value->ulongLongValue;
+        return (long) value->ulongLongValue;
     }
     
     if(value->type == & objv_type_float){
@@ -1692,10 +1692,10 @@ void objv_property_setLongLongValue(objv_class_t * clazz,objv_object_t * object,
             (* (objv_object_property_setUintValue_t) property->setter)(clazz,object,(unsigned int)value);
         }
         else if(property->type == & objv_type_long){
-            (* (objv_object_property_setLongValue_t) property->setter)(clazz,object,value);
+            (* (objv_object_property_setLongValue_t) property->setter)(clazz,object,(long) value);
         }
         else if(property->type == & objv_type_ulong){
-            (* (objv_object_property_setUlongValue_t) property->setter)(clazz,object,value);
+            (* (objv_object_property_setUlongValue_t) property->setter)(clazz,object,(unsigned long) value);
         }
         else if(property->type == & objv_type_longLong){
             (* (objv_object_property_setLongLongValue_t) property->setter)(clazz,object,value);
@@ -1724,10 +1724,10 @@ void objv_property_setUlongLongValue(objv_class_t * clazz,objv_object_t * object
             (* (objv_object_property_setUintValue_t) property->setter)(clazz,object,(unsigned int)value);
         }
         else if(property->type == & objv_type_long){
-            (* (objv_object_property_setLongValue_t) property->setter)(clazz,object,value);
+            (* (objv_object_property_setLongValue_t) property->setter)(clazz,object,(long) value);
         }
         else if(property->type == & objv_type_ulong){
-            (* (objv_object_property_setUlongValue_t) property->setter)(clazz,object,value);
+            (* (objv_object_property_setUlongValue_t) property->setter)(clazz,object,(unsigned long) value);
         }
         else if(property->type == & objv_type_longLong){
             (* (objv_object_property_setLongLongValue_t) property->setter)(clazz,object,value);

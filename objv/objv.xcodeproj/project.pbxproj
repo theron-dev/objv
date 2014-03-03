@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1114061F18C4751C00C03FFA /* CLSRVProcess.c in Sources */ = {isa = PBXBuildFile; fileRef = 1114061E18C4751C00C03FFA /* CLSRVProcess.c */; };
 		1121043118A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c in Sources */ = {isa = PBXBuildFile; fileRef = 1121043018A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c */; };
 		113206A218A49630006C9112 /* objv_vmcompiler.c in Sources */ = {isa = PBXBuildFile; fileRef = 113206A118A49630006C9112 /* objv_vmcompiler.c */; };
 		1143DD9B18BF27E0006BECBC /* objv_clchannel_http.c in Sources */ = {isa = PBXBuildFile; fileRef = 1143DD9A18BF27E0006BECBC /* objv_clchannel_http.c */; };
@@ -113,6 +114,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1114061D18C4751100C03FFA /* CLSRVProcess.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CLSRVProcess.h; sourceTree = "<group>"; };
+		1114061E18C4751C00C03FFA /* CLSRVProcess.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CLSRVProcess.c; sourceTree = "<group>"; };
+		1114062018C49EB000C03FFA /* cfg.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = cfg.json; sourceTree = "<group>"; };
 		1121042F18A4ABB7009A81E1 /* objv_vmcompiler_tokenizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_vmcompiler_tokenizer.h; sourceTree = "<group>"; };
 		1121043018A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_vmcompiler_tokenizer.c; sourceTree = "<group>"; };
 		113206A018A49601006C9112 /* objv_vmcompiler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_vmcompiler.h; sourceTree = "<group>"; };
@@ -241,6 +245,9 @@
 				1153BAE518C0853D009EF09A /* objvcloud.1 */,
 				1153BAED18C08A6A009EF09A /* CLAccept.h */,
 				1153BAEF18C08AB9009EF09A /* CLAccept.c */,
+				1114061D18C4751100C03FFA /* CLSRVProcess.h */,
+				1114061E18C4751C00C03FFA /* CLSRVProcess.c */,
+				1114062018C49EB000C03FFA /* cfg.json */,
 			);
 			path = objvcloud;
 			sourceTree = "<group>";
@@ -523,6 +530,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1114061F18C4751C00C03FFA /* CLSRVProcess.c in Sources */,
 				1153BAF018C08AB9009EF09A /* CLAccept.c in Sources */,
 				1153BAE418C0853D009EF09A /* main.c in Sources */,
 			);
@@ -624,6 +632,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -661,6 +670,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -738,6 +748,7 @@
 				1153BAE918C0853D009EF09A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		11BD79041899409000F028AC /* Build configuration list for PBXProject "objv" */ = {
 			isa = XCConfigurationList;

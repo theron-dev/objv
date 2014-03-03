@@ -74,6 +74,7 @@ static void CLContextMethodSetConfig(objv_class_t * clazz,CLContext * ctx,objv_o
         
         ctx->config = config;
         
+        CLContextSetDomain(ctx, objv_object_stringValueForKey(config, (objv_object_t *) objv_string_new_nocopy(ctx->base.zone, "domain"), NULL));
     }
     
 }
@@ -324,7 +325,7 @@ void CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * ta
 void CLContextAddChild(CLContext * context, CLContext * child){
     const char * p;
     
-    if(context && child && child->parent == NULL
+    if(context && context->domain && child && child->domain && child->parent == NULL
        && (p = objv_string_hasPrefix(child->domain->UTF8String, context->domain->UTF8String))){
         
         if(context->dispatch == objv_dispatch_get_current()){
@@ -451,6 +452,7 @@ void CLContextSetDomain(CLContext * context, objv_string_t * domain){
     if(context && context->domain != domain){
         objv_object_retain((objv_object_t *) domain);
         objv_object_release((objv_object_t *) context->domain);
+        context->domain = domain;
     }
 }
 

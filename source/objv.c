@@ -457,6 +457,8 @@ void objv_object_release(objv_object_t * object){
             
             objv_object_dealloc(object->isa,object);
             
+            objv_mutex_lock(& object->mutex);
+            
             {
                 objv_object_weak_t * weak = object->weak, * tweak;
                 
@@ -466,7 +468,11 @@ void objv_object_release(objv_object_t * object){
                     weak = weak->next;
                     objv_zone_free(object->zone, tweak);
                 }
+                
+                object->weak = NULL;
             }
+            
+            objv_mutex_unlock(& object->mutex);
             
             objv_mutex_destroy(& object->mutex);
             

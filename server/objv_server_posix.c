@@ -158,7 +158,7 @@ int OBJVSRVServerRun(OBJVSRVServer * server){
                 }
             }
             else{
-                if(FD_ISSET(server->run.listenSocket, &rds)){
+                if(FD_ISSET(STDIN_FILENO, &rds)){
                     
                     scanf("%s",command);
                     

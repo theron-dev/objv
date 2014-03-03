@@ -10,5 +10,18 @@
 #define objv_CLSRVProcess_h
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
+#include "objv_cloud.h"
+#include "objv_server.h"
+   
+    extern OBJVSRVProcessClass CLSRVProcessClass;
+    
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif

@@ -15,103 +15,59 @@
 #include "objv_clcontext.h"
 #include "CLAccept.h"
 #include "objv_zombie.h"
+#include "CLSRVProcess.h"
 
-int main(int argc, const char * argv[])
+#define DEFAULT_PROCESS_COUNT   1
+
+static void OBJVSRVServerLogMSG(OBJVSRVServer * srv,const char * format,va_list va){
+    
+    char sbuf[PATH_MAX];
+    int fno;
+    int len;
+    
+    snprintf(sbuf, sizeof(sbuf),"/var/log/%s.log",getprogname());
+    
+    fno = open(sbuf, O_WRONLY | O_APPEND);
+    
+    if(fno == -1){
+        fno = open(sbuf, O_WRONLY | O_CREAT);
+        if(fno != -1){
+            fchmod(fno, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+            close(fno);
+        }
+        fno = open(sbuf, O_WRONLY | O_APPEND);
+    }
+    
+    if(fno != -1){
+        
+        len = vsnprintf(sbuf, sizeof(sbuf), format, va);
+        
+        write(fno, sbuf, len);
+        
+        close(fno);
+    }
+}
+
+int main(int argc, char ** argv)
 {
-
-    const char * cfgp = NULL;
     
-    if(argc > 1){
-        cfgp = argv[1];
-    }
+    OBJVSRVProcess processs[DEFAULT_PROCESS_COUNT] = {0};
     
-    objv_zombie_t zombie;
+    OBJVSRVServer srv = {
+        {{argc,argv},{processs,DEFAULT_PROCESS_COUNT},{0},0},{0},OBJVSRVServerLogMSG
+    };
     
-    objv_zombie_init(& zombie, 102400);
+#ifdef DEBUG
+    srv.logCallback = NULL;
+#endif
     
-    objv_zone_t * zone = (objv_zone_t *) & zombie;
-    CLAccept * ac = NULL;
-    
-    objv_autorelease_pool_push();
-    
-    objv_dispatch_set_main(objv_dispatch_get_current());
-
-    objv_object_t * cfg = NULL;
-    
-    if(cfgp) {
-        FILE * f = fopen(cfgp, "r");
-        objv_mbuf_t mbuf;
-        char buf[1024];
-        ssize_t len;
-        
-        if(f) {
-            
-            objv_mbuf_init(& mbuf, 1024);
-            
-            while((len = fread(buf, 1, sizeof(buf), f)) >0){
-                
-                objv_mbuf_append(& mbuf, buf, len);
-                
-            }
-            
-            cfg = objv_json_decode(zone, objv_mbuf_str( & mbuf));
-            
-            objv_mbuf_destroy(& mbuf);
-            
-            fclose(f);
+    {
+        int i;
+        for(i=0;i<srv.config.process.length;i++){
+            srv.config.process.data[i].clazz = & CLSRVProcessClass;
         }
     }
     
-
-    CLServiceContainer * container = (CLServiceContainer *) objv_object_new(zone, OBJV_CLASS(CLServiceContainer),NULL);
-    
-    CLServiceContainerSetConfig(container, cfg);
-    
-    CLServiceContext * ctx = (CLServiceContext *) objv_object_new(zone, OBJV_CLASS(CLServiceContext),NULL);
-    
-    CLServiceContextSetContainer(ctx, container);
-    
-  
-    ac = CLAcceptAlloc(zone, 0);
-    
-    if(ac == NULL){
-        
-        printf("\nListener Error \n");
-        
-        goto toexit;
-        
-    }
-    
-    printf("\nPORT:%d\n",ac->port);
-    
-    objv_dispatch_addTask(objv_dispatch_get_current(), (objv_dispatch_task_t *) ac);
-    
-    objv_timeinval_t t = objv_timestamp();
-    
-    while (1) {
-        
-        objv_autorelease_pool_push();
-        
-        objv_dispatch_run(objv_dispatch_get_current(),0.2);
-        
-        objv_autorelease_pool_pop();
-        
-        if(objv_timestamp() - t > 10){
-            break;
-        }
-    }
-    
-    
-toexit:
-    
-    objv_dispatch_cancelAllTasks(objv_dispatch_get_current());
-    
-    objv_object_release((objv_object_t *) ac);
-    
-    objv_autorelease_pool_pop();
-    
-    objv_zombie_destroy(& zombie);
-    
-    return 0;
+    return OBJVSRVServerRun(& srv);
 }
 
