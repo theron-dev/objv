@@ -181,7 +181,6 @@ static void CLChannelContextTaskRun(objv_class_t * clazz, CLChannelContextTask *
     
     if((status = CLChannelConnect(task->channel->base.isa, task->channel, 0.02)) == OBJVChannelStatusOK){
         
-        
         if(task->channel->mode & CLChannelModeRead){
             
             CLTask * t = NULL;
@@ -202,7 +201,10 @@ static void CLChannelContextTaskRun(objv_class_t * clazz, CLChannelContextTask *
         if(status != OBJVChannelStatusError && (task->channel->mode & CLChannelModeWrite)){
             status = CLChannelTick(task->channel->base.isa,task->channel, 0.02);
         }
-        
+     
+        if(status == OBJVChannelStatusError){
+            status = CLChannelDisconnect(task->channel->base.isa, task->channel);
+        }
     }
     
     if(status == OBJVChannelStatusError){
@@ -261,10 +263,19 @@ OBJV_CLASS_METHOD_IMP_END(CLChannelContextTask)
 OBJV_CLASS_IMP_M(CLChannelContextTask, OBJV_CLASS(DispatchTask), CLChannelContextTask)
 
 void CLChannelContextAddChannel(CLChannelContext * ctx,CLChannel * channel){
+    
     if(ctx && channel && ctx->queue){
         
         objv_zone_t * zone = ctx->base.base.base.zone;
         
+        objv_mutex_lock(& ctx->channels_mutex);
+        
+        if(ctx->channels){
+            objv_array_add(ctx->channels,(objv_object_t *) channel);
+        }
+        
+        objv_mutex_unlock(& ctx->channels_mutex);
+
         CLChannelContextTask * task = (CLChannelContextTask *) objv_object_alloc(zone, OBJV_CLASS(CLChannelContextTask),ctx,channel,NULL);
         
         objv_dispatch_queue_addTask(ctx->queue, (objv_dispatch_task_t *) task);

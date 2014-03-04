@@ -252,6 +252,17 @@ static void _CLContextSendTask(CLContext * context, objv_class_t * taskType, CLT
     
 }
 
+typedef struct _CLContextSendTaskToChildCallbackContext {
+    objv_class_t * taskType;
+    CLTask * task;
+} CLContextSendTaskToChildCallbackContext;
+
+static void CLContextSendTaskToChildCallback(objv_actree_t * actree,objv_object_t * key,objv_object_t * value,void * context){
+    CLContextSendTaskToChildCallbackContext * c = (CLContextSendTaskToChildCallbackContext *) context;
+    CLContext * ctx = (CLContext *) value;
+    _CLContextSendTask(ctx, c->taskType, c->task);
+}
+
 void CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * task,objv_string_t * target){
     if(context && taskType && task ){
         
@@ -269,7 +280,6 @@ void CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * ta
             if( objv_string_hasPrefix(target->UTF8String, context->domain->UTF8String) ){
                 {
                     const char * lp;
-                    int i;
                     CLContext * ctx;
                     
                     if((lp = objv_string_hasSuffix(target->UTF8String, ".*"))){
@@ -278,10 +288,15 @@ void CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * ta
                             _CLContextSendTask(context,taskType,task);
                         }
                         
-                        for(i=0;i<context->childs->length;i++){
-                            ctx = (CLContext *) objv_array_objectAt(context->childs, i);
-                            if(objv_string_hasPrefixTo(ctx->domain->UTF8String,target->UTF8String, lp)){
-                                CLContextSendTask(ctx,taskType,task,target);
+                        if(context->childsTree){
+                            {
+                                objv_array_t * keys = objv_string_split(target, ".");
+                                CLContextSendTaskToChildCallbackContext c = {taskType,task};
+                                
+                                objv_array_removeLast(keys);
+                                
+                                objv_actree_echo(context->childsTree, CLContextSendTaskToChildCallback, & c);
+                                
                             }
                         }
                         
@@ -291,13 +306,13 @@ void CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * ta
                         if(strcmp(target->UTF8String, context->domain->UTF8String) == 0){
                             _CLContextSendTask(context,taskType,task);
                         }
-                        else if(context->childs){
+                        else if(context->childsTree){
                         
-                            for(i=0;i<context->childs->length;i++){
-                                ctx = (CLContext *) objv_array_objectAt(context->childs, i);
-                                if(strcmp(target->UTF8String, ctx->domain->UTF8String) == 0){
-                                    CLContextSendTask(ctx,taskType,task,target);
-                                    break;
+                            {
+                                objv_array_t * keys = objv_string_split(target, ".");
+                                ctx = (CLContext *) objv_actree_value(context->childsTree, keys);
+                                if(ctx){
+                                    _CLContextSendTask(ctx,taskType,task);
                                 }
                             }
                             
@@ -307,7 +322,7 @@ void CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * ta
 
             }
             else if( context->parent ){
-                CLContextSendTask( context->parent , taskType, task,target);
+                _CLContextSendTask( context->parent , taskType, task);
             }
             
         }
@@ -363,7 +378,7 @@ void CLContextAddChild(CLContext * context, CLContext * child){
                     {
                         char uuid[128];
                         
-                        snprintf(uuid, sizeof(uuid),"%lx", rand() + time(NULL));
+                        snprintf(uuid, sizeof(uuid), "%lx", rand() + time(NULL));
                         
                         key = objv_string_new(zone, uuid);
                         
@@ -384,7 +399,7 @@ void CLContextAddChild(CLContext * context, CLContext * child){
                         {
                             CLDomainSetTask * task = CLDomainSetTaskAlloc(zone, child->domain);
                             
-                            CLContextSendTask(child, OBJV_CLASS(CLDomainSetTask), (CLTask *) task, NULL);
+                            CLContextSendTask(context, OBJV_CLASS(CLDomainSetTask), (CLTask *) task, child->domain);
                             
                             objv_object_release((objv_object_t *) task);
                         }
@@ -491,6 +506,7 @@ static void CLTaskMethodDealloc(objv_class_t * clazz,objv_object_t * object){
     }
 }
 
+
 OBJV_CLASS_METHOD_IMP_BEGIN(CLTask)
 
 OBJV_CLASS_METHOD_IMP(dealloc, "v()", CLTaskMethodDealloc)
@@ -513,6 +529,20 @@ static void CLDomainSetTaskMethodDealloc(objv_class_t * clazz,objv_object_t * ob
     }
 }
 
+static objv_object_t * CLDomainSetTaskMethodDomain(objv_class_t * clazz,objv_object_t * object){
+    CLDomainSetTask * task = (CLDomainSetTask *) object;
+    return (objv_object_t *) task->domain;
+}
+
+static void CLDomainSetTaskMethodSetDomain(objv_class_t * clazz,objv_object_t * object,objv_object_t * value){
+    CLDomainSetTask * task = (CLDomainSetTask *) object;
+    objv_string_t * s = objv_object_stringValue(value, NULL);
+    if(s != task->domain){
+        objv_object_retain((objv_object_t *) s);
+        objv_object_release((objv_object_t *) task->domain);
+        task->domain = s;
+    }
+}
 
 OBJV_CLASS_METHOD_IMP_BEGIN(CLDomainSetTask)
 
@@ -520,8 +550,15 @@ OBJV_CLASS_METHOD_IMP(dealloc, "v()", CLDomainSetTaskMethodDealloc)
 
 OBJV_CLASS_METHOD_IMP_END(CLDomainSetTask)
 
+OBJV_CLASS_PROPERTY_IMP_BEGIN(CLDomainSetTask)
 
-OBJV_CLASS_IMP_M(CLDomainSetTask, OBJV_CLASS(CLTask), CLDomainSetTask)
+OBJV_CLASS_PROPERTY_IMP(domain, object, CLDomainSetTaskMethodDomain, CLDomainSetTaskMethodSetDomain, objv_true)
+
+OBJV_CLASS_PROPERTY_IMP_END(CLDomainSetTask)
+
+OBJV_KEY_IMP(domain)
+
+OBJV_CLASS_IMP_P_M(CLDomainSetTask, OBJV_CLASS(CLTask), CLDomainSetTask)
 
 CLDomainSetTask * CLDomainSetTaskAlloc(objv_zone_t * zone,objv_string_t * domain){
     CLDomainSetTask * task = (CLDomainSetTask *) objv_object_alloc(zone, OBJV_CLASS(CLDomainSetTask),NULL);

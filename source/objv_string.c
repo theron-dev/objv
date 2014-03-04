@@ -283,9 +283,18 @@ struct _objv_array_t * objv_string_split_UTF8String(objv_zone_t * zone,const cha
         
         objv_mbuf_init(& mbuf, 64);
         
-        while (p && *p != 0) {
+        while (p ) {
             
-            if(l == 0){
+            if(*p == 0){
+                if(mbuf.length > 0){
+                    s = objv_string_alloc(zone, objv_mbuf_str(& mbuf));
+                    objv_array_add(array, (objv_object_t *) s );
+                    objv_object_release((objv_object_t *) s);
+                    objv_mbuf_clear(& mbuf);
+                }
+                break;
+            }
+            else if(l == 0){
                 
                 objv_mbuf_append(& mbuf, p, 1);
                 

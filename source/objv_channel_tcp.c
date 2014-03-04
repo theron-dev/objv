@@ -17,7 +17,7 @@ OBJV_KEY_IMP(TCPChannel)
 
 static OBJVChannelStatus objv_channel_tcp_canWrite(objv_class_t * clazz,objv_channel_tcp_t * channel,objv_timeinval_t timeout);
 
-static void objv_channel_tcp_disconnect(objv_class_t * clazz,objv_channel_tcp_t * channel);
+static OBJVChannelStatus objv_channel_tcp_disconnect(objv_class_t * clazz,objv_channel_tcp_t * channel);
 
 static OBJVChannelStatus objv_channel_tcp_connect(objv_class_t * clazz, objv_channel_tcp_t * channel,objv_timeinval_t timeout){
 
@@ -84,6 +84,9 @@ static OBJVChannelStatus objv_channel_tcp_connect(objv_class_t * clazz, objv_cha
                 }
             }
             
+            if(state == OBJVChannelStatusOK){
+                channel->base.connected = objv_true;
+            }
         }
     }
     
@@ -184,12 +187,19 @@ static ssize_t objv_channel_tcp_write(objv_class_t * clazz,objv_channel_tcp_t * 
     return OBJVChannelStatusError;
 }
 
-static void objv_channel_tcp_disconnect(objv_class_t * clazz,objv_channel_tcp_t * channel){
+static OBJVChannelStatus objv_channel_tcp_disconnect(objv_class_t * clazz,objv_channel_tcp_t * channel){
     
     if(channel->handler){
         objv_os_socket_close(channel->handler);
+        channel->handler = 0;
+        channel->base.connected = objv_false;
     }
     
+    if(channel->host){
+        return OBJVChannelStatusNone;
+    }
+    
+    return OBJVChannelStatusError;
 }
 
 static objv_object_t * objv_channel_tcp_init(objv_class_t * clazz,objv_object_t * object,va_list ap){

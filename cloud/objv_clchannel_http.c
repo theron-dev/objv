@@ -47,6 +47,22 @@ static void CLHttpChannelMethodDealloc(objv_class_t * clazz,objv_object_t * obje
  
     objv_zone_t * zone = channel->base.base.zone;
     
+    if(channel->base.oChannel && channel->base.mode & CLChannelModeWrite){
+        
+        objv_mbuf_clear(& channel->write.mbuf);
+        
+        objv_mbuf_append(& channel->write.mbuf, "0\r\n\r\n", 5);
+        
+        {
+            OBJVChannelStatus status = objv_channel_canWrite(channel->base.oChannel->base.isa, channel->base.oChannel, 0.02);
+            if(status == OBJVChannelStatusOK){
+                objv_channel_write(channel->base.oChannel->base.isa, channel->base.oChannel, channel->write.mbuf.data, channel->write.mbuf.length);
+            }
+        }
+        
+    }
+
+    
     OBJVHTTPRequestReset( &channel->httpRequest );
     
     objv_mutex_lock(& channel->tasks_mutex);
@@ -92,6 +108,16 @@ static OBJVChannelStatus CLHttpChannelMethodConnect(objv_class_t * clazz,CLChann
     
     return OBJVChannelStatusError;
 }
+
+static OBJVChannelStatus CLHttpChannelMethodDisconnect(objv_class_t * clazz,CLChannel * channel){
+    
+    if(channel->oChannel){
+        return objv_channel_disconnect(channel->oChannel->base.isa, channel->oChannel);
+    }
+    
+    return OBJVChannelStatusError;
+}
+
 
 OBJVChannelStatus CLHttpChannelUnpackageTask(objv_zone_t * zone, CLTask ** task,objv_class_t ** taskType,objv_mbuf_t * data,CLHttpChannelContentType contentType){
     
@@ -218,7 +244,11 @@ OBJVChannelStatus CLHttpChannelPackageTask(objv_zone_t * zone, CLTask * task,obj
         
         objv_json_encode_mbuf(zone, (objv_object_t *) data, mbuf, objv_false);
         
+        objv_mbuf_append(mbuf, "\r\n", 2);
+        
         snprintf((char *) mbuf->data + off, 10,"%08lx\r\n",mbuf->length - 10 - off);
+        
+        * ((char *) mbuf->data + off + 9) = '\n';
         
         objv_object_release((objv_object_t *) data);
 
@@ -311,13 +341,25 @@ static OBJVChannelStatus CLHttpChannelMethodReadTask(objv_class_t * clazz,CLChan
                         return status;
                     }
                     
-                    httpChannel->read.state = 0;
+                    httpChannel->read.state = 2;
                     
                     break;
                 }
                 
                 continue;
                 
+            }
+            else if(httpChannel->read.state == 2){
+                if(*p == '\r'){
+                    
+                }
+                else if(*p == '\n'){
+                    httpChannel->read.state = 0;
+                }
+                else{
+                    status = OBJVChannelStatusError;
+                    break;
+                }
             }
             else {
                 assert(0);
@@ -457,6 +499,8 @@ OBJV_CLASS_METHOD_IMP(init, "@(*)", CLHttpChannelMethodInit)
 OBJV_CLASS_METHOD_IMP(dealloc, "v()", CLHttpChannelMethodDealloc)
 
 OBJV_CLASS_METHOD_IMP(connect, "i(d)", CLHttpChannelMethodConnect)
+
+OBJV_CLASS_METHOD_IMP(disconnect, "i()", CLHttpChannelMethodDisconnect)
 
 OBJV_CLASS_METHOD_IMP(readTask, "i(*,*,d)", CLHttpChannelMethodReadTask)
 

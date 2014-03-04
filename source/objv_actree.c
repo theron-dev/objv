@@ -144,6 +144,34 @@ objv_object_t * objv_actree_value(objv_actree_t * actree,objv_array_t * keys){
     return objv_actree_valueOfIndex(actree,keys,0);
 }
 
+
+objv_actree_t * objv_actree_findOfIndex(objv_actree_t * actree,objv_array_t * keys,unsigned int index){
+    
+    if(actree && keys && keys->length > index){
+        
+        objv_object_t * key = objv_array_objectAt(keys, index);
+        objv_actree_t * ac;
+        
+        if(objv_object_equal(key->isa, key,actree->key)){
+            if(index + 1 < keys->length){
+                key = objv_array_objectAt(keys, index + 1);
+                ac = (objv_actree_t *) objv_dictionary_value(actree->childs, key);
+                return objv_actree_findOfIndex(ac,keys,index + 1);
+            }
+            else{
+                return actree;
+            }
+        }
+        
+    }
+    
+    return NULL;
+}
+
+objv_actree_t * objv_actree_find(objv_actree_t * actree,objv_array_t * keys){
+    return objv_actree_findOfIndex(actree,keys,0);
+}
+
 void objv_actree_removeOfIndex(objv_actree_t * actree,objv_array_t * keys,unsigned int index){
     if(actree && keys && keys->length > index){
         objv_object_t * key = objv_array_objectAt(keys, index);
@@ -170,4 +198,26 @@ void objv_actree_removeOfIndex(objv_actree_t * actree,objv_array_t * keys,unsign
 
 void objv_actree_remove(objv_actree_t * actree,objv_array_t * keys){
     objv_actree_removeOfIndex(actree,keys,0);
+}
+
+
+void objv_actree_echo(objv_actree_t * actree,objv_actree_echo_callback_t callback,void * context){
+    if(actree && callback){
+        
+        int i;
+        
+        if(actree->value){
+            ( * callback) (actree, actree->key, actree->value,context);
+        }
+        
+        if(actree->childs){
+            
+            for(i=0;i<actree->childs->map->length;i++){
+                
+                objv_actree_echo((objv_actree_t *) objv_dictionary_valueAt(actree->childs, i) , callback,context);
+                
+            }
+        }
+
+    }
 }

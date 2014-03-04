@@ -13,6 +13,7 @@
 #include "CLAccept.h"
 #include "objv_autorelease.h"
 #include "objv_clcontext.h"
+#include "objv_value.h"
 
 static void CLAcceptSIGNAN(int signo){
 

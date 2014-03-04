@@ -47,6 +47,8 @@ extern "C" {
     
     OBJV_KEY_DEC(connect)
     
+    OBJV_KEY_DEC(disconnect)
+    
     OBJV_KEY_DEC(readTask)
     
     OBJV_KEY_DEC(postTask)
@@ -55,7 +57,10 @@ extern "C" {
     
     typedef OBJVChannelStatus ( * CLChannelMethodConnect)(objv_class_t * clazz,CLChannel * channel,objv_timeinval_t timeout);
     
-    typedef OBJVChannelStatus ( * CLChannelMethodReadTask)(objv_class_t * clazz,CLChannel * channel,CLTask ** task,objv_class_t ** taskType,objv_timeinval_t timeout);
+    typedef OBJVChannelStatus ( * CLChannelMethodDisconnect)(objv_class_t * clazz,CLChannel * channel);
+    
+    typedef OBJVChannelStatus ( * CLChannelMethodReadTask)(objv_class_t * clazz,CLChannel * channel
+                                                           ,CLTask ** task,objv_class_t ** taskType,objv_timeinval_t timeout);
     
     typedef void ( * CLChannelMethodPostTask)(objv_class_t * clazz,CLChannel * channel,CLTask * task,objv_class_t * taskType);
     
@@ -66,6 +71,8 @@ extern "C" {
     objv_object_t * CLChannelInit(objv_class_t * clazz,CLChannel * clChannel, objv_channel_t * channel);
     
     OBJVChannelStatus CLChannelConnect(objv_class_t * clazz,CLChannel * channel,objv_timeinval_t timeout);
+    
+    OBJVChannelStatus CLChannelDisconnect(objv_class_t * clazz, CLChannel * channel);
     
     OBJVChannelStatus CLChannelReadTask(objv_class_t * clazz,CLChannel * channel,CLTask ** task,objv_class_t ** taskType,objv_timeinval_t timeout);
     

@@ -165,7 +165,7 @@ ssize_t objv_channel_write(objv_class_t * clazz,objv_channel_t * channel,void * 
     return OBJVChannelStatusError;
 }
 
-void objv_channel_disconnect(objv_class_t * clazz,objv_channel_t * channel){
+OBJVChannelStatus objv_channel_disconnect(objv_class_t * clazz,objv_channel_t * channel){
     
     if(channel && channel->connected){
         
@@ -179,11 +179,12 @@ void objv_channel_disconnect(objv_class_t * clazz,objv_channel_t * channel){
         }
         
         if(method){
-            (* (objv_channel_disconnect_t) method->impl)(c,channel);
+            return (* (objv_channel_disconnect_t) method->impl)(c,channel);
         }
 
     }
 
+    return OBJVChannelStatusError;
 }
 
 void objv_channel_setException(objv_channel_t * channel,objv_exception_t * exception){

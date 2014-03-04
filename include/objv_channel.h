@@ -68,9 +68,9 @@ extern "C" {
     
     ssize_t objv_channel_write(objv_class_t * clazz,objv_channel_t * channel,void * data,size_t length);
     
-    typedef void (* objv_channel_disconnect_t) (objv_class_t * clazz,objv_channel_t * channel);
+    typedef OBJVChannelStatus (* objv_channel_disconnect_t) (objv_class_t * clazz,objv_channel_t * channel);
     
-    void objv_channel_disconnect(objv_class_t * clazz,objv_channel_t * channel);
+    OBJVChannelStatus objv_channel_disconnect(objv_class_t * clazz,objv_channel_t * channel);
     
     void objv_channel_setException(objv_channel_t * channel,objv_exception_t * exception);
     

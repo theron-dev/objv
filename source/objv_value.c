@@ -12,6 +12,8 @@
 #include "objv.h"
 #include "objv_value.h"
 #include "objv_autorelease.h"
+#include "objv_array.h"
+#include "objv_dictionary.h"
 
 OBJV_KEY_IMP(stringValue)
 OBJV_KEY_IMP(intValue)
@@ -1975,6 +1977,21 @@ objv_object_t * objv_object_objectValueForKey(objv_object_t * object,objv_object
     return defaultValue;
 }
 
+objv_array_t * objv_object_arrayValueForKey(objv_object_t * object,objv_object_t * key){
+    objv_object_t * v = objv_object_objectValueForKey(object,key,NULL);
+    if(v && objv_object_isKindOfClass(v, OBJV_CLASS(Array))){
+        return (objv_array_t *) v;
+    }
+    return NULL;
+}
+
+objv_dictionary_t * objv_object_dictionaryValueForKey(objv_object_t * object,objv_object_t * key){
+    objv_object_t * v = objv_object_objectValueForKey(object,key,NULL);
+    if(v && objv_object_isKindOfClass(v, OBJV_CLASS(Dictionary))){
+        return (objv_dictionary_t *) v;
+    }
+    return NULL;
+}
 
 void objv_object_setObjectForKey(objv_class_t * clazz,objv_object_t * object,objv_object_t * key,objv_object_t * value){
     

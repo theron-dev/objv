@@ -16,6 +16,7 @@
 		1153BAE618C0853D009EF09A /* objvcloud.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1153BAE518C0853D009EF09A /* objvcloud.1 */; };
 		1153BAEC18C0854B009EF09A /* libobjv.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11BD79091899409000F028AC /* libobjv.a */; };
 		1153BAF018C08AB9009EF09A /* CLAccept.c in Sources */ = {isa = PBXBuildFile; fileRef = 1153BAEF18C08AB9009EF09A /* CLAccept.c */; };
+		1153BB0018C5CFC6009EF09A /* objv_url.c in Sources */ = {isa = PBXBuildFile; fileRef = 1153BAFF18C5CFC6009EF09A /* objv_url.c */; };
 		1167A91E18BED89C00AEA7B5 /* objv_http.c in Sources */ = {isa = PBXBuildFile; fileRef = 1167A91D18BED89C00AEA7B5 /* objv_http.c */; };
 		119EBDBA18A65A9400B745D7 /* objv_inifile.c in Sources */ = {isa = PBXBuildFile; fileRef = 119EBDB918A65A9400B745D7 /* objv_inifile.c */; };
 		119EBDBF18A70D2600B745D7 /* objv_cloud.c in Sources */ = {isa = PBXBuildFile; fileRef = 119EBDBE18A70D2600B745D7 /* objv_cloud.c */; };
@@ -130,6 +131,8 @@
 		1153BAE518C0853D009EF09A /* objvcloud.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = objvcloud.1; sourceTree = "<group>"; };
 		1153BAED18C08A6A009EF09A /* CLAccept.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CLAccept.h; sourceTree = "<group>"; };
 		1153BAEF18C08AB9009EF09A /* CLAccept.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CLAccept.c; sourceTree = "<group>"; };
+		1153BAFE18C5CFBD009EF09A /* objv_url.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_url.h; sourceTree = "<group>"; };
+		1153BAFF18C5CFC6009EF09A /* objv_url.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_url.c; sourceTree = "<group>"; };
 		1167A91C18BED87F00AEA7B5 /* objv_http.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_http.h; sourceTree = "<group>"; };
 		1167A91D18BED89C00AEA7B5 /* objv_http.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_http.c; sourceTree = "<group>"; };
 		119EBDB818A65A3E00B745D7 /* objv_inifile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_inifile.h; sourceTree = "<group>"; };
@@ -350,6 +353,7 @@
 				11D0BAD518A86DAB009761A8 /* objv_channel.h */,
 				11D0BAD818A8729D009761A8 /* objv_channel_tcp.h */,
 				1153BAD818C02BF4009EF09A /* objv_actree.h */,
+				1153BAFE18C5CFBD009EF09A /* objv_url.h */,
 			);
 			name = include;
 			path = ../include;
@@ -394,6 +398,7 @@
 				11D0BAD618A86E24009761A8 /* objv_channel.c */,
 				11D0BAD918A87302009761A8 /* objv_channel_tcp.c */,
 				1153BAD918C02C1E009EF09A /* objv_actree.c */,
+				1153BAFF18C5CFC6009EF09A /* objv_url.c */,
 			);
 			name = source;
 			path = ../source;
@@ -542,6 +547,7 @@
 			files = (
 				11D0BADD18A883DE009761A8 /* objv_clchannel.c in Sources */,
 				11D0BAE118A8D1A9009761A8 /* objv_clcontext.c in Sources */,
+				1153BB0018C5CFC6009EF09A /* objv_url.c in Sources */,
 				11BD7942189A0FD400F028AC /* objv_dictionary.c in Sources */,
 				11BD79201899540A00F028AC /* objv_types.c in Sources */,
 				11BD79331899EDB600F028AC /* objv_map.c in Sources */,

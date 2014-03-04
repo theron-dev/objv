@@ -178,7 +178,13 @@ extern "C" {
     
     objv_object_t * objv_object_objectValueForKey(objv_object_t * object,objv_object_t * key,objv_object_t * defaultValue);
     
+    struct _objv_array_t;
     
+    struct _objv_array_t * objv_object_arrayValueForKey(objv_object_t * object,objv_object_t * key);
+    
+    struct _objv_dictionary_t;
+    
+    struct _objv_dictionary_t * objv_object_dictionaryValueForKey(objv_object_t * object,objv_object_t * key);
     
     int objv_object_intValue(objv_object_t * object,int defaultValue);
     

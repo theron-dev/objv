@@ -36,6 +36,11 @@ extern "C" {
     
     void objv_actree_remove(objv_actree_t * actree,objv_array_t * keys);
     
+    objv_actree_t * objv_actree_find(objv_actree_t * actree,objv_array_t * keys);
+    
+    typedef void ( * objv_actree_echo_callback_t) (objv_actree_t * actree,objv_object_t * key ,objv_object_t * value,void * context);
+    
+    void objv_actree_echo(objv_actree_t * actree,objv_actree_echo_callback_t callback,void * context);
     
 #ifdef __cplusplus
 }

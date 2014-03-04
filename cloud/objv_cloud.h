@@ -68,6 +68,8 @@ extern "C" {
     OBJV_KEY_DEC(CLDomainSetTask)
     OBJV_CLASS_DEC(CLDomainSetTask)
     
+    OBJV_KEY_DEC(domain)
+    
     CLDomainSetTask * CLDomainSetTaskAlloc(objv_zone_t * zone,objv_string_t * domain);
     
     typedef struct _CLServiceContainer {

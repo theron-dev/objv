@@ -24,6 +24,7 @@ OBJV_KEY_IMP(readTask)
 OBJV_KEY_IMP(postTask)
 OBJV_KEY_IMP(tick)
 OBJV_KEY_IMP(setChannel)
+OBJV_KEY_DEC(disconnect)
 
 static objv_object_t * CLChannelMethodInit(objv_class_t * clazz,objv_object_t * object,va_list ap){
     
@@ -92,6 +93,28 @@ OBJVChannelStatus CLChannelConnect(objv_class_t * clazz, CLChannel * channel,obj
     return OBJVChannelStatusError;
 }
 
+OBJVChannelStatus CLChannelDisconnect(objv_class_t * clazz, CLChannel * channel){
+    
+    if(clazz && channel){
+        
+        objv_class_t * c = clazz;
+        
+        objv_method_t * method = NULL;
+        
+        while(c && (method = objv_class_getMethod(c, OBJV_KEY(disconnect))) == NULL){
+            
+            c = c->superClass;
+        }
+        
+        if(method){
+            return (* (CLChannelMethodDisconnect) method->impl)(c,channel);
+        }
+        
+    }
+    
+    return OBJVChannelStatusError;
+}
+
 OBJVChannelStatus CLChannelReadTask(objv_class_t * clazz,CLChannel * channel,CLTask ** task,objv_class_t ** taskType,objv_timeinval_t timeout){
     
     if(clazz && channel){
@@ -123,7 +146,7 @@ void CLChannelPostTask(objv_class_t * clazz,CLChannel * channel,CLTask * task,ob
         
         objv_method_t * method = NULL;
         
-        while(c && (method = objv_class_getMethod(c, OBJV_KEY(readTask))) == NULL){
+        while(c && (method = objv_class_getMethod(c, OBJV_KEY(postTask))) == NULL){
             
             c = c->superClass;
         }
