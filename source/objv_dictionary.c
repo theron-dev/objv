@@ -138,7 +138,7 @@ OBJV_CLASS_IMP_P_M(Dictionary, OBJV_CLASS(Object), objv_dictionary_t)
 
 
 objv_dictionary_t * objv_dictionary_alloc(objv_zone_t * zone,unsigned int capacity){
-    return (objv_dictionary_t *) objv_object_alloc(zone, OBJV_CLASS(Dictionary),capacity);
+    return (objv_dictionary_t *) objv_object_alloc(zone, OBJV_CLASS(Dictionary),capacity,NULL,NULL);
 }
 
 objv_dictionary_t * objv_dictionary_new(objv_zone_t * zone,unsigned int capacity){

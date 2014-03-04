@@ -18,7 +18,7 @@
 
 #include <execinfo.h>
 
-static int CLSRVProcessCreate (OBJVSRVServer * server,OBJVSRVProcess * process){
+static int CLSRVProcessOpen (OBJVSRVServer * server,OBJVSRVProcess * process){
     
     if(getenv(CL_ENV_CONFIG_KEY) == NULL){
         
@@ -49,7 +49,7 @@ static void CLSRVProcessExit (OBJVSRVServer * server,OBJVSRVProcess * process){
     free(symbols);
 }
 
-static void CLSRVProcessOpen (OBJVSRVServer * server,OBJVSRVProcess * process){
+static void CLSRVProcessCreate (OBJVSRVServer * server,OBJVSRVProcess * process){
     
     objv_zone_t * zone = objv_zone_default();
     

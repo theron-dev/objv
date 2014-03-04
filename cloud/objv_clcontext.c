@@ -143,6 +143,8 @@ static void CLChannelContextMethodSetConfig(objv_class_t * clazz,CLChannelContex
         CLContextSetConfig(clazz->superClass, (CLContext *) ctx, config);
     }
 
+    ctx->keepAlive = objv_object_doubleValueForKey(config, (objv_object_t *) objv_string_new_nocopy(ctx->base.base.base.zone, "keepAlive"), 20);
+    
 }
 
 
@@ -165,6 +167,8 @@ typedef struct _CLChannelContextTask {
     objv_dispatch_task_t base;
     CLChannel * channel;
     CLChannelContext * ctx;
+    objv_timeinval_t idleTimeinval;
+    objv_timeinval_t keepAlive;
 } CLChannelContextTask;
 
 OBJV_KEY_DEC(CLChannelContextTask)
@@ -177,7 +181,7 @@ static void CLChannelContextTaskRun(objv_class_t * clazz, CLChannelContextTask *
     
     OBJVChannelStatus status = OBJVChannelStatusOK;
     
-    objv_timeinval_t delay = 0.02;
+    task->idleTimeinval += objv_timestamp() - task->base.start;
     
     if((status = CLChannelConnect(task->channel->base.isa, task->channel, 0.02)) == OBJVChannelStatusOK){
         
@@ -192,6 +196,7 @@ static void CLChannelContextTaskRun(objv_class_t * clazz, CLChannelContextTask *
                     
                     CLContextHandleTask((CLContext *) task->ctx, tType, t);
                     
+                    task->idleTimeinval = 0;
                 }
                 
             }
@@ -205,13 +210,16 @@ static void CLChannelContextTaskRun(objv_class_t * clazz, CLChannelContextTask *
         if(status == OBJVChannelStatusError){
             status = CLChannelDisconnect(task->channel->base.isa, task->channel);
         }
+        else if(status == OBJVChannelStatusOK){
+            task->idleTimeinval = 0;
+        }
     }
     
-    if(status == OBJVChannelStatusError){
+    if(status == OBJVChannelStatusError || (task->keepAlive != 0.0 && task->idleTimeinval > task->keepAlive)){
         CLChannelContextRemoveChannel(task->ctx, task->channel);
     }
     else if(task->ctx) {
-        task->base.delay = delay;
+        task->base.delay = MIN(0.2,task->idleTimeinval);
         objv_dispatch_queue_addTask(task->ctx->queue, (objv_dispatch_task_t *) task);
     }
 }
@@ -277,6 +285,8 @@ void CLChannelContextAddChannel(CLChannelContext * ctx,CLChannel * channel){
         objv_mutex_unlock(& ctx->channels_mutex);
 
         CLChannelContextTask * task = (CLChannelContextTask *) objv_object_alloc(zone, OBJV_CLASS(CLChannelContextTask),ctx,channel,NULL);
+        
+        task->keepAlive = ctx->keepAlive;
         
         objv_dispatch_queue_addTask(ctx->queue, (objv_dispatch_task_t *) task);
         

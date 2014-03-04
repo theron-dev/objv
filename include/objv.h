@@ -109,6 +109,8 @@ extern "C" {
         objv_boolean_t serialization;
     } objv_property_t;
     
+    struct _objv_hash_map_t;
+    
     typedef struct _objv_class_t {
         objv_key_t * READONLY name;
         struct _objv_class_t * READONLY superClass;
@@ -121,10 +123,15 @@ extern "C" {
         void (* initialize) (struct _objv_class_t * clazz);
         
         objv_boolean_t READONLY initialized;
+        
+        struct _objv_hash_map_t * methodsMap;
+        struct _objv_hash_map_t * propertysMap;
     } objv_class_t;
     
     objv_method_t * objv_class_getMethod(objv_class_t * clazz,objv_key_t * name);
+    objv_method_t * objv_class_getMethodOfClass(objv_class_t * clazz,objv_key_t * name,objv_class_t ** ofClass);
     objv_property_t * objv_class_getProperty(objv_class_t * clazz,objv_key_t * name);
+    objv_property_t * objv_class_getPropertyOfClass(objv_class_t * clazz,objv_key_t * name,objv_class_t ** ofClass);
     objv_boolean_t objv_class_isKindOfClass(objv_class_t * clazz,objv_class_t * ofClass);
     
     struct _objv_object_t;
@@ -169,7 +176,6 @@ extern "C" {
     void objv_object_unweak(objv_object_t * object, objv_object_t ** toObject);
     
     objv_boolean_t objv_object_isKindOfClass(objv_object_t * object,objv_class_t * ofClass);
-    
     
     extern objv_class_t objv_Object_class;
     

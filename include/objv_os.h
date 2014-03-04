@@ -38,7 +38,7 @@
 #include <sys/sockio.h>
 #include <net/ethernet.h>
 #include <sys/types.h>
-
+#include <sys/socket.h>
 
 #define closesocket(c) close(c)
 

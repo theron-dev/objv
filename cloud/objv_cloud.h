@@ -49,11 +49,12 @@ extern "C" {
     OBJV_KEY_DEC(CLService)
     OBJV_CLASS_DEC(CLService)
     
-
     typedef struct _CLTask {
         objv_object_t base;
         CLIdentifier READONLY identifier;
         CLIdentifier READONLY replyIdentifier;
+        objv_string_t * READONLY contentType;
+        objv_mbuf_t READONLY content;
         CLContext * READONLY source;
     } CLTask;
     

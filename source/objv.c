@@ -16,6 +16,7 @@
 #include "objv_iterator.h"
 #include "objv_autorelease.h"
 #include "objv_value.h"
+#include "objv_hash_map.h"
 
 OBJV_KEY_IMP(init)
 OBJV_KEY_IMP(dealloc)
@@ -247,6 +248,44 @@ void objv_class_initialize(objv_class_t * clazz){
             objv_class_initialize(clazz->superClass);
         }
         
+        if(clazz->propertyCount >0){
+            
+            clazz->propertysMap = objv_hash_map_alloc(clazz->propertyCount, objv_hash_map_hash_code_key, objv_map_compare_key);
+            
+            {
+                unsigned int c = clazz->propertyCount;
+                objv_property_t * prop = clazz->propertys;
+                
+                while (c > 0 && prop) {
+                    
+                    objv_hash_map_put(clazz->propertysMap, prop->name, prop);
+                    
+                    c --;
+                    prop ++;
+                }
+            }
+            
+        }
+        
+        if(clazz->methodCount >0){
+            
+            clazz->methodsMap = objv_hash_map_alloc(clazz->propertyCount, objv_hash_map_hash_code_key, objv_map_compare_key);
+            
+            {
+                unsigned int c = clazz->methodCount;
+                objv_method_t * method = clazz->methods;
+                
+                while (c > 0 && method) {
+                    
+                    objv_hash_map_put(clazz->methodsMap, method->name, method);
+                    
+                    c --;
+                    method ++;
+                }
+            }
+            
+        }
+        
         if(clazz->name->type == objv_key_type_static){
             objv_class_reg(clazz);
         }
@@ -262,24 +301,27 @@ void objv_class_initialize(objv_class_t * clazz){
 objv_method_t * objv_class_getMethod(objv_class_t * clazz,objv_key_t * name){
     
     if(clazz && name){
-        
-        objv_method_t * p = clazz->methods;
-        int c = clazz->methodCount;
-        
-        while (c >0 ) {
-            
-            if(name == p->name
-               || (p->name->type == name->type && p->name->name == name->name)
-               || (p->name->type != name->type && p->name->name == name->name)){
-                
-                return p;
-            }
-            
-            c --;
-            p ++;
-        }
+        return objv_hash_map_get(clazz->methodsMap, name);
     }
     
+    return NULL;
+}
+
+objv_method_t * objv_class_getMethodOfClass(objv_class_t * clazz,objv_key_t * name,objv_class_t ** ofClass){
+    if(clazz && name){
+        objv_class_t * c = clazz;
+        objv_method_t * method = NULL;
+        
+        while (c && (method = objv_class_getMethod(c, name)) == NULL) {
+            c = c->superClass;
+        }
+        
+        if(ofClass){
+            * ofClass = c;
+        }
+        
+        return method;
+    }
     return NULL;
 }
 
@@ -287,21 +329,29 @@ objv_property_t * objv_class_getProperty(objv_class_t * clazz,objv_key_t * name)
     
     if(clazz && name){
         
-        objv_property_t * p = clazz->propertys;
-        int c = clazz->propertyCount;
+        return objv_hash_map_get(clazz->propertysMap, name);
         
-        while (c >0 ) {
-            
-            if(objv_key_equal(name ,p->name ) ){
-                
-                return p;
-            }
-            
-            c --;
-            p ++;
-        }
     }
     
+    return NULL;
+}
+
+
+objv_property_t * objv_class_getPropertyOfClass(objv_class_t * clazz,objv_key_t * name,objv_class_t ** ofClass){
+    if(clazz && name){
+        objv_class_t * c = clazz;
+        objv_property_t * prop = NULL;
+        
+        while (c && (prop = objv_class_getProperty(c, name)) == NULL) {
+            c = c->superClass;
+        }
+        
+        if(ofClass){
+            * ofClass = c;
+        }
+        
+        return prop;
+    }
     return NULL;
 }
 

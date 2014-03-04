@@ -189,16 +189,6 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
                     
                 }
                 
-                h = OBJVHttpRequestGetHeader(&httpChannel->httpRequest, "Content-Type");
-                
-                if(h){
-                    
-                    if(OBJVHttpStringEqual(h->value, "text/json", httpChannel->httpRequest.ofString)){
-                        httpChannel->contentType |= CLHttpChannelContentTypeJSON;
-                    }
-                    
-                }
-                
                 if(OBJVHttpStringHasPrefix(httpChannel->httpRequest.path, "/channel/", httpChannel->httpRequest.ofString)){
                     
                     {
@@ -245,6 +235,7 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
                         context = (CLChannelContext *) objv_object_new(zone, OBJV_CLASS(CLChannelContext),NULL);
                         
                         context->allowRemovedFromParent = objv_true;
+                        context->keepAlive = objv_object_doubleValueForKey(conn->ctx->config, (objv_object_t *) objv_string_new_nocopy(zone, "keepAlive"), 20);
                         
                         CLContextSetDomain((CLContext *) context, objv_string_new(zone, p));
                         
@@ -449,6 +440,7 @@ OBJVChannelStatus CLAcceptGetConnect(CLAccept * ac,objv_timeinval_t timeout,CLAc
                     fcntl(client, F_SETFL, fl | O_NONBLOCK);
                     setsockopt(ac->handler.sock, SOL_SOCKET, SO_RCVLOWAT, (void *)&fn, sizeof(fn));
                     setsockopt(ac->handler.sock, SOL_SOCKET, SO_SNDLOWAT, (void *)&fn, sizeof(fn));
+                    setsockopt(ac->handler.sock, SOL_SOCKET, SO_KEEPALIVE, (void *)&fn , sizeof(fn ));
                 }
             }
         }

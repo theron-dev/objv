@@ -14,6 +14,7 @@
 #include "objv_json.h"
 #include "objv_value.h"
 #include "objv_autorelease.h"
+#include "objv_url.h"
 
 OBJV_KEY_IMP(CLHttpChannel)
 
@@ -27,7 +28,7 @@ static objv_object_t * CLHttpChannelMethodInit(objv_class_t * clazz,objv_object_
         
         CLHttpChannel * channel = (CLHttpChannel *) object;
         
-        OBJVHTTPRequestReset( &channel->httpRequest );
+        OBJVHTTPRequestInit( &channel->httpRequest );
         
         objv_mbuf_init(& channel->read.mbuf, 128);
         objv_mbuf_init(& channel->read.data, 128);
@@ -63,7 +64,7 @@ static void CLHttpChannelMethodDealloc(objv_class_t * clazz,objv_object_t * obje
     }
 
     
-    OBJVHTTPRequestReset( &channel->httpRequest );
+    OBJVHTTPRequestDestroy( &channel->httpRequest );
     
     objv_mutex_lock(& channel->tasks_mutex);
     
@@ -121,62 +122,143 @@ static OBJVChannelStatus CLHttpChannelMethodDisconnect(objv_class_t * clazz,CLCh
 
 OBJVChannelStatus CLHttpChannelUnpackageTask(objv_zone_t * zone, CLTask ** task,objv_class_t ** taskType,objv_mbuf_t * data,CLHttpChannelContentType contentType){
     
-    if(contentType & CLHttpChannelContentTypeJSON){
+    if(contentType & CLHttpChannelContentTypeChunked){
         
-        objv_object_t * o = objv_json_decode(zone, objv_mbuf_str( data ));
-        objv_string_t * string = objv_object_stringValue(o, objv_string_new_nocopy(zone, "taskType"));
+        OBJVHttpRequest request;
+        OBJVHttpHeader * h;
         objv_class_t * tType = NULL;
         objv_class_t * tClass = NULL;
         CLTask * t;
+        size_t length;
+        char * p = data->data;
         
-        if(string){
-            tType = objv_class(objv_key( string->UTF8String ));
-        }
+        OBJVChannelStatus status = OBJVChannelStatusNone;
         
-        if( tType && objv_class_isKindOfClass(tType, OBJV_CLASS(CLTask))){
+        OBJVHTTPRequestInit(& request);
+        
+        request.state.state = OBJVHttpRequestStateHeaderKey;
+        
+        if(OBJVHTTPRequestRead(& request, 0,  data->length, data->data) == OBJVHttpRequestStateOK){
             
-            string = objv_object_stringValue(o, objv_string_new_nocopy(zone, "taskClass"));
+            while(1) {
             
-            if(string){
-                tClass = objv_class(objv_key( string->UTF8String ));
-            }
+                h = OBJVHttpRequestGetHeader(& request, "taskType");
+                
+                if(! h){
+                    break;
+                }
+                
+                p[h->value.location + h->value.length] = 0;
+                
+                tType = objv_class(objv_key( p + h->value.location));
             
-            if(tClass == NULL){
-                tClass = tType;
-            }
-            
-            if( tClass && objv_class_isKindOfClass(tClass, OBJV_CLASS(CLTask))){
+                if(!tType){
+                    break;
+                }
+                
+                if(!objv_class_isKindOfClass(tType, OBJV_CLASS(CLTask))){
+                    break;
+                }
+                
+                h = OBJVHttpRequestGetHeader(& request, "taskClass");
+                
+                if(! h){
+                    break;
+                }
+                
+                p[h->value.location + h->value.length] = 0;
+                
+                tClass = objv_class(objv_key( p + h->value.location));
+                
+                if(!tClass){
+                    break;
+                }
+                
+                if(!objv_class_isKindOfClass(tClass, OBJV_CLASS(CLTask))){
+                    break;
+                }
                 
                 t = (CLTask *) objv_object_new(zone, tClass,NULL);
                 
-                t->identifier = objv_object_longLongValueForKey(o, (objv_object_t *) objv_string_new_nocopy(zone, "identifier"),0);
-                t->replyIdentifier = objv_object_longLongValueForKey(o, (objv_object_t *) objv_string_new_nocopy(zone, "replyIdentifier"),0);
+                h = OBJVHttpRequestGetHeader(& request, "identifier");
                 
-                {
-                    objv_class_t * clazz = tClass;
-                    objv_object_t * key;
+                if(! h){
+                    break;
+                }
+                
+                p[h->value.location + h->value.length] = 0;
+                
+                t->identifier = atoll(p + h->value.location);
+                
+                h = OBJVHttpRequestGetHeader(& request, "replyIdentifier");
+                
+                if(! h){
+                    break;
+                }
+                
+                p[h->value.location + h->value.length] = 0;
+                
+                t->replyIdentifier = atoll(p + h->value.location);
+                
+                h = OBJVHttpRequestGetHeader(& request, "Content-Type");
+                
+                if(h){
                     
-                    while (clazz) {
-                        objv_property_t * prop = clazz->propertys;
-                        unsigned int propCount = clazz->propertyCount;
+                    t->contentType = objv_string_alloc_with_length(zone, p + h->value.location , h->value.length);
                     
-                        while (prop && propCount >0) {
-                            
-                            if(prop->serialization && prop->setter){
-                                key = (objv_object_t *) objv_string_alloc_nocopy(zone, prop->name->name);
-                                objv_property_setObjectValue(clazz, (objv_object_t *) t, prop, objv_object_objectValueForKey(o, key, NULL));
-                                objv_object_release(key);
-                            }
-                            
-                            prop ++ ;
-                            propCount --;
+                    h = OBJVHttpRequestGetHeader(& request, "Content-Length");
+                    
+                    if(h){
+                        
+                        p[h->value.location + h->value.length] = 0;
+                        
+                        length = atol(p + h->value.location);
+                        
+                        if(length > data->length - request.length){
+                            length = data->length - request.length;
                         }
                         
-                        clazz = clazz->superClass;
+                        objv_mbuf_init(& t->content, length);
+                        
+                        objv_mbuf_append(& t->content, (char *) data->data + request.length, length);
+                        
                     }
                     
                 }
                 
+                {
+                    
+                    objv_key_t * key;
+                    objv_property_t * prop;
+                    objv_class_t * ofClass;
+                    objv_string_t * v;
+                    h = request.headers.data;
+                    length = request.headers.length;
+                    
+                    while (h && length >0) {
+                        
+                        p[h->key.location + h->key.length] = 0;
+                        p[h->value.location + h->value.length] = 0;
+                        
+                        key = objv_key(p + h->key.location);
+                        
+                        prop = objv_class_getPropertyOfClass(tClass, key, & ofClass);
+                        
+                        if(prop && prop->setter && prop->serialization){
+                            
+                            v = objv_string_new(zone, p + h->value.location);
+                            
+                            objv_property_setObjectValue(ofClass, (objv_object_t *) t, prop, (objv_object_t *) v);
+                            
+                        }
+                        
+                        
+                        
+                        h ++;
+                        length --;
+                    }
+                }
+
                 if(taskType){
                     * taskType = tType;
                 }
@@ -184,11 +266,16 @@ OBJVChannelStatus CLHttpChannelUnpackageTask(objv_zone_t * zone, CLTask ** task,
                     * task = t;
                 }
                 
-                return OBJVChannelStatusOK;
+                status = OBJVChannelStatusOK;
+                
+                break;
             }
+
         }
         
-        return OBJVChannelStatusNone;
+        OBJVHTTPRequestDestroy(& request);
+        
+        return status;
     }
     
     return OBJVChannelStatusError;
@@ -196,25 +283,24 @@ OBJVChannelStatus CLHttpChannelUnpackageTask(objv_zone_t * zone, CLTask ** task,
 
 OBJVChannelStatus CLHttpChannelPackageTask(objv_zone_t * zone, CLTask * task,objv_class_t * taskType,objv_mbuf_t * mbuf,CLHttpChannelContentType contentType){
     
-    if( (contentType & CLHttpChannelContentTypeJSON) &&  (contentType & CLHttpChannelContentTypeChunked) ){
+    if( contentType & CLHttpChannelContentTypeChunked ){
         
-        objv_dictionary_t * data = objv_dictionary_alloc(zone, 4);
         
-        objv_dictionary_setValue(data, (objv_object_t *) objv_string_new_nocopy(zone, "taskType")
-                                 , (objv_object_t *) objv_string_new_nocopy(zone, taskType->name->name));
+        size_t off = mbuf->length;
         
-        objv_dictionary_setValue(data, (objv_object_t *) objv_string_new_nocopy(zone, "taskClass")
-                                 , (objv_object_t *) objv_string_new_nocopy(zone, task->base.isa->name->name));
+        objv_mbuf_extend(mbuf, mbuf->length + 10);
         
-        objv_dictionary_setValue(data, (objv_object_t *) objv_string_new_nocopy(zone, "identifier")
-                                 , (objv_object_t *) objv_value_new_longLongValue(zone, task->identifier));
+        objv_mbuf_format(mbuf, "%08lx\r\n", 0);
         
-        objv_dictionary_setValue(data, (objv_object_t *) objv_string_new_nocopy(zone, "replyIdentifier")
-                                 , (objv_object_t *) objv_value_new_longLongValue(zone, task->replyIdentifier));
+        objv_mbuf_format(mbuf, "taskType: %s\r\n",taskType->name->name);
+        objv_mbuf_format(mbuf, "taskClass: %s\r\n",task->base.isa->name->name);
+        objv_mbuf_format(mbuf, "identifier: %lld\r\n",task->identifier);
+        objv_mbuf_format(mbuf, "replyIdentifier: %lld\r\n",task->replyIdentifier);
         
         {
             objv_class_t * clazz = task->base.isa;
             objv_property_t * prop;
+            objv_string_t * v;
             unsigned int propCount;
             
             while(clazz){
@@ -223,9 +309,14 @@ OBJVChannelStatus CLHttpChannelPackageTask(objv_zone_t * zone, CLTask * task,obj
                 propCount = clazz->propertyCount;
                 
                 while (prop && propCount >0) {
+
+                    v = objv_property_stringValue(clazz, (objv_object_t *) task, prop, NULL);
                     
-                    objv_dictionary_setValue(data, (objv_object_t *) objv_string_new_nocopy(zone, prop->name->name)
-                                             , objv_property_objectValue(clazz, (objv_object_t *) task, prop, NULL));
+                    if(v){
+                        objv_mbuf_format(mbuf, "%s: ",prop->name->name);
+                        objv_url_encode_mbuf(zone, v->UTF8String, mbuf);
+                        objv_mbuf_append(mbuf, "\r\n", 2);
+                    }
                     
                     propCount --;
                     prop ++;
@@ -236,23 +327,26 @@ OBJVChannelStatus CLHttpChannelPackageTask(objv_zone_t * zone, CLTask * task,obj
             }
         }
         
-        size_t off = mbuf->length;
-        
-        objv_mbuf_extend(mbuf, mbuf->length + 10);
-        
-        objv_mbuf_format(mbuf, "%08lx\r\n", 0);
-        
-        objv_json_encode_mbuf(zone, (objv_object_t *) data, mbuf, objv_false);
-        
-        objv_mbuf_append(mbuf, "\r\n", 2);
+        if(task->contentType){
+            
+            objv_mbuf_format(mbuf, "Content-Type: %s\r\n", task->contentType->UTF8String);
+            objv_mbuf_format(mbuf, "Content-Length: %lu\r\n",task->content.length);
+            
+            objv_mbuf_append(mbuf, "\r\n", 2);
+            
+            objv_mbuf_append(mbuf, task->content.data, task->content.length);
+            
+        }
+        else{
+            objv_mbuf_append(mbuf, "\r\n", 2);
+        }
         
         snprintf((char *) mbuf->data + off, 10,"%08lx\r\n",mbuf->length - 10 - off);
         
         * ((char *) mbuf->data + off + 9) = '\n';
         
-        objv_object_release((objv_object_t *) data);
-
-        
+        objv_mbuf_append(mbuf, "\r\n", 2);
+    
         return OBJVChannelStatusNone;
     }
     
@@ -438,7 +532,7 @@ static OBJVChannelStatus CLHttpChannelMethodTick(objv_class_t * clazz,CLChannel 
             
                 objv_mbuf_clear( & httpChannel->write.mbuf);
                 
-                CLHttpChannelPackageTask(zone,task->task,task->taskType,& httpChannel->write.mbuf, CLHttpChannelContentTypeChunked | CLHttpChannelContentTypeJSON);
+                CLHttpChannelPackageTask(zone,task->task,task->taskType,& httpChannel->write.mbuf, CLHttpChannelContentTypeChunked);
                 
                 httpChannel->write.off = 0;
                 httpChannel->write.state = 1;

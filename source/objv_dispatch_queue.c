@@ -188,7 +188,7 @@ static void * objv_dispatch_queue_thread(void * userInfo){
         
         objv_autorelease_pool_push();
         
-        objv_dispatch_run(dispatch,0.02);
+        objv_dispatch_run(dispatch,0.05);
         
         objv_autorelease_pool_pop();
     }

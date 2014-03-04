@@ -669,7 +669,7 @@ static void vmClassInitialize (struct _objv_class_t * clazz){
         }
 
     }
-    
+
 }
 
 static objv_iterator_t * vmObjectClassIterator (objv_class_t * clazz,objv_object_t * obj){

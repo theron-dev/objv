@@ -15,6 +15,25 @@ OBJVHttpString OBJVHttpStringZero = {0,0};
 
 
 void OBJVHTTPRequestReset(OBJVHttpRequest * request){
+    request->method = OBJVHttpStringZero;
+    request->path = OBJVHttpStringZero;
+    request->version = OBJVHttpStringZero;
+    request->headers.length = 0;
+    request->state.state = OBJVHttpRequestStateNone;
+    request->state.key = OBJVHttpStringZero;
+    request->state.value = OBJVHttpStringZero;
+    request->ofString = NULL;
+    request->length = 0;
+}
+
+void OBJVHTTPRequestInit(OBJVHttpRequest * request){
+    objv_zone_memzero(NULL, request,sizeof(OBJVHttpRequest));
+}
+
+void OBJVHTTPRequestDestroy(OBJVHttpRequest * request){
+    if(request->headers.data){
+        objv_zone_free(NULL, request->headers.data);
+    }
     objv_zone_memzero(NULL, request,sizeof(OBJVHttpRequest));
 }
 
@@ -104,11 +123,11 @@ OBJVHttpRequestState OBJVHTTPRequestRead(OBJVHttpRequest * request,size_t offset
                     
                     if(request->headers.data == NULL){
                         request->headers.size = DEF_HEADER_COUNT;
-                        request->headers.data = malloc(request->headers.size * sizeof(OBJVHttpHeader));
+                        request->headers.data = objv_zone_malloc(NULL,request->headers.size * sizeof(OBJVHttpHeader));
                     }
                     else if(request->headers.length + 1 > request->headers.size){
                         request->headers.size += DEF_HEADER_COUNT;
-                        request->headers.data = realloc(request->headers.data,request->headers.size * sizeof(OBJVHttpHeader));
+                        request->headers.data = objv_zone_realloc(NULL,request->headers.data,request->headers.size * sizeof(OBJVHttpHeader));
                     }
                     
                     h = request->headers.data + request->headers.length;

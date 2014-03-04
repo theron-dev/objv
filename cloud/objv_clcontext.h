@@ -37,6 +37,7 @@ extern "C" {
         objv_array_t * READONLY channels;
         objv_mutex_t READONLY channels_mutex;
         objv_boolean_t allowRemovedFromParent;
+        objv_timeinval_t keepAlive;
     } CLChannelContext;
     
     OBJV_KEY_DEC(CLChannelContext);
@@ -46,8 +47,6 @@ extern "C" {
     OBJV_KEY_DEC(didRemoveChannel);
     
     OBJV_CLASS_DEC(CLChannelContext)
-    
-    void CLChannelContextSetConfig(CLChannelContext * ctx,objv_object_t * config);
     
     void CLChannelContextAddChannel(CLChannelContext * ctx,CLChannel * channel);
     

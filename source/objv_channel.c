@@ -51,7 +51,7 @@ OBJV_CLASS_IMP_M(Channel, OBJV_CLASS(Object), objv_channel_t)
 
 OBJVChannelStatus objv_channel_connect(objv_class_t * clazz,objv_channel_t * channel,objv_timeinval_t timeout){
 
-    if(channel && ! channel->connected){
+    if(channel){
         
         objv_class_t * c = clazz;
         

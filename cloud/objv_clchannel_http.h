@@ -20,7 +20,6 @@ extern "C" {
     typedef enum _CLHttpChannelContentType {
         CLHttpChannelContentTypeNone = 0,
         CLHttpChannelContentTypeChunked = 1<<0,
-        CLHttpChannelContentTypeJSON = 2<<0,
     } CLHttpChannelContentType;
     
     typedef struct _CLHttpChannelPostTask {

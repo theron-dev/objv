@@ -76,16 +76,17 @@ static objv_object_t * objv_string_methods_init(objv_class_t * clazz, objv_objec
         
         objv_string_t * value = (objv_string_t *) object;
         char * s = va_arg(ap, char *);
+        size_t length = va_arg(ap, size_t);
         objv_boolean_t copyed = va_arg(ap, objv_boolean_t);
-        
+
         if(copyed){
-            value->length = strlen(s);
+            value->length = length;
             value->UTF8String = objv_zone_malloc(object->zone, value->length + 1);
             value->copyed = objv_true;
             strcpy(value->UTF8String, s);
         }
         else{
-            value->length = strlen(s);
+            value->length = length;
             value->UTF8String = s;
             value->copyed = objv_false;
         }
@@ -192,7 +193,17 @@ OBJV_CLASS_IMP_P_M(String, OBJV_CLASS(Object), objv_string_t);
 
 
 objv_string_t * objv_string_alloc(objv_zone_t * zone,const char * UTF8String){
-    return (objv_string_t *) objv_object_alloc(zone,OBJV_CLASS(String),UTF8String,objv_true,NULL);
+    if(UTF8String){
+        return (objv_string_t *) objv_object_alloc(zone,OBJV_CLASS(String),UTF8String,strlen(UTF8String),objv_true,NULL);
+    }
+    return NULL;
+}
+
+objv_string_t * objv_string_alloc_with_length(objv_zone_t * zone,char * UTF8String,size_t length){
+    if(UTF8String){
+        return (objv_string_t *) objv_object_alloc(zone,OBJV_CLASS(String),UTF8String,length,objv_true,NULL);
+    }
+    return NULL;
 }
 
 objv_string_t * objv_string_alloc_format(objv_zone_t * zone,const char * format,...){
@@ -268,7 +279,7 @@ objv_string_t * objv_string_unicode_new(objv_zone_t * zone,unsigned short * unic
 }
 
 objv_string_t * objv_string_alloc_nocopy(objv_zone_t * zone,const char * UTF8String){
-    return (objv_string_t *) objv_object_alloc(zone,OBJV_CLASS(String),UTF8String,objv_false,NULL);
+    return (objv_string_t *) objv_object_alloc(zone,OBJV_CLASS(String),UTF8String,strlen(UTF8String),objv_false,NULL);
 }
 
 struct _objv_array_t * objv_string_split_UTF8String(objv_zone_t * zone,const char * UTF8String,const char * splitString){

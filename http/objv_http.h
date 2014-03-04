@@ -65,6 +65,10 @@ extern "C" {
         size_t length;
     } OBJVHttpRequest;
     
+    void OBJVHTTPRequestInit(OBJVHttpRequest * request);
+    
+    void OBJVHTTPRequestDestroy(OBJVHttpRequest * request);
+    
     void OBJVHTTPRequestReset(OBJVHttpRequest * request);
     
     OBJVHttpRequestState OBJVHTTPRequestRead(OBJVHttpRequest * request,size_t,size_t,char * ofString);
