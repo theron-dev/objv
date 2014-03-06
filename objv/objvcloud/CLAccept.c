@@ -59,21 +59,6 @@ static objv_object_t * CLAcceptMethodInit(objv_class_t * clazz,objv_object_t * o
     
     if(object){
         
-        CLAccept * accept = (CLAccept *) object;
-        
-        char * s = getenv(CL_ENV_MAX_THREAD_COUNT_KEY);
-        
-        unsigned int maxThreadCount = 256;
-        
-        if(s) {
-            maxThreadCount = atoi(s);
-        }
-        
-        if(maxThreadCount < 1){
-            maxThreadCount = 1;
-        }
-        
-        accept->connectQueue = objv_dispatch_queue_alloc(object->zone, "connnects", maxThreadCount);
         
     }
     
@@ -96,7 +81,7 @@ static void CLAcceptMethodRun (objv_class_t * clazz,objv_object_t * object){
     
     if(status != OBJVChannelStatusError){
         
-        ac->base.delay = 0.02;
+        ac->base.delay = 0.06;
         
         objv_dispatch_addTask(objv_dispatch_get_current(), (objv_dispatch_task_t *) ac);
     }
@@ -212,7 +197,7 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
                         
                         objv_mbuf_clear(&httpChannel->write.mbuf);
                         
-                        objv_mbuf_format(&httpChannel->write.mbuf, "HTTP/1.1 200 OK\r\nContent-Type: text/json\r\nTransfer-Encoding: chunked\r\n\r\n");
+                        objv_mbuf_format(&httpChannel->write.mbuf, "HTTP/1.1 200 OK\r\nContent-Type: text/task\r\nTransfer-Encoding: chunked\r\n\r\n");
                         
                         status = objv_channel_canWrite(conn->channel->base.base.isa, (objv_channel_t *) conn->channel, 0.02);
                         
@@ -239,9 +224,31 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
                         
                         CLContextSetDomain((CLContext *) context, objv_string_new(zone, p));
                         
+                        CLChannelSetURL((CLChannel *) conn->httpChannel, objv_url_newWithFormat(zone, "http://%s:%d/channel/%s",inet_ntoa(conn->from.sin_addr)
+                                                                                      ,ntohs(conn->from.sin_port),p));
+                        
                         CLChannelContextAddChannel(context, (CLChannel *) httpChannel);
                         
                         CLContextAddChild(conn->ctx, (CLContext *) context);
+                        
+                    }
+                    
+                }
+                else if(OBJVHttpStringHasPrefix(httpChannel->httpRequest.path, "/info", httpChannel->httpRequest.ofString)){
+                
+                    {
+                        CLAcceptContextInfoTask * task = (CLAcceptContextInfoTask *) objv_object_alloc(zone, OBJV_CLASS(CLAcceptContextInfoTask),NULL);
+                        
+                        objv_mbuf_clear(&httpChannel->write.mbuf);
+                        
+                        objv_mbuf_format(&httpChannel->write.mbuf, "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nTransfer-Encoding: chunked\r\n\r\n");
+                   
+                        task->ctx = (CLContext *) objv_object_retain((objv_object_t *) conn->ctx);
+                        task->httpChannel = (CLHttpChannel *) objv_object_retain((objv_object_t *) conn->httpChannel);
+                   
+                        objv_dispatch_addTask(conn->ctx->dispatch, (objv_dispatch_task_t *) task);
+                        
+                        objv_object_release((objv_object_t *) task);
                         
                     }
                     
@@ -250,7 +257,7 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
                     
                     objv_mbuf_clear(&httpChannel->write.mbuf);
                     
-                    objv_mbuf_format(&httpChannel->write.mbuf, "HTTP/1.1 200 OK\r\nContent-Type: text/json\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n");
+                    objv_mbuf_format(&httpChannel->write.mbuf, "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n");
                     
                     status = objv_channel_canWrite(conn->channel->base.base.isa, (objv_channel_t *) conn->channel, 0.02);
                     
@@ -398,6 +405,14 @@ CLAccept * CLAcceptAllocWithHandler(objv_zone_t * zone,CLAcceptHandler * handler
     return ac;
 }
 
+void CLAcceptSetConnectQueue(CLAccept * accept,objv_dispatch_queue_t * queue){
+    if(accept && accept->connectQueue != queue){
+        objv_object_retain((objv_object_t *) queue);
+        objv_object_release((objv_object_t *) accept->connectQueue);
+        accept->connectQueue = queue;
+    }
+}
+
 OBJVChannelStatus CLAcceptGetConnect(CLAccept * ac,objv_timeinval_t timeout,CLAcceptConnect ** connenct ){
     if(ac){
         
@@ -440,7 +455,6 @@ OBJVChannelStatus CLAcceptGetConnect(CLAccept * ac,objv_timeinval_t timeout,CLAc
                     fcntl(client, F_SETFL, fl | O_NONBLOCK);
                     setsockopt(ac->handler.sock, SOL_SOCKET, SO_RCVLOWAT, (void *)&fn, sizeof(fn));
                     setsockopt(ac->handler.sock, SOL_SOCKET, SO_SNDLOWAT, (void *)&fn, sizeof(fn));
-                    setsockopt(ac->handler.sock, SOL_SOCKET, SO_KEEPALIVE, (void *)&fn , sizeof(fn ));
                 }
             }
         }
@@ -468,4 +482,143 @@ OBJVChannelStatus CLAcceptGetConnect(CLAccept * ac,objv_timeinval_t timeout,CLAc
     }
     return OBJVChannelStatusError;
 }
+
+
+OBJV_KEY_IMP(CLAcceptContextInfoTask)
+
+static void CLAcceptContextInfoTaskDealloc(objv_class_t * clazz,objv_object_t * object){
+    
+    CLAcceptContextInfoTask * task = (CLAcceptContextInfoTask *) object;
+    
+    objv_object_release((objv_object_t *) task->ctx);
+    
+    objv_object_release((objv_object_t *) task->httpChannel);
+    
+    if(clazz->superClass){
+        objv_object_dealloc(clazz->superClass, object);
+    }
+}
+
+static void CLAcceptContextInfoTaskRunContextInfo(CLContext * ctx, objv_mbuf_t * mbuf){
+
+    CLContext * child;
+    CLChannelContext * channelContext;
+    CLChannel * channel;
+    int i;
+    
+    objv_mbuf_format(mbuf, "domain: %s\r\n", ctx->domain ? ctx->domain->UTF8String : "");
+    
+    objv_mbuf_format(mbuf, "identifier: %llu\r\n", ctx->identifier);
+    
+    if(ctx->parent){
+        
+        objv_mbuf_format(mbuf, "parent: %s\r\n",ctx->parent->domain ? ctx->parent->domain->UTF8String : "");
+        
+    }
+    
+    if(objv_object_isKindOfClass((objv_object_t *) ctx, OBJV_CLASS(CLChannelContext))){
+        
+        channelContext = (CLChannelContext *) ctx;
+        
+        objv_mutex_lock(& channelContext->channels_mutex);
+        
+        if(channelContext->channels){
+            
+            objv_mbuf_format(mbuf, "channels: \r\n");
+        
+            for(i=0;i<channelContext->channels->length;i++){
+                channel = (CLChannel *) objv_array_objectAt(channelContext->channels, i);
+                objv_mbuf_format(mbuf, "url: %s\r\n", channel->url && channel->url->absoluteString ? channel->url->absoluteString->UTF8String : "");
+            }
+            
+            objv_mbuf_append(mbuf, "\r\n", 2);
+        }
+        
+        objv_mutex_unlock(& channelContext->channels_mutex);
+        
+    }
+    
+    if(ctx->childs){
+        
+        objv_mbuf_format(mbuf, "childs: \r\n");
+        
+        for (int i=0; i<ctx->childs->length; i++) {
+            
+            child = (CLContext *) objv_array_objectAt(ctx->childs, i);
+
+            CLAcceptContextInfoTaskRunContextInfo(child,mbuf);
+        }
+        
+        objv_mbuf_append(mbuf, "\r\n", 2);
+    }
+    
+    objv_mbuf_append(mbuf, "\r\n", 2);
+    
+}
+
+static void CLAcceptContextInfoTaskRun(objv_class_t * clazz,objv_object_t * object){
+   
+    CLAcceptContextInfoTask * task = (CLAcceptContextInfoTask *) object;
+    CLHttpChannel * httpChannel = task->httpChannel;
+    objv_mbuf_t * mbuf = & httpChannel->write.mbuf;
+    objv_channel_t * oChannel = httpChannel->base.oChannel;
+    CLContext * ctx = task->ctx;
+
+    ssize_t off = mbuf->length;
+    
+    objv_mbuf_extend(mbuf, off + 32);
+    
+    objv_mbuf_format(mbuf, "%08lx\r\n", 0);
+    
+    CLAcceptContextInfoTaskRunContextInfo(ctx, mbuf);
+
+    snprintf((char *) mbuf->data + off, 10,"%08lx\r\n",mbuf->length - 10 - off);
+    
+    * ((char *) mbuf->data + off + 9) = '\n';
+    
+    objv_mbuf_format(mbuf, "\r\n0\r\n\r\n");
+    
+    httpChannel->write.off = 0;
+    
+    ssize_t len;
+    OBJVChannelStatus status;
+    
+    while (1) {
+        
+        if(httpChannel->write.mbuf.length - httpChannel->write.off == 0){
+            httpChannel->write.state = 0;
+            break;
+        }
+        
+        status = objv_channel_canWrite(oChannel->base.isa, oChannel, 0.02);
+        
+        if(status != OBJVChannelStatusOK){
+            break;
+        }
+        
+        len = objv_channel_write(oChannel->base.isa, oChannel,(char *) httpChannel->write.mbuf.data + httpChannel->write.off, httpChannel->write.mbuf.length - httpChannel->write.off);
+        
+        if(len >0){
+            
+            httpChannel->write.off += len;
+            
+        }
+        else{
+            status = (OBJVChannelStatus) len;
+            break;
+        }
+    }
+    
+    
+}
+
+OBJV_CLASS_METHOD_IMP_BEGIN(CLAcceptContextInfoTask)
+
+OBJV_CLASS_METHOD_IMP(dealloc, "v()", CLAcceptContextInfoTaskDealloc)
+
+OBJV_CLASS_METHOD_IMP(run, "v()", CLAcceptContextInfoTaskRun)
+
+OBJV_CLASS_METHOD_IMP_END(CLAcceptContextInfoTask)
+
+OBJV_CLASS_IMP_M(CLAcceptContextInfoTask, OBJV_CLASS(DispatchTask), CLAcceptContextInfoTask)
 

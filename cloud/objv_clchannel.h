@@ -18,6 +18,7 @@ extern "C" {
 #include "objv_cloud.h"
 #include "objv_array.h"  
 #include "objv_string.h"
+#include "objv_url.h"
     
     typedef enum _CLChannelMode {
         CLChannelModeNone = 0
@@ -30,6 +31,7 @@ extern "C" {
         objv_boolean_t READONLY connected;
         objv_channel_t * READONLY oChannel;
         objv_string_t * READONLY domain;
+        objv_url_t * READONLY url;
         
         objv_timeinval_t READONLY tickTimeinval;
         
@@ -83,6 +85,8 @@ extern "C" {
     void CLChannelSetChannel(CLChannel * channel,objv_channel_t * oChannel);
     
     void CLChannelSetDomain(CLChannel * channel,objv_string_t * domain);
+    
+    void CLChannelSetURL(CLChannel * channel,objv_url_t * url);
     
 #ifdef __cplusplus
 }

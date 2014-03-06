@@ -18,7 +18,7 @@
 
 #include <execinfo.h>
 
-static int CLSRVProcessOpen (OBJVSRVServer * server,OBJVSRVProcess * process){
+static int CLSRVProcessCreate (OBJVSRVServer * server,OBJVSRVProcess * process){
     
     if(getenv(CL_ENV_CONFIG_KEY) == NULL){
         
@@ -49,7 +49,7 @@ static void CLSRVProcessExit (OBJVSRVServer * server,OBJVSRVProcess * process){
     free(symbols);
 }
 
-static void CLSRVProcessCreate (OBJVSRVServer * server,OBJVSRVProcess * process){
+static void CLSRVProcessOpen (OBJVSRVServer * server,OBJVSRVProcess * process){
     
     objv_zone_t * zone = objv_zone_default();
     
@@ -107,25 +107,47 @@ static void CLSRVProcessCreate (OBJVSRVServer * server,OBJVSRVProcess * process)
     
     CLContextSetConfig(ctx->base.base.isa, (CLContext *)ctx,cfg);
     
+    unsigned int maxThreadCount = 256;
+
+    char * s = getenv(CL_ENV_MAX_THREAD_COUNT_KEY);
+    
+    if(s) {
+        maxThreadCount = atoi(s);
+    }
+    
+    if(maxThreadCount < 1){
+        maxThreadCount = 1;
+    }
+   
+    objv_dispatch_queue_t * connectQueue = objv_dispatch_queue_alloc(zone, "connectQueue", maxThreadCount);
+    
     CLAcceptHandler handler = {server->run.listenSocket,server->run.listenMutex};
     
     ac = CLAcceptAllocWithHandler(zone, & handler);
     
     ac->ctx = (CLContext *) objv_object_retain((objv_object_t *) ctx);
     
-    objv_dispatch_addTask(objv_dispatch_get_current(), (objv_dispatch_task_t *) ac);
+    CLAcceptSetConnectQueue(ac, connectQueue);
+
+    objv_dispatch_t * dispatch = objv_dispatch_get_current();
     
+    objv_dispatch_addTask(dispatch, (objv_dispatch_task_t *) ac);
+
     while (1) {
         
         objv_autorelease_pool_push();
         
-        objv_dispatch_run(objv_dispatch_get_current(),0.2);
+        objv_dispatch_run(dispatch,0.05);
         
         objv_autorelease_pool_pop();
         
     }
     
     objv_dispatch_cancelAllTasks(objv_dispatch_get_current());
+    
+    objv_dispatch_queue_cancelAllTasks(connectQueue);
+    
+    objv_object_release((objv_object_t *) connectQueue);
     
     objv_object_release((objv_object_t *) ac);
     

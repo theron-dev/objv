@@ -44,6 +44,10 @@ extern "C" {
     
     objv_url_t * objv_url_alloc(objv_zone_t * zone,const char * url);
     
+    objv_url_t * objv_url_allocWithFormatV(objv_zone_t * zone,const char * format,va_list va);
+    
+    objv_url_t * objv_url_allocWithFormat(objv_zone_t * zone,const char * format,...);
+    
     objv_url_t * objv_url_allocWithBaseUrl(objv_zone_t * zone,const char * url,objv_url_t * baseUrl);
     
     objv_url_t * objv_url_allocWithQueryValues(objv_zone_t * zone,const char * url,objv_dictionary_t * queryValues);
@@ -57,6 +61,10 @@ extern "C" {
     objv_url_t * objv_url_newWithQueryValues(objv_zone_t * zone,const char * url,objv_dictionary_t * queryValues);
     
     objv_url_t * objv_url_newWithBaseUrlAndQueryValues(objv_zone_t * zone,const char * url,objv_url_t * baseUrl,objv_dictionary_t * queryValues);
+    
+    objv_url_t * objv_url_newWithFormatV(objv_zone_t * zone,const char * format,va_list va);
+    
+    objv_url_t * objv_url_newWithFormat(objv_zone_t * zone,const char * format,...);
     
     
 #ifdef __cplusplus

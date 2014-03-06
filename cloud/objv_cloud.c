@@ -475,7 +475,7 @@ void CLContextRemoveChild(CLContext * context,CLContext * child){
         }
         else{
             
-            CLContextDispatchTask * dispatchTask = (CLContextDispatchTask *) CLContextDispatchTaskAlloc(context->base.zone,context,NULL,NULL,NULL,child,CLContextDispatchTaskInvokeAddChild);
+            CLContextDispatchTask * dispatchTask = (CLContextDispatchTask *) CLContextDispatchTaskAlloc(context->base.zone,context,NULL,NULL,NULL,child,CLContextDispatchTaskInvokeRemoveChild);
             
             objv_dispatch_addTask(context->dispatch, (objv_dispatch_task_t *) dispatchTask);
             

@@ -12,6 +12,7 @@
 #include "objv.h"
 #include "objv_url.h"
 #include "objv_value.h"
+#include "objv_autorelease.h"
 
 OBJV_KEY_IMP(URL)
 
@@ -189,6 +190,34 @@ objv_url_t * objv_url_alloc(objv_zone_t * zone,const char * url){
     }
     
     return NULL;
+}
+
+objv_url_t * objv_url_allocWithFormatV(objv_zone_t * zone,const char * format,va_list va){
+    objv_mbuf_t mbuf;
+    objv_url_t * u;
+    
+    objv_mbuf_init(& mbuf, 64);
+    
+    objv_mbuf_formatv(& mbuf, format, va);
+    
+    u = objv_url_alloc(zone, objv_mbuf_str( & mbuf));
+    
+    objv_mbuf_destroy( & mbuf);
+    
+    return u;
+}
+
+objv_url_t * objv_url_allocWithFormat(objv_zone_t * zone,const char * format,...){
+    va_list ap;
+    objv_url_t * u;
+
+    va_start(ap, format);
+    
+    u = objv_url_allocWithFormatV(zone, format, ap);
+    
+    va_end(ap);
+    
+    return u;
 }
 
 objv_url_t * objv_url_allocWithBaseUrl(objv_zone_t * zone,const char * url,objv_url_t * baseUrl){
@@ -459,14 +488,38 @@ objv_url_t * objv_url_allocWithBaseUrlAndQueryValues(objv_zone_t * zone,const ch
     return objv_url_allocWithBaseUrl(zone, url,baseUrl);
 }
 
-objv_url_t * objv_url_new(objv_zone_t * zone,const char * url);
+objv_url_t * objv_url_new(objv_zone_t * zone,const char * url){
+    return (objv_url_t *) objv_object_autorelease((objv_object_t *) objv_url_alloc(zone, url));
+}
 
-objv_url_t * objv_url_newWithBaseUrl(objv_zone_t * zone,const char * url,objv_url_t * baseUrl);
+objv_url_t * objv_url_newWithBaseUrl(objv_zone_t * zone,const char * url,objv_url_t * baseUrl){
+    return (objv_url_t *) objv_object_autorelease((objv_object_t *) objv_url_allocWithBaseUrl(zone, url,baseUrl));
+}
 
-objv_url_t * objv_url_newWithQueryValues(objv_zone_t * zone,const char * url,objv_dictionary_t * queryValues);
+objv_url_t * objv_url_newWithQueryValues(objv_zone_t * zone,const char * url,objv_dictionary_t * queryValues){
+    return (objv_url_t *) objv_object_autorelease((objv_object_t *) objv_url_allocWithQueryValues(zone, url,queryValues));
+}
 
-objv_url_t * objv_url_newWithBaseUrlAndQueryValues(objv_zone_t * zone,const char * url,objv_url_t * baseUrl,objv_dictionary_t * queryValues);
+objv_url_t * objv_url_newWithBaseUrlAndQueryValues(objv_zone_t * zone,const char * url,objv_url_t * baseUrl,objv_dictionary_t * queryValues){
+    return (objv_url_t *) objv_object_autorelease((objv_object_t *) objv_url_allocWithBaseUrlAndQueryValues(zone, url,baseUrl,queryValues));
+}
 
+objv_url_t * objv_url_newWithFormatV(objv_zone_t * zone,const char * format,va_list va){
+    return (objv_url_t *) objv_object_autorelease((objv_object_t *) objv_url_allocWithFormatV(zone, format,va));
+}
+
+objv_url_t * objv_url_newWithFormat(objv_zone_t * zone,const char * format,...){
+    va_list ap;
+    objv_url_t * u;
+    
+    va_start(ap ,format);
+    
+    u = objv_url_newWithFormatV(zone,format,ap);
+    
+    va_end(ap);
+    
+    return u;
+}
 
 objv_string_t * objv_url_encode(objv_zone_t * zone,const char * value){
     if(value){

@@ -205,3 +205,13 @@ void CLChannelSetDomain(CLChannel * channel,objv_string_t * domain){
     }
 }
 
+void CLChannelSetURL(CLChannel * channel,objv_url_t * url){
+    if(channel && channel->url != url){
+        
+        objv_object_retain((objv_object_t *) url);
+        objv_object_release((objv_object_t *) channel->url);
+        
+        channel->url = url;
+        
+    }
+}

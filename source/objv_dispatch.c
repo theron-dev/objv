@@ -183,8 +183,6 @@ void objv_dispatch_addTask(objv_dispatch_t * dispatch,objv_dispatch_task_t * tas
         task->start = objv_timestamp();
         task->canceled = objv_false;
         
-        dispatch->idleTimeinval = 0;
-        
         objv_mutex_lock(& dispatch->mutex);
         
         objv_array_add(dispatch->tasks, (objv_object_t *) task);

@@ -58,8 +58,18 @@ extern "C" {
     
     CLAccept * CLAcceptAllocWithHandler(objv_zone_t * zone,CLAcceptHandler * handler);
     
+    void CLAcceptSetConnectQueue(CLAccept * accept,objv_dispatch_queue_t * queue);
+    
     OBJVChannelStatus CLAcceptGetConnect(CLAccept * accept,objv_timeinval_t timeout,CLAcceptConnect ** connenct );
     
+    typedef struct _CLAcceptContextInfoTask {
+        objv_dispatch_task_t base;
+        CLContext * READONLY ctx;
+        CLHttpChannel * READONLY httpChannel;
+    } CLAcceptContextInfoTask;
+    
+    OBJV_KEY_DEC(CLAcceptContextInfoTask)
+    OBJV_CLASS_DEC(CLAcceptContextInfoTask)
     
 #ifdef __cplusplus
 }

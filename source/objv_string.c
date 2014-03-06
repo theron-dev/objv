@@ -83,7 +83,7 @@ static objv_object_t * objv_string_methods_init(objv_class_t * clazz, objv_objec
             value->length = length;
             value->UTF8String = objv_zone_malloc(object->zone, value->length + 1);
             value->copyed = objv_true;
-            strcpy(value->UTF8String, s);
+            memcpy(value->UTF8String, s, length + 1);
         }
         else{
             value->length = length;
