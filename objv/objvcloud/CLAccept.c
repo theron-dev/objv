@@ -14,6 +14,7 @@
 #include "objv_autorelease.h"
 #include "objv_clcontext.h"
 #include "objv_value.h"
+#include "objv_log.h"
 
 static void CLAcceptSIGNAN(int signo){
 
@@ -76,12 +77,10 @@ static void CLAcceptMethodRun (objv_class_t * clazz,objv_object_t * object){
     if(status == OBJVChannelStatusOK && connect){
         
         objv_dispatch_queue_addTask(ac->connectQueue, (objv_dispatch_task_t *) connect);
-        
+    
     }
     
     if(status != OBJVChannelStatusError){
-        
-        ac->base.delay = 0.06;
         
         objv_dispatch_addTask(objv_dispatch_get_current(), (objv_dispatch_task_t *) ac);
     }
@@ -114,6 +113,8 @@ static void CLAcceptConnectMethodDealloc(objv_class_t * clazz,objv_object_t * ob
     objv_object_release((objv_object_t *) conn->ctx);
     
     objv_object_release((objv_object_t *) conn->httpChannel);
+    
+    objv_object_release((objv_object_t *) conn->queue);
     
     if(clazz->superClass){
         objv_object_dealloc(clazz->superClass, object);
@@ -165,6 +166,7 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
             
             {
                 OBJVHttpHeader * h = OBJVHttpRequestGetHeader(&httpChannel->httpRequest, "Transfer-Encoding");
+                objv_timeinval_t keepAlive = 0;
                 
                 if(h){
                     
@@ -172,6 +174,21 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
                         httpChannel->contentType |= CLHttpChannelContentTypeChunked;
                     }
                     
+                }
+                
+                h = OBJVHttpRequestGetHeader(&httpChannel->httpRequest, "Keep-Alive");
+                
+                if(h){
+                    
+                    {
+                        char *p = httpChannel->httpRequest.ofString + h->value.location;
+                        
+                        p[h->value.length] = 0;
+                        
+                        keepAlive = atof(p);
+                        
+                    }
+    
                 }
                 
                 if(OBJVHttpStringHasPrefix(httpChannel->httpRequest.path, "/channel/", httpChannel->httpRequest.ofString)){
@@ -219,8 +236,19 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
                         
                         context = (CLChannelContext *) objv_object_new(zone, OBJV_CLASS(CLChannelContext),NULL);
                         
+                        CLChannelContextSetQueue(context, conn->queue);
+                        
                         context->allowRemovedFromParent = objv_true;
-                        context->keepAlive = objv_object_doubleValueForKey(conn->ctx->config, (objv_object_t *) objv_string_new_nocopy(zone, "keepAlive"), 20);
+                        context->keepAlive = keepAlive;
+                        
+                        keepAlive = objv_object_doubleValueForKey(conn->ctx->config, (objv_object_t *) objv_string_new_nocopy(zone, "keepAlive"), 20);
+                        
+                        if(context->keepAlive == 0){
+                            context->keepAlive = keepAlive;
+                        }
+                        else if(context->keepAlive > keepAlive){
+                            context->keepAlive = keepAlive;
+                        }
                         
                         CLContextSetDomain((CLContext *) context, objv_string_new(zone, p));
                         
@@ -231,6 +259,9 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
                         
                         CLContextAddChild(conn->ctx, (CLContext *) context);
                         
+                        status = OBJVChannelStatusOK;
+                        
+                        break;
                     }
                     
                 }
@@ -246,10 +277,13 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
                         task->ctx = (CLContext *) objv_object_retain((objv_object_t *) conn->ctx);
                         task->httpChannel = (CLHttpChannel *) objv_object_retain((objv_object_t *) conn->httpChannel);
                    
-                        objv_dispatch_addTask(conn->ctx->dispatch, (objv_dispatch_task_t *) task);
+                        objv_dispatch_addTask(task->ctx->dispatch, (objv_dispatch_task_t *) task);
                         
                         objv_object_release((objv_object_t *) task);
                         
+                        status = OBJVChannelStatusOK;
+                        
+                        break;
                     }
                     
                 }
@@ -468,10 +502,11 @@ OBJVChannelStatus CLAcceptGetConnect(CLAccept * ac,objv_timeinval_t timeout,CLAc
                 conn->channel = objv_channel_tcp_allocWithHandle(ac->base.base.zone, client);
                 conn->from = addr;
                 conn->ctx = (CLContext *) objv_object_retain((objv_object_t *) ac->ctx);
+                conn->queue = (objv_dispatch_queue_t *) objv_object_retain((objv_object_t *) ac->connectQueue);
                 
                 * connenct = conn;
             }
-            
+        
             return OBJVChannelStatusOK;
         }
         else if(client < 0){

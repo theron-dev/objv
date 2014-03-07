@@ -48,6 +48,7 @@ static void CLChannelMethodDealloc(objv_class_t * clazz,objv_object_t * object){
     CLChannel * channel = (CLChannel *) object;
 
     objv_object_release((objv_object_t *) channel->oChannel);
+    objv_object_release((objv_object_t *) channel->url);
     
     if(clazz->superClass){
         objv_object_dealloc(clazz->superClass, object);

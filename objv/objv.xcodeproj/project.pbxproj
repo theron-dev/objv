@@ -10,6 +10,9 @@
 		1114061F18C4751C00C03FFA /* CLSRVProcess.c in Sources */ = {isa = PBXBuildFile; fileRef = 1114061E18C4751C00C03FFA /* CLSRVProcess.c */; };
 		1121043118A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c in Sources */ = {isa = PBXBuildFile; fileRef = 1121043018A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c */; };
 		113206A218A49630006C9112 /* objv_vmcompiler.c in Sources */ = {isa = PBXBuildFile; fileRef = 113206A118A49630006C9112 /* objv_vmcompiler.c */; };
+		1143853E18C962AC0024925A /* objv_db.c in Sources */ = {isa = PBXBuildFile; fileRef = 1143853D18C962AC0024925A /* objv_db.c */; };
+		1143854118C9723B0024925A /* objv_db_sqlite.c in Sources */ = {isa = PBXBuildFile; fileRef = 1143854018C9723B0024925A /* objv_db_sqlite.c */; };
+		1143854418C97CF80024925A /* objv_data.c in Sources */ = {isa = PBXBuildFile; fileRef = 1143854318C97CF80024925A /* objv_data.c */; };
 		1143DD9B18BF27E0006BECBC /* objv_clchannel_http.c in Sources */ = {isa = PBXBuildFile; fileRef = 1143DD9A18BF27E0006BECBC /* objv_clchannel_http.c */; };
 		1153BADA18C02C1E009EF09A /* objv_actree.c in Sources */ = {isa = PBXBuildFile; fileRef = 1153BAD918C02C1E009EF09A /* objv_actree.c */; };
 		1153BAE418C0853D009EF09A /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 1153BAE318C0853D009EF09A /* main.c */; };
@@ -122,6 +125,12 @@
 		1121043018A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_vmcompiler_tokenizer.c; sourceTree = "<group>"; };
 		113206A018A49601006C9112 /* objv_vmcompiler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_vmcompiler.h; sourceTree = "<group>"; };
 		113206A118A49630006C9112 /* objv_vmcompiler.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_vmcompiler.c; sourceTree = "<group>"; };
+		1143853C18C962A30024925A /* objv_db.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_db.h; sourceTree = "<group>"; };
+		1143853D18C962AC0024925A /* objv_db.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_db.c; sourceTree = "<group>"; };
+		1143853F18C972330024925A /* objv_db_sqlite.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_db_sqlite.h; sourceTree = "<group>"; };
+		1143854018C9723B0024925A /* objv_db_sqlite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_db_sqlite.c; sourceTree = "<group>"; };
+		1143854218C97C5E0024925A /* objv_data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_data.h; sourceTree = "<group>"; };
+		1143854318C97CF80024925A /* objv_data.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_data.c; sourceTree = "<group>"; };
 		1143DD9918BF27D5006BECBC /* objv_clchannel_http.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_clchannel_http.h; sourceTree = "<group>"; };
 		1143DD9A18BF27E0006BECBC /* objv_clchannel_http.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_clchannel_http.c; sourceTree = "<group>"; };
 		1153BAD818C02BF4009EF09A /* objv_actree.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_actree.h; sourceTree = "<group>"; };
@@ -241,6 +250,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1143853B18C962360024925A /* db */ = {
+			isa = PBXGroup;
+			children = (
+				1143853C18C962A30024925A /* objv_db.h */,
+				1143853D18C962AC0024925A /* objv_db.c */,
+				1143853F18C972330024925A /* objv_db_sqlite.h */,
+				1143854018C9723B0024925A /* objv_db_sqlite.c */,
+			);
+			name = db;
+			path = ../db;
+			sourceTree = "<group>";
+		};
 		1153BAE218C0853D009EF09A /* objvcloud */ = {
 			isa = PBXGroup;
 			children = (
@@ -294,6 +315,7 @@
 		11BD79001899409000F028AC = {
 			isa = PBXGroup;
 			children = (
+				1143853B18C962360024925A /* db */,
 				1167A91B18BED84D00AEA7B5 /* http */,
 				11BB350C18BAF24600BF0C4F /* server */,
 				119EBDBB18A70CD700B745D7 /* cloud */,
@@ -322,6 +344,7 @@
 				11BD7911189940E800F028AC /* objv.h */,
 				11BD79161899426B00F028AC /* objv_os.h */,
 				11BD79241899672000F028AC /* objv_value.h */,
+				1143854218C97C5E0024925A /* objv_data.h */,
 				11BD7927189977E700F028AC /* objv_string.h */,
 				11BD7929189978CA00F028AC /* objv_array.h */,
 				11BD792D1899D91D00F028AC /* objv_types.h */,
@@ -366,6 +389,7 @@
 				11BD791D189953EB00F028AC /* objv_zone.c */,
 				11BD791F1899540A00F028AC /* objv_types.c */,
 				11BD79251899698B00F028AC /* objv_value.c */,
+				1143854318C97CF80024925A /* objv_data.c */,
 				11BD7928189977F000F028AC /* objv_string.c */,
 				11BD792A189978D400F028AC /* objv_array.c */,
 				11BD792F1899E17D00F028AC /* objv_dispatch.c */,
@@ -549,10 +573,12 @@
 				11D0BAE118A8D1A9009761A8 /* objv_clcontext.c in Sources */,
 				1153BB0018C5CFC6009EF09A /* objv_url.c in Sources */,
 				11BD7942189A0FD400F028AC /* objv_dictionary.c in Sources */,
+				1143853E18C962AC0024925A /* objv_db.c in Sources */,
 				11BD79201899540A00F028AC /* objv_types.c in Sources */,
 				11BD79331899EDB600F028AC /* objv_map.c in Sources */,
 				11BD79261899698B00F028AC /* objv_value.c in Sources */,
 				11BD797D18A215CE00F028AC /* objv_vermin_runtime.c in Sources */,
+				1143854118C9723B0024925A /* objv_db_sqlite.c in Sources */,
 				11BD797818A0DE0300F028AC /* objv_zombie.c in Sources */,
 				11F67EC818A4C746006E4EC1 /* md5.c in Sources */,
 				1121043118A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c in Sources */,
@@ -569,6 +595,7 @@
 				1167A91E18BED89C00AEA7B5 /* objv_http.c in Sources */,
 				1143DD9B18BF27E0006BECBC /* objv_clchannel_http.c in Sources */,
 				11F67EB718A4B3FF006E4EC1 /* objv_vmcompiler_class.c in Sources */,
+				1143854418C97CF80024925A /* objv_data.c in Sources */,
 				11F67EBD18A4C42A006E4EC1 /* objv_vmcompiler_binary.c in Sources */,
 				1153BADA18C02C1E009EF09A /* objv_actree.c in Sources */,
 				113206A218A49630006C9112 /* objv_vmcompiler.c in Sources */,

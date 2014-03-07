@@ -13,6 +13,7 @@
 #include "objv.h"
 #include "objv_dispatch.h"
 #include "objv_hash_map.h"
+#include "objv_log.h"
 
 OBJV_KEY_IMP(DispatchTask)
 OBJV_KEY_IMP(Dispatch)
@@ -112,6 +113,13 @@ int objv_dispatch_run(objv_dispatch_t * dispatch,objv_timeinval_t timeout){
     objv_dispatch_task_t * task;
     int c = 0,i;
     objv_timeinval_t s = objv_timestamp(),t;
+    unsigned int version = 0;
+    
+    objv_mutex_lock(& dispatch->mutex);
+    
+    version = dispatch->version ++;
+    
+    objv_mutex_unlock(& dispatch->mutex);
     
     do {
     
@@ -119,7 +127,7 @@ int objv_dispatch_run(objv_dispatch_t * dispatch,objv_timeinval_t timeout){
         
         for(i = 0;i<dispatch->tasks->length;i++){
             task = (objv_dispatch_task_t *) objv_array_objectAt(dispatch->tasks, i);
-            if(task->delay == 0.0 || objv_timestamp() - task->start >= task->delay){
+            if(task->version <= version && (task->delay == 0.0 || objv_timestamp() - task->start >= task->delay)){
                 break;
             }
         }
@@ -147,7 +155,7 @@ int objv_dispatch_run(objv_dispatch_t * dispatch,objv_timeinval_t timeout){
             c ++;
             
         }
-        else if(timeout == 0.0 || (t = objv_timestamp() - s) >= timeout){
+        else if(c >0 || timeout == 0.0 || (t = objv_timestamp() - s) >= timeout){
             
             dispatch->idleTimeinval = 0;
             
@@ -159,16 +167,11 @@ int objv_dispatch_run(objv_dispatch_t * dispatch,objv_timeinval_t timeout){
             
             objv_waiter_lock(& dispatch->waiter);
             
-            int rs = objv_waiter_wait_timeout(& dispatch->waiter, timeout - t);
+            objv_waiter_wait_timeout(& dispatch->waiter, timeout - t);
             
             objv_waiter_unlock(& dispatch->waiter);
             
-            if(ETIMEDOUT == rs){
-                break;
-            }
-            else if(timeout == 0.0 || (t = objv_timestamp() - s) >= timeout){
-                break;
-            }
+            break;
         }
         
     } while(1);
@@ -184,6 +187,8 @@ void objv_dispatch_addTask(objv_dispatch_t * dispatch,objv_dispatch_task_t * tas
         task->canceled = objv_false;
         
         objv_mutex_lock(& dispatch->mutex);
+        
+        task->version = dispatch->version;
         
         objv_array_add(dispatch->tasks, (objv_object_t *) task);
         

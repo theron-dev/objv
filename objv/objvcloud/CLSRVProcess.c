@@ -15,6 +15,8 @@
 #include "CLSRVProcess.h"
 #include "objv_value.h"
 #include "objv_clcontext.h"
+#include "objv_log.h"
+#include "objv_zombie.h"
 
 #include <execinfo.h>
 
@@ -38,8 +40,19 @@ static int CLSRVProcessCreate (OBJVSRVServer * server,OBJVSRVProcess * process){
     return 1;
 }
 
-static void CLSRVProcessExit (OBJVSRVServer * server,OBJVSRVProcess * process){
-    OBJVSRVServerLog("\nCLSRVProcessExit pid: %d errno:%d\n",process->pid, errno);
+static void CLSRVProcessExit (OBJVSRVServer * server,OBJVSRVProcess * process,int signo){
+    OBJVSRVServerLog("\nCLSRVProcessExit pid: %d errno:%d signo:%d\n",process->pid, errno,signo);
+    void * array[30];
+    int size = backtrace( array, 30);
+    char ** symbols = backtrace_symbols( array, size);
+    for(int i=0;i<size;i++){
+        OBJVSRVServerLog("%s\n",symbols[i]);
+    }
+    free(symbols);
+}
+
+static void CLSRVProcessKill (OBJVSRVServer * server,OBJVSRVProcess * process,int signo){
+    OBJVSRVServerLog("\nCLSRVProcessKill pid: %d errno:%d signo:%d\n",process->pid, errno,signo);
     void * array[30];
     int size = backtrace( array, 30);
     char ** symbols = backtrace_symbols( array, size);
@@ -50,6 +63,12 @@ static void CLSRVProcessExit (OBJVSRVServer * server,OBJVSRVProcess * process){
 }
 
 static void CLSRVProcessOpen (OBJVSRVServer * server,OBJVSRVProcess * process){
+    
+    objv_zombie_t zombie;
+    
+    objv_zombie_init(& zombie, 102400);
+    
+    objv_zone_default_set(& zombie.zone);
     
     objv_zone_t * zone = objv_zone_default();
     
@@ -107,7 +126,7 @@ static void CLSRVProcessOpen (OBJVSRVServer * server,OBJVSRVProcess * process){
     
     CLContextSetConfig(ctx->base.base.isa, (CLContext *)ctx,cfg);
     
-    unsigned int maxThreadCount = 256;
+    unsigned int maxThreadCount = 512;
 
     char * s = getenv(CL_ENV_MAX_THREAD_COUNT_KEY);
     
@@ -170,6 +189,8 @@ OBJVSRVProcessClass CLSRVProcessClass = {
     CLSRVProcessExit,
     CLSRVProcessOpen,
     CLSRVProcessTick,
-    CLSRVProcessClose
+    CLSRVProcessClose,
+    CLSRVProcessKill,
+    0
 };
 

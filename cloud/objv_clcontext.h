@@ -48,6 +48,8 @@ extern "C" {
     
     OBJV_CLASS_DEC(CLChannelContext)
     
+    void CLChannelContextSetQueue(CLChannelContext * ctx,objv_dispatch_queue_t * queue);
+    
     void CLChannelContextAddChannel(CLChannelContext * ctx,CLChannel * channel);
     
     void CLChannelContextRemoveChannel(CLChannelContext * ctx,CLChannel * channel);

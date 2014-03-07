@@ -11,7 +11,7 @@
 #include "objv_os.h"
 #include "objv.h"
 #include "objv_channel_tcp.h"
-
+#include "objv_log.h"
 
 OBJV_KEY_IMP(TCPChannel)
 

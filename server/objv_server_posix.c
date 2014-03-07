@@ -16,6 +16,8 @@ static void OBJVSRVServerRunProcess(OBJVSRVProcess * process);
 static void OBJVSRVServerSIGProcessQuit(int signo);
 static void OBJVSRVServerSIGNAN(int signo);
 static int processExit;
+static OBJVSRVProcess * gProcess = NULL;
+static void OBJVSRVServerSIGProcessKill(int signo);
 
 int OBJVSRVServerRun(OBJVSRVServer * server){
     
@@ -113,6 +115,16 @@ int OBJVSRVServerRun(OBJVSRVServer * server){
     signal(SIGTTOU, OBJVSRVServerSIGNAN);
     signal(ETIMEDOUT, OBJVSRVServerSIGNAN);
     
+    signal(SIGINT, OBJVSRVServerSIGProcessQuit);
+    signal(SIGQUIT, OBJVSRVServerSIGProcessQuit);
+    signal(SIGBUS, OBJVSRVServerSIGProcessQuit);
+    signal(SIGSEGV, OBJVSRVServerSIGProcessQuit);
+    signal(SIGSYS, OBJVSRVServerSIGProcessQuit);
+    signal(SIGTERM, OBJVSRVServerSIGProcessQuit);
+    signal(SIGURG, OBJVSRVServerSIGProcessQuit);
+    signal(SIGXCPU, OBJVSRVServerSIGProcessQuit);
+    signal(SIGXFSZ, OBJVSRVServerSIGProcessQuit);
+    
     {
         unsigned int c = server->config.process.length;
         OBJVSRVProcess * p = server->config.process.data;
@@ -181,7 +193,7 @@ int OBJVSRVServerRun(OBJVSRVServer * server){
             if(p->pid){
                 kill(p->pid, SIGKILL);
                 waitpid(p->pid, &stat, WNOHANG);
-                (* p->clazz->exit)(server,p);
+                (* p->clazz->exit)(server,p,0);
                 p->pid = 0;
             }
             
@@ -218,7 +230,7 @@ static void OBJVSRVServerSIGProcessQuit(int signo)
             while(c > 0 && p->clazz){
                 if(p->pid){
                     if(p->pid == waitpid(p->pid, &stat, WNOHANG)){
-                        (* p->clazz->exit)(gServer,p);
+                        (* p->clazz->exit)(gServer,p,signo);
                         p->pid = 0;
                         OBJVSRVServerRunProcess(p);
                     }
@@ -241,7 +253,7 @@ static void OBJVSRVServerSIGProcessQuit(int signo)
                 if(p->pid){
                     kill(p->pid, SIGKILL);
                     waitpid(p->pid, &stat, WNOHANG);
-                    (* p->clazz->exit)(gServer,p);
+                    (* p->clazz->exit)(gServer,p,signo);
                     p->pid = 0;
                 }
                 
@@ -263,6 +275,12 @@ static void OBJVSRVServerSIGChildProcessQuit(int signo)
     waitpid(-1, &stat, WNOHANG);
 }
 
+static void OBJVSRVServerSIGProcessKill(int signo){
+    if(gProcess){
+        (* gProcess->clazz->kill)(gServer,gProcess,signo);
+    }
+    abort();
+}
 
 static void OBJVSRVServerRunProcess(OBJVSRVProcess * process){
     
@@ -279,13 +297,26 @@ static void OBJVSRVServerRunProcess(OBJVSRVProcess * process){
         else if(pid == 0)
         {
             signal(SIGCHLD, OBJVSRVServerSIGChildProcessQuit);
-            signal(SIGKILL, SIG_DFL);
-            signal(SIGABRT, SIG_DFL);
+            
+            signal(SIGINT, OBJVSRVServerSIGProcessKill);
+            signal(SIGQUIT, OBJVSRVServerSIGProcessKill);
+            signal(SIGBUS, OBJVSRVServerSIGProcessKill);
+            signal(SIGSEGV, OBJVSRVServerSIGProcessKill);
+            signal(SIGSYS, OBJVSRVServerSIGProcessKill);
+            signal(SIGTERM, OBJVSRVServerSIGProcessKill);
+            signal(SIGURG, OBJVSRVServerSIGProcessKill);
+            signal(SIGXCPU, OBJVSRVServerSIGProcessKill);
+            signal(SIGXFSZ, OBJVSRVServerSIGProcessKill);
+
+            
+            signal(SIGFPE, OBJVSRVServerSIGNAN);
             signal(SIGPIPE, OBJVSRVServerSIGNAN);
             signal(SIGTTOU, OBJVSRVServerSIGNAN);
             signal(ETIMEDOUT, OBJVSRVServerSIGNAN);
             
             process->pid  = getpid();
+            
+            gProcess = process;
             
             (* process->clazz->open)(gServer,process);
             

@@ -183,9 +183,9 @@ void objv_actree_removeOfIndex(objv_actree_t * actree,objv_array_t * keys,unsign
                 ac = (objv_actree_t *) objv_dictionary_value(actree->childs, key);
                 if(ac){
                     objv_actree_removeOfIndex(ac,keys,index + 1);
-                }
-                if(ac->value == NULL && (ac->childs == NULL || ac->childs->map->length ==0)){
-                    objv_dictionary_remove(actree->childs, key);
+                    if(ac->value == NULL && (ac->childs == NULL || ac->childs->map->length ==0)){
+                        objv_dictionary_remove(actree->childs, key);
+                    }
                 }
             }
             else{

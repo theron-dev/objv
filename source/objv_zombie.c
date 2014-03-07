@@ -236,7 +236,7 @@ void objv_zombie_print(objv_zombie_t * zombie){
     
     size_t size = 0;
 
-    for(int i=0;i< zombie->length;i++){
+    for(int i=zombie->tag;i< zombie->length;i++){
         objv_zombie_block_t * block = zombie->blocks[i];
         if(block->size){
             
@@ -269,4 +269,13 @@ void objv_zombie_print(objv_zombie_t * zombie){
     objv_log("malloced size: %d , block count: %d\n",size,zombie->length);
 }
 
+void objv_zombie_tag(objv_zombie_t * zombie){
+    
+    objv_mutex_lock(& zombie->mutex);
+    
+    zombie->tag = zombie->length;
+    
+    objv_mutex_unlock(& zombie->mutex);
+    
+}
 

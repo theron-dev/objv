@@ -21,8 +21,8 @@ extern "C" {
 #include "objv_channel_tcp.h"
 #include "objv_clchannel_http.h"
     
-#define CL_ENV_MAX_THREAD_COUNT_KEY     "cl-max-thread-count"
-#define CL_ENV_CONFIG_KEY               "cl-config"
+#define CL_ENV_MAX_THREAD_COUNT_KEY     "cl_max_thread_count"
+#define CL_ENV_CONFIG_KEY               "cl_config"
     
     typedef struct _CLAcceptHandler {
         objv_os_socket_t READONLY sock;
@@ -48,6 +48,7 @@ extern "C" {
         objv_channel_tcp_t * READONLY channel;
         struct sockaddr_in from;
         CLHttpChannel * httpChannel;
+        objv_dispatch_queue_t * READONLY queue;
     } CLAcceptConnect;
     
     OBJV_KEY_DEC(CLAcceptConnect)

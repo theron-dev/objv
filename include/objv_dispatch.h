@@ -24,6 +24,7 @@ extern "C" {
         objv_object_t base;
         objv_boolean_t READONLY canceled;
         objv_timeinval_t READONLY start;
+        unsigned int READONLY version;
         objv_timeinval_t delay;
     } objv_dispatch_task_t;
 
@@ -40,6 +41,7 @@ extern "C" {
         objv_mutex_t READONLY mutex;
         objv_waiter_t READONLY waiter;
         objv_timeinval_t READONLY idleTimeinval;
+        unsigned int READONLY version;
     } objv_dispatch_t;
     
     OBJV_CLASS_DEC(Dispatch)
@@ -67,10 +69,11 @@ extern "C" {
     typedef struct _objv_dispatch_queue_t {
         objv_object_t base;
         const char * name;
-        objv_dispatch_t * READONLY dispatch;
+        objv_mutex_t READONLY mutex;
         objv_array_t * READONLY dispatchs;
+        objv_array_t * READONLY tasks;
         unsigned int READONLY maxThreadCount;
-        unsigned int READONLY threadCount;
+        unsigned int READONLY index;
     } objv_dispatch_queue_t;
     
     OBJV_CLASS_DEC(DispatchQueue)

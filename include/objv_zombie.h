@@ -41,6 +41,7 @@ extern "C" {
         size_t READONLY size;
         size_t READONLY length;
         size_t READONLY memsize;
+        size_t READONLY tag;
     } objv_zombie_t;
     
     void objv_zombie_init(objv_zombie_t * zombie,size_t capacity);
@@ -48,6 +49,9 @@ extern "C" {
     void objv_zombie_destroy(objv_zombie_t * zombie);
     
     void objv_zombie_print(objv_zombie_t * zombie);
+    
+    void objv_zombie_tag(objv_zombie_t * zombie);
+    
     
 #ifdef __cplusplus
 }

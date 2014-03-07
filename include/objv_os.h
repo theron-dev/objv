@@ -158,12 +158,20 @@ extern "C" {
     
     static inline objv_thread_t objv_thread_create(void * (* callback)(void *),void * userInfo){
         objv_thread_t t = 0;
-        pthread_create(&t, NULL, callback, userInfo);
+        pthread_attr_t attr;
+        pthread_attr_init(& attr);
+        pthread_attr_setstacksize(& attr, 1024000);
+        pthread_create(&t, &attr, callback, userInfo);
+        pthread_attr_destroy(& attr);
         return t;
     }
     
     static inline void objv_thread_exit(void * userInfo){
         pthread_exit(userInfo);
+    }
+    
+    static inline void objv_thread_detach(objv_thread_t t){
+        pthread_detach(t);
     }
     
     typedef int objv_os_file_t;

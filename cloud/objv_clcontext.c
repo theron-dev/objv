@@ -70,8 +70,6 @@ static void CLChannelContextMethodDealloc(objv_class_t * clazz,objv_object_t * o
     
     CLChannelContext * ctx = (CLChannelContext *) object;
 
-    objv_dispatch_queue_cancelAllTasks(ctx->queue);
-    
     objv_mutex_lock(& ctx->channels_mutex);
     
     objv_object_release((objv_object_t *) ctx->channels );
@@ -106,8 +104,6 @@ static objv_object_t * CLChannelContextMethodInit(objv_class_t * clazz,objv_obje
         ctx->channels = objv_array_alloc(zone, 4);
         
         objv_mutex_unlock(& ctx->channels_mutex);
-        
-        ctx->queue = objv_dispatch_queue_alloc(zone, "CLChannelContextQueue", 16);
         
     }
     
@@ -327,6 +323,14 @@ void CLChannelContextRemoveChannel(CLChannelContext * ctx,CLChannel * channel){
         objv_object_release((objv_object_t *) ctx);
     }
     
+}
+
+void CLChannelContextSetQueue(CLChannelContext * ctx,objv_dispatch_queue_t * queue){
+    if(ctx && ctx->queue != queue){
+        objv_object_retain((objv_object_t *) queue);
+        objv_object_release((objv_object_t *) ctx->queue);
+        ctx->queue = queue;
+    }
 }
 
 OBJV_KEY_IMP(willRemoveChannel)

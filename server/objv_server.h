@@ -54,7 +54,7 @@ extern "C" {
     
     typedef int (* OBJVSRVProcessCreate) (OBJVSRVServer * server,struct _OBJVSRVProcess * process);
     
-    typedef void (* OBJVSRVProcessExit) (OBJVSRVServer * server,struct _OBJVSRVProcess * process);
+    typedef void (* OBJVSRVProcessExit) (OBJVSRVServer * server,struct _OBJVSRVProcess * process,int signo);
     
     typedef void (* OBJVSRVProcessOpen) (OBJVSRVServer * server,struct _OBJVSRVProcess * process);
     
@@ -62,12 +62,15 @@ extern "C" {
     
     typedef void (* OBJVSRVProcessClose) (OBJVSRVServer * server,struct _OBJVSRVProcess * process);
     
+    typedef void (* OBJVSRVProcessKill) (OBJVSRVServer * server,struct _OBJVSRVProcess * process,int signo);
+    
     typedef struct _OBJVSRVProcessClass{
         OBJVSRVProcessCreate create;
         OBJVSRVProcessExit exit;
         OBJVSRVProcessOpen open;
         OBJVSRVProcessTick tick;
         OBJVSRVProcessClose close;
+        OBJVSRVProcessKill kill;
         void * userInfo;
     } OBJVSRVProcessClass;
     

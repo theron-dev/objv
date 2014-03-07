@@ -15,6 +15,7 @@
 #include "objv_value.h"
 #include "objv_autorelease.h"
 #include "objv_url.h"
+#include "objv_log.h"
 
 OBJV_KEY_IMP(CLHttpChannel)
 
@@ -30,10 +31,10 @@ static objv_object_t * CLHttpChannelMethodInit(objv_class_t * clazz,objv_object_
         
         OBJVHTTPRequestInit( &channel->httpRequest );
         
-        objv_mbuf_init(& channel->read.mbuf, 128);
-        objv_mbuf_init(& channel->read.data, 128);
+        objv_mbuf_init(& channel->read.mbuf, 512);
+        objv_mbuf_init(& channel->read.data, 512);
         
-        objv_mbuf_init(& channel->write.mbuf, 128);
+        objv_mbuf_init(& channel->write.mbuf, 512);
         
         objv_mutex_init( & channel->tasks_mutex);
         

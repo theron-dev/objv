@@ -13,6 +13,7 @@
 #include "objv_cloud.h"
 #include "objv_value.h"
 #include "objv_log.h"
+#include "objv_log.h"
 
 OBJV_KEY_IMP(CLContext)
 OBJV_KEY_IMP(handleTask)
@@ -420,6 +421,8 @@ void CLContextAddChild(CLContext * context, CLContext * child){
                 
                 objv_actree_setValue(context->childsTree, keys, (objv_object_t *) child);
                 
+                objv_log("CLContextAddChild %s\n", child->domain ? child->domain->UTF8String : "");
+                
                 if(setdomain){
                     {
                         CLDomainSetTask * task = CLDomainSetTaskAlloc(zone, child->domain);
@@ -469,6 +472,8 @@ void CLContextRemoveChild(CLContext * context,CLContext * child){
                 }
                 
             }
+            
+            objv_log("CLContextRemoveChild %s\n", child->domain ? child->domain->UTF8String : "");
             
             objv_array_remove(context->childs, (objv_object_t *) child);
             
