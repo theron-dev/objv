@@ -279,7 +279,6 @@ static void OBJVSRVServerSIGProcessKill(int signo){
     if(gProcess){
         (* gProcess->clazz->kill)(gServer,gProcess,signo);
     }
-    abort();
 }
 
 static void OBJVSRVServerRunProcess(OBJVSRVProcess * process){
@@ -307,7 +306,10 @@ static void OBJVSRVServerRunProcess(OBJVSRVProcess * process){
             signal(SIGURG, OBJVSRVServerSIGProcessKill);
             signal(SIGXCPU, OBJVSRVServerSIGProcessKill);
             signal(SIGXFSZ, OBJVSRVServerSIGProcessKill);
-
+            signal(SIGILL, OBJVSRVServerSIGProcessKill);
+            signal(SIGTRAP, OBJVSRVServerSIGProcessKill);
+            signal(SIGABRT, OBJVSRVServerSIGProcessKill);
+            signal(SIGKILL, OBJVSRVServerSIGProcessKill);
             
             signal(SIGFPE, OBJVSRVServerSIGNAN);
             signal(SIGPIPE, OBJVSRVServerSIGNAN);

@@ -22,6 +22,7 @@ extern "C" {
 #include "objv_clchannel_http.h"
     
 #define CL_ENV_MAX_THREAD_COUNT_KEY     "cl_max_thread_count"
+#define CL_ENV_MAX_CONNECT_COUNT_KEY    "cl_max_connect_count"
 #define CL_ENV_CONFIG_KEY               "cl_config"
     
     typedef struct _CLAcceptHandler {

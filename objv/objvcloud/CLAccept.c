@@ -44,7 +44,7 @@ static void CLAcceptMethodDealloc(objv_class_t * clazz,objv_object_t * object){
     
     objv_object_release((objv_object_t *) accept->ctx);
     objv_object_release((objv_object_t *) accept->connectQueue);
-    
+   
     if(clazz->superClass){
         objv_object_dealloc(clazz->superClass, object);
     }
@@ -60,7 +60,7 @@ static objv_object_t * CLAcceptMethodInit(objv_class_t * clazz,objv_object_t * o
     
     if(object){
         
-        
+       
     }
     
     return object;
@@ -72,9 +72,19 @@ static void CLAcceptMethodRun (objv_class_t * clazz,objv_object_t * object){
     CLAccept * ac = (CLAccept *) object;
     CLAcceptConnect * connect = NULL;
     
-    OBJVChannelStatus status = CLAcceptGetConnect(ac, 0.02, & connect);
+    OBJVChannelStatus status = OBJVChannelStatusNone;
+    
+    ac->base.delay += 0.002;
+    
+    if(ac->base.delay > 0.02){
+        ac->base.delay = 0.02;
+    }
+    
+    status = CLAcceptGetConnect(ac, 0.02, & connect);
     
     if(status == OBJVChannelStatusOK && connect){
+        
+        ac->base.delay = 0;
         
         objv_dispatch_queue_addTask(ac->connectQueue, (objv_dispatch_task_t *) connect);
     
@@ -236,7 +246,7 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
                         
                         context = (CLChannelContext *) objv_object_new(zone, OBJV_CLASS(CLChannelContext),NULL);
                         
-                        CLChannelContextSetQueue(context, conn->queue);
+                        CLContextSetQueue((CLContext *) context, conn->queue);
                         
                         context->allowRemovedFromParent = objv_true;
                         context->keepAlive = keepAlive;
@@ -277,7 +287,7 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
                         task->ctx = (CLContext *) objv_object_retain((objv_object_t *) conn->ctx);
                         task->httpChannel = (CLHttpChannel *) objv_object_retain((objv_object_t *) conn->httpChannel);
                    
-                        objv_dispatch_addTask(task->ctx->dispatch, (objv_dispatch_task_t *) task);
+                        objv_dispatch_queue_addTask(conn->queue, (objv_dispatch_task_t *) task);
                         
                         objv_object_release((objv_object_t *) task);
                         

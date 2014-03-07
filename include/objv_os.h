@@ -158,11 +158,7 @@ extern "C" {
     
     static inline objv_thread_t objv_thread_create(void * (* callback)(void *),void * userInfo){
         objv_thread_t t = 0;
-        pthread_attr_t attr;
-        pthread_attr_init(& attr);
-        pthread_attr_setstacksize(& attr, 1024000);
-        pthread_create(&t, &attr, callback, userInfo);
-        pthread_attr_destroy(& attr);
+        pthread_create(&t, NULL, callback, userInfo);
         return t;
     }
     
@@ -259,11 +255,23 @@ extern "C" {
                 break;
             }
             else if(FD_ISSET(sock, &ds)){
-                while((len = recv(sock, buffer, sizeof(buffer), 0)) >0);
-                shutdown(sock, SHUT_RD);
-                break;
+                
+                len = recv(sock, buffer, sizeof(buffer), 0);
+                
+                if(len ==0){
+                    shutdown(sock, SHUT_RD);
+                    break;
+                }
+                else if(len < 0){
+                    if(errno == EINTR){
+                        shutdown(sock, SHUT_RD);
+                    }
+                    break;
+                }
             }
         }
+        
+        usleep(2);
         
         close(sock);
 

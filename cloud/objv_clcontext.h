@@ -31,13 +31,19 @@ extern "C" {
     
     void CLServiceContextSetContainer(CLServiceContext * ctx,CLServiceContainer * container);
     
+    typedef enum _CLChannelContextType {
+        CLChannelContextTypeComplicating,   // 多通道并发
+        CLChannelContextTypePoll,           // 轮询
+    } CLChannelContextType;
+    
     typedef struct _CLChannelContext {
         CLServiceContext base;
-        objv_dispatch_queue_t * READONLY queue;
         objv_array_t * READONLY channels;
         objv_mutex_t READONLY channels_mutex;
         objv_boolean_t allowRemovedFromParent;
         objv_timeinval_t keepAlive;
+        CLChannelContextType type;
+        unsigned int READONLY index;
     } CLChannelContext;
     
     OBJV_KEY_DEC(CLChannelContext);
@@ -47,8 +53,6 @@ extern "C" {
     OBJV_KEY_DEC(didRemoveChannel);
     
     OBJV_CLASS_DEC(CLChannelContext)
-    
-    void CLChannelContextSetQueue(CLChannelContext * ctx,objv_dispatch_queue_t * queue);
     
     void CLChannelContextAddChannel(CLChannelContext * ctx,CLChannel * channel);
     

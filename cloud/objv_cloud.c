@@ -25,6 +25,8 @@ static void CLContextMethodDealloc(objv_class_t * clazz,objv_object_t * object){
     
     int i;
     
+    objv_mutex_lock(& ctx->mutex);
+    
     if(ctx->childs){
     
         for (i=0; i<ctx->childs->length; i ++) {
@@ -41,8 +43,11 @@ static void CLContextMethodDealloc(objv_class_t * clazz,objv_object_t * object){
     objv_object_release((objv_object_t *) ctx->childsTree);
     objv_object_release((objv_object_t *) ctx->config);
     objv_object_release((objv_object_t *) ctx->domain);
-    objv_object_release((objv_object_t *) ctx->dispatch);
+    objv_object_release((objv_object_t *) ctx->queue);
  
+    objv_mutex_unlock(& ctx->mutex);
+    objv_mutex_destroy(& ctx->mutex);
+    
     if(clazz->superClass){
         
         objv_object_dealloc(clazz->superClass, object);
@@ -59,7 +64,9 @@ static objv_object_t * CLContextMethodInit(objv_class_t * clazz,objv_object_t * 
     if(object){
         
         CLContext * ctx = (CLContext *) object;
-        ctx->dispatch = (objv_dispatch_t *) objv_object_retain((objv_object_t *) objv_dispatch_get_current());
+        
+        objv_mutex_init(& ctx->mutex);
+        
     }
     
     return object;
@@ -94,145 +101,23 @@ OBJV_CLASS_METHOD_IMP_END(CLContext)
 
 OBJV_CLASS_IMP_M(CLContext, OBJV_CLASS(Object), CLContext)
 
-typedef enum _CLContextDispatchTaskInvoke{
-    CLContextDispatchTaskInvokeSendTask,CLContextDispatchTaskInvokeHandleTask,CLContextDispatchTaskInvokeAddChild,CLContextDispatchTaskInvokeRemoveChild
-} CLContextDispatchTaskInvoke;
-
-typedef struct _CLContextDispatchTask{
-    objv_dispatch_task_t base;
-    CLContext * context;
-    objv_class_t * taskType;
-    CLTask * task;
-    objv_string_t * target;
-    CLContext * child;
-    CLContextDispatchTaskInvoke invoke;
-} CLContextDispatchTask;
-
-OBJV_KEY_DEC(CLContextDispatchTask)
-
-
-static void CLContextDispatchTaskMethodDealloc(objv_class_t * clazz,objv_object_t * object){
-    
-    CLContextDispatchTask * dispatchTask = (CLContextDispatchTask *) object;
-    
-    objv_object_release((objv_object_t *) dispatchTask->task);
-    objv_object_release((objv_object_t *) dispatchTask->context);
-    objv_object_release((objv_object_t *) dispatchTask->child);
-    objv_object_release((objv_object_t *) dispatchTask->target);
-
-    if(clazz->superClass){
-        
-        objv_object_dealloc(clazz->superClass, object);
-        
-    }
-    
-}
-
-
-static void CLContextDispatchTaskMethodRun (objv_class_t * clazz,objv_object_t * object){
-    
-    CLContextDispatchTask * dispatchTask = (CLContextDispatchTask *) object;
-    
-    switch (dispatchTask->invoke) {
-        case CLContextDispatchTaskInvokeSendTask:
-        
-            CLContextSendTask(dispatchTask->context, dispatchTask->taskType, dispatchTask->task,dispatchTask->target);
-            
-            break;
-        case CLContextDispatchTaskInvokeHandleTask:
-            
-            CLContextHandleTask(dispatchTask->context, dispatchTask->taskType, dispatchTask->task);
-            
-            break;
-        case CLContextDispatchTaskInvokeAddChild:
-            
-            CLContextAddChild(dispatchTask->context,dispatchTask->child);
-            
-            break;
-        case CLContextDispatchTaskInvokeRemoveChild:
-            
-            CLContextRemoveChild(dispatchTask->context,dispatchTask->child);
-            
-            break;
-        default:
-            break;
-    }
-    
-}
-
-static objv_object_t * CLContextDispatchTaskMethodInit(objv_class_t * clazz,objv_object_t * object,va_list ap){
-    
-    if(clazz->superClass){
-        object = objv_object_initv(clazz->superClass, object, ap);
-    }
-    
-    if(object){
-        
-        CLContextDispatchTask * dispatchTask = (CLContextDispatchTask *) object;
-        CLContext * context = va_arg(ap, CLContext *);
-        objv_class_t * taskType = va_arg(ap, objv_class_t *);
-        CLTask * task = va_arg(ap, CLTask *);
-        objv_string_t * target = va_arg(ap, objv_string_t *);
-        CLContext * child =  va_arg(ap, CLContext *) ;
-        CLContextDispatchTaskInvoke invoke =  va_arg(ap, CLContextDispatchTaskInvoke);
-        
-        dispatchTask->taskType = taskType;
-        dispatchTask->task = (CLTask *) objv_object_retain((objv_object_t *) task);
-        dispatchTask->target = (objv_string_t *) objv_object_retain((objv_object_t *) target);
-        dispatchTask->invoke = invoke;
-        dispatchTask->child = (CLContext *) objv_object_retain((objv_object_t *) child);
-        dispatchTask->context = (CLContext *) objv_object_retain((objv_object_t *) context);
-        
-    }
-    
-    return object;
-}
-
-OBJV_KEY_IMP(CLContextDispatchTask)
-
-OBJV_CLASS_METHOD_IMP_BEGIN(CLContextDispatchTask)
-
-OBJV_CLASS_METHOD_IMP(dealloc, "v()", CLContextDispatchTaskMethodDealloc)
-
-OBJV_CLASS_METHOD_IMP(init, "@(*)", CLContextDispatchTaskMethodInit)
-
-OBJV_CLASS_METHOD_IMP(run, "v()", CLContextDispatchTaskMethodRun)
-
-OBJV_CLASS_METHOD_IMP_END(CLContextDispatchTask)
-
-OBJV_CLASS_IMP_M(CLContextDispatchTask, OBJV_CLASS(DispatchTask), CLContextDispatchTask)
-
-static CLContextDispatchTask * CLContextDispatchTaskAlloc(objv_zone_t * zone,CLContext * context
-                                                          ,objv_class_t * taskType,CLTask * task,objv_string_t * target,CLContext * child,CLContextDispatchTaskInvoke invoke){
-    return (CLContextDispatchTask *) objv_object_alloc(zone, OBJV_CLASS(CLContextDispatchTask),context,taskType,task,target,child,invoke,NULL);
-}
-
 void CLContextHandleTask(CLContext * context, objv_class_t * taskType, CLTask * task){
+    
     if(context && taskType && task){
         
-        if(context->dispatch == objv_dispatch_get_current()){
+        objv_class_t * c = context->base.isa;
+        
+        objv_method_t * method = NULL;
+        
+        while(c && (method = objv_class_getMethod(c, OBJV_KEY(handleTask))) == NULL){
             
-            objv_class_t * c = context->base.isa;
-            
-            objv_method_t * method = NULL;
-            
-            while(c && (method = objv_class_getMethod(c, OBJV_KEY(handleTask))) == NULL){
-                
-                c = c->superClass;
-            }
-            
-            if(method){
-                (* (CLContextHandleTaskFun) method->impl)(c,context,taskType,task);
-            }
+            c = c->superClass;
         }
-        else{
-            
-            CLContextDispatchTask * dispatchTask = CLContextDispatchTaskAlloc(context->base.zone,context,taskType,task,NULL,NULL,CLContextDispatchTaskInvokeHandleTask);
-            
-            objv_dispatch_addTask(context->dispatch, (objv_dispatch_task_t *) dispatchTask);
-            
-            objv_object_release((objv_object_t *) dispatchTask);
+        
+        if(method){
+            (* (CLContextHandleTaskFun) method->impl)(c,context,taskType,task);
         }
+    
     }
 }
 
@@ -253,71 +138,82 @@ static void _CLContextSendTask(CLContext * context, objv_class_t * taskType, CLT
     
 }
 
-typedef struct _CLContextSendTaskToChildCallbackContext {
-    objv_class_t * taskType;
-    CLTask * task;
-} CLContextSendTaskToChildCallbackContext;
-
 static void CLContextSendTaskToChildCallback(objv_actree_t * actree,objv_object_t * key,objv_object_t * value,void * context){
-    CLContextSendTaskToChildCallbackContext * c = (CLContextSendTaskToChildCallbackContext *) context;
-    CLContext * ctx = (CLContext *) value;
-    _CLContextSendTask(ctx, c->taskType, c->task);
+    objv_array_t * contexts = (objv_array_t *) context;
+    objv_array_add(contexts, value);
 }
 
 void CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * task,objv_string_t * target){
-    if(context && taskType && task ){
+    if(context && context->domain && taskType && task ){
         
-        if(context->dispatch == objv_dispatch_get_current()){
-            
-            if(task->source == NULL){
-                task->identifier = ++ context->identifier;
-                task->source = (CLContext *) objv_object_retain( (objv_object_t *) context);
-            }
-            
-            if(target == NULL){
-                target = context->domain;
-            }
-            
-            const char *p;
-            
-            if( (p = objv_string_hasPrefix(target->UTF8String, context->domain->UTF8String) ) ){
-                {
-                    const char * lp;
-                    CLContext * ctx;
-                    objv_zone_t * zone = context->base.zone;
+        objv_mutex_lock( & context->mutex );
+    
+        if(task->source == NULL){
+            task->identifier = ++ context->identifier;
+            task->source = (CLContext *) objv_object_retain( (objv_object_t *) context);
+        }
+        
+        if(target == NULL){
+            target = context->domain;
+        }
+        
+        objv_mutex_unlock( & context->mutex );
+
+        const char *p;
+        
+        if( (p = objv_string_hasPrefix(target->UTF8String, context->domain->UTF8String) ) ){
+            {
+                const char * lp;
+                CLContext * ctx;
+                objv_zone_t * zone = context->base.zone;
+                objv_array_t * contexts;
+                int i;
+                
+                if((lp = objv_string_hasSuffix(target->UTF8String, ".*"))){
                     
-                    if((lp = objv_string_hasSuffix(target->UTF8String, ".*"))){
+                    if(objv_string_hasPrefixTo(context->domain->UTF8String,target->UTF8String, lp)){
+                        _CLContextSendTask(context,taskType,task);
+                    }
+                    
+                    contexts = objv_array_new(zone, 4);
+                    
+                    objv_mutex_lock( & context->mutex );
+                    
+                    if(context->childsTree){
                         
-                        if(objv_string_hasPrefixTo(context->domain->UTF8String,target->UTF8String, lp)){
-                            _CLContextSendTask(context,taskType,task);
+                        objv_array_t * keys = objv_string_split_UTF8String(zone,p, ".");
+                        
+                        if(keys && keys->length >0 ){
+                            objv_array_replaceAt(keys, (objv_object_t *) context->domain, 0);
                         }
                         
-                        if(context->childsTree){
-                            {
-        
-                                objv_array_t * keys = objv_string_split_UTF8String(zone,p, ".");
-                                
-                                CLContextSendTaskToChildCallbackContext c = {taskType,task};
-                                
-                                if(keys && keys->length >0 ){
-                                    objv_array_replaceAt(keys, (objv_object_t *) context->domain, 0);
-                                }
-                                
-                                objv_array_removeLast(keys);
-                                
-                                objv_actree_echo(context->childsTree, CLContextSendTaskToChildCallback, & c);
-                                
-                            }
-                        }
+                        objv_array_removeLast(keys);
+
+                        objv_actree_echo(context->childsTree, CLContextSendTaskToChildCallback, contexts);
+                    }
+                    
+                    objv_mutex_unlock( & context->mutex );
+                    
+                    for(i=0;i<contexts->length;i++){
+                        
+                        _CLContextSendTask((CLContext *) objv_array_objectAt(contexts, i), taskType, task);
                         
                     }
-                    else{
+                
+                }
+                else{
+                    
+                    if(strcmp(target->UTF8String, context->domain->UTF8String) == 0){
+                        _CLContextSendTask(context,taskType,task);
+                    }
+                    else {
+                    
+                        ctx = NULL;
                         
-                        if(strcmp(target->UTF8String, context->domain->UTF8String) == 0){
-                            _CLContextSendTask(context,taskType,task);
-                        }
-                        else if(context->childsTree){
+                        objv_mutex_lock( & context->mutex );
                         
+                        if(context->childsTree){
+                            
                             {
                                 objv_array_t * keys = objv_string_split_UTF8String(zone,p, ".");
                                 
@@ -326,122 +222,116 @@ void CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * ta
                                 }
                                 
                                 ctx = (CLContext *) objv_actree_value(context->childsTree, keys);
-                                
-                                if(ctx){
-                                    _CLContextSendTask(ctx,taskType,task);
-                                }
+                            
+                                objv_object_retain((objv_object_t *) ctx);
                             }
                             
                         }
+                        
+                        objv_mutex_unlock( & context->mutex );
+                        
+                        if(ctx){
+                            
+                            _CLContextSendTask(ctx,taskType,task);
+                            
+                            objv_object_release((objv_object_t *) ctx);
+                        }
+                        
                     }
                 }
+            }
 
-            }
-            else if( context->parent ){
-                _CLContextSendTask( context->parent , taskType, task);
-            }
-            
         }
-        else{
-            CLContextDispatchTask * dispatchTask = (CLContextDispatchTask *) CLContextDispatchTaskAlloc(context->base.zone, context,taskType,task,target,NULL,CLContextDispatchTaskInvokeSendTask);
-            
-            objv_dispatch_addTask(context->dispatch, (objv_dispatch_task_t *) dispatchTask);
-            
-            objv_object_release((objv_object_t *) dispatchTask);
+        else if( context->parent ){
+            _CLContextSendTask( context->parent , taskType, task);
         }
-        
+    
     }
 }
 
 void CLContextAddChild(CLContext * context, CLContext * child){
+    
     const char * p;
     
     if(context && context->domain && child && child->domain && child->parent == NULL
        && (p = objv_string_hasPrefix(child->domain->UTF8String, context->domain->UTF8String))){
         
-        if(context->dispatch == objv_dispatch_get_current()){
+        objv_zone_t * zone = context->base.zone;
+        objv_boolean_t setdomain = objv_false;
+        
+        objv_mutex_lock( & context->mutex);
+        
+        child->parent = context;
+        
+        if(context->childs == NULL){
+            context->childs = objv_array_alloc(zone, 4);
+        }
+        
+        if(context->childsTree == NULL){
+            context->childsTree = objv_actree_alloc(zone, (objv_object_t *)context->domain, NULL);
+        }
+        
+        objv_array_add(context->childs, (objv_object_t *) child);
+        
+        objv_array_t * keys = objv_string_split_UTF8String(zone, p, ".");
+        
+        if(keys && keys->length > 1){
             
-            objv_zone_t * zone = context->base.zone;
-            objv_boolean_t setdomain = objv_false;
+            objv_string_t * key = (objv_string_t *) objv_array_objectAt(keys, 0);
             
-            child->parent = context;
+            if(key->length == 0){
+                
+                objv_array_replaceAt(keys, (objv_object_t *) context->domain, 0);
             
-            if(context->childs == NULL){
-                context->childs = objv_array_alloc(zone, 4);
             }
             
-            if(context->childsTree == NULL){
-                context->childsTree = objv_actree_alloc(zone, (objv_object_t *)context->domain, NULL);
-            }
+            key = (objv_string_t *) objv_array_objectAt(keys, keys->length - 1);
             
-            objv_array_add(context->childs, (objv_object_t *) child);
-
-            objv_array_t * keys = objv_string_split_UTF8String(zone, p, ".");
-            
-            if(keys && keys->length > 1){
+            if(strcmp(key->UTF8String, "*") == 0){
                 
-                objv_string_t * key = (objv_string_t *) objv_array_objectAt(keys, 0);
-                
-                if(key->length == 0){
+                {
+                    char uuid[128];
                     
-                    objv_array_replaceAt(keys, (objv_object_t *) context->domain, 0);
-                
-                }
-                
-                key = (objv_string_t *) objv_array_objectAt(keys, keys->length - 1);
-                
-                if(strcmp(key->UTF8String, "*") == 0){
+                    snprintf(uuid, sizeof(uuid), "%lx", rand() + time(NULL));
                     
-                    {
-                        char uuid[128];
+                    key = objv_string_new(zone, uuid);
+                    
+                    objv_array_replaceAt(keys, (objv_object_t *) key, keys->length - 1);
+                    
+                    while(objv_actree_value(context->childsTree, keys)){
                         
-                        snprintf(uuid, sizeof(uuid), "%lx", rand() + time(NULL));
+                        snprintf(uuid, sizeof(uuid),"%lx", rand() + time(NULL));
                         
                         key = objv_string_new(zone, uuid);
                         
                         objv_array_replaceAt(keys, (objv_object_t *) key, keys->length - 1);
                         
-                        while(objv_actree_value(context->childsTree, keys)){
-                            
-                            snprintf(uuid, sizeof(uuid),"%lx", rand() + time(NULL));
-                            
-                            key = objv_string_new(zone, uuid);
-                            
-                            objv_array_replaceAt(keys, (objv_object_t *) key, keys->length - 1);
-                            
-                        }
-                        
-                        CLContextSetDomain(child, objv_array_joinString(keys, "."));
-                        
-                        setdomain = objv_true;
-                        
                     }
+                    
+                    CLContextSetDomain(child, objv_array_joinString(keys, "."));
+                    
+                    setdomain = objv_true;
                     
                 }
                 
-                objv_actree_setValue(context->childsTree, keys, (objv_object_t *) child);
-                
-                objv_log("CLContextAddChild %s\n", child->domain ? child->domain->UTF8String : "");
-                
-                if(setdomain){
-                    {
-                        CLDomainSetTask * task = CLDomainSetTaskAlloc(zone, child->domain);
-                        
-                        CLContextSendTask(context, OBJV_CLASS(CLDomainSetTask), (CLTask *) task, child->domain);
-                        
-                        objv_object_release((objv_object_t *) task);
-                    }
-                }
             }
             
+            objv_actree_setValue(context->childsTree, keys, (objv_object_t *) child);
+            
+            objv_log("CLContextAddChild %s\n", child->domain ? child->domain->UTF8String : "");
+            
         }
-        else{
-            
-            CLContextDispatchTask * dispatchTask = (CLContextDispatchTask *) CLContextDispatchTaskAlloc(context->base.zone,context,NULL,NULL,NULL,child,CLContextDispatchTaskInvokeAddChild);
-            
-            objv_dispatch_addTask(context->dispatch, (objv_dispatch_task_t *) dispatchTask);
-            
-            objv_object_release((objv_object_t *) dispatchTask);
+        
+        objv_mutex_unlock( & context->mutex);
+   
+        if(setdomain){
+            {
+                CLDomainSetTask * task = CLDomainSetTaskAlloc(zone, child->domain);
+                
+                CLContextSendTask(context, OBJV_CLASS(CLDomainSetTask), (CLTask *) task, child->domain);
+                
+                objv_object_release((objv_object_t *) task);
+            }
         }
     }
 }
@@ -453,47 +343,52 @@ void CLContextRemoveChild(CLContext * context,CLContext * child){
     if(context && child && child->parent == context
        && (p = objv_string_hasPrefix(child->domain->UTF8String, context->domain->UTF8String))){
         
-        if(context->dispatch == objv_dispatch_get_current()){
-            
-            objv_zone_t * zone = context->base.zone;
+        
+        objv_zone_t * zone = context->base.zone;
 
-            objv_array_t * keys = objv_string_split_UTF8String(zone, p, ".");
+        objv_mutex_lock(& context->mutex);
+        
+        objv_array_t * keys = objv_string_split_UTF8String(zone, p, ".");
+        
+        if(keys && keys->length > 1){
             
-            if(keys && keys->length > 1){
+            objv_string_t * key = (objv_string_t *) objv_array_objectAt(keys, 0);
+            
+            if(key->length == 0){
                 
-                objv_string_t * key = (objv_string_t *) objv_array_objectAt(keys, 0);
+                objv_array_replaceAt(keys, (objv_object_t *) context->domain, 0);
                 
-                if(key->length == 0){
-                    
-                    objv_array_replaceAt(keys, (objv_object_t *) context->domain, 0);
-                    
-                    objv_actree_remove(context->childsTree, keys);
-                    
-                }
+                objv_actree_remove(context->childsTree, keys);
                 
             }
             
-            objv_log("CLContextRemoveChild %s\n", child->domain ? child->domain->UTF8String : "");
-            
-            objv_array_remove(context->childs, (objv_object_t *) child);
-            
         }
-        else{
-            
-            CLContextDispatchTask * dispatchTask = (CLContextDispatchTask *) CLContextDispatchTaskAlloc(context->base.zone,context,NULL,NULL,NULL,child,CLContextDispatchTaskInvokeRemoveChild);
-            
-            objv_dispatch_addTask(context->dispatch, (objv_dispatch_task_t *) dispatchTask);
-            
-            objv_object_release((objv_object_t *) dispatchTask);
-        }
+        
+        objv_log("CLContextRemoveChild %s\n", child->domain ? child->domain->UTF8String : "");
+        
+        objv_array_remove(context->childs, (objv_object_t *) child);
+    
+        objv_mutex_unlock( & context->mutex);
     }
 }
 
 void CLContextSetDomain(CLContext * context, objv_string_t * domain){
     if(context && context->domain != domain){
+        objv_mutex_lock(& context->mutex);
         objv_object_retain((objv_object_t *) domain);
         objv_object_release((objv_object_t *) context->domain);
         context->domain = domain;
+        objv_mutex_unlock(& context->mutex);
+    }
+}
+
+void CLContextSetQueue(CLContext * ctx,objv_dispatch_queue_t * queue){
+    if(ctx && ctx->queue != queue){
+        objv_mutex_lock(& ctx->mutex);
+        objv_object_retain((objv_object_t *) queue);
+        objv_object_release((objv_object_t *) ctx->queue);
+        ctx->queue = queue;
+        objv_mutex_unlock(& ctx->mutex);
     }
 }
 

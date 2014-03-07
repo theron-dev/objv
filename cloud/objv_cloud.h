@@ -29,11 +29,12 @@ extern "C" {
         objv_object_t base;
         objv_string_t * READONLY domain;
         CLIdentifier READONLY identifier;
-        objv_dispatch_t * READONLY dispatch;
+        objv_dispatch_queue_t * READONLY queue;
         struct _CLContext * READONLY parent;
         objv_array_t * READONLY childs;
         objv_object_t * READONLY config;
         objv_actree_t * READONLY childsTree;
+        objv_mutex_t READONLY mutex;
     } CLContext;
     
     OBJV_KEY_DEC(CLContext)
@@ -115,6 +116,8 @@ extern "C" {
     
     void CLContextSetDomain(CLContext * context, objv_string_t * domain);
 
+    void CLContextSetQueue(CLContext * ctx,objv_dispatch_queue_t * queue);
+    
     OBJV_KEY_DEC(setConfig)
     
     typedef void ( * CLContextSetConfigFun ) (objv_class_t * clazz,CLContext * context,objv_object_t * config);

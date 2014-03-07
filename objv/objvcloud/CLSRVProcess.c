@@ -6,6 +6,8 @@
 //  Copyright (c) 2014年 hailong.org. All rights reserved.
 //
 
+#define READONLY
+
 #include "objv_os.h"
 #include "objv.h"
 #include "objv_server.h"
@@ -64,11 +66,11 @@ static void CLSRVProcessKill (OBJVSRVServer * server,OBJVSRVProcess * process,in
 
 static void CLSRVProcessOpen (OBJVSRVServer * server,OBJVSRVProcess * process){
     
-    objv_zombie_t zombie;
-    
-    objv_zombie_init(& zombie, 102400);
-    
-    objv_zone_default_set(& zombie.zone);
+//    objv_zombie_t zombie;
+//    
+//    objv_zombie_init(& zombie, 102400);
+//    
+//    objv_zone_default_set(& zombie.zone);
     
     objv_zone_t * zone = objv_zone_default();
     
@@ -126,7 +128,7 @@ static void CLSRVProcessOpen (OBJVSRVServer * server,OBJVSRVProcess * process){
     
     CLContextSetConfig(ctx->base.base.isa, (CLContext *)ctx,cfg);
     
-    unsigned int maxThreadCount = 512;
+    unsigned int maxThreadCount = 128;
 
     char * s = getenv(CL_ENV_MAX_THREAD_COUNT_KEY);
     
@@ -137,13 +139,12 @@ static void CLSRVProcessOpen (OBJVSRVServer * server,OBJVSRVProcess * process){
     if(maxThreadCount < 1){
         maxThreadCount = 1;
     }
-   
+    
     objv_dispatch_queue_t * connectQueue = objv_dispatch_queue_alloc(zone, "connectQueue", maxThreadCount);
     
     CLAcceptHandler handler = {server->run.listenSocket,server->run.listenMutex};
     
     ac = CLAcceptAllocWithHandler(zone, & handler);
-    
     ac->ctx = (CLContext *) objv_object_retain((objv_object_t *) ctx);
     
     CLAcceptSetConnectQueue(ac, connectQueue);

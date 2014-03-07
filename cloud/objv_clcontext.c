@@ -77,9 +77,7 @@ static void CLChannelContextMethodDealloc(objv_class_t * clazz,objv_object_t * o
     ctx->channels = NULL;
     
     objv_mutex_unlock(& ctx->channels_mutex);
-    
-    objv_object_release((objv_object_t *) ctx->queue);
-    
+   
     if(clazz->superClass){
         objv_object_dealloc(clazz->superClass, object);
     }
@@ -118,15 +116,45 @@ static void  CLChannelContextMethodSendTaskFun (objv_class_t * clazz,CLChannelCo
     }
     else{
         
+        CLChannel * channel;
+        
         objv_mutex_lock(& ctx->channels_mutex);
         
         if( ctx->channels && ctx->channels->length > 0){
             
-            for(int i=0;i<ctx->channels->length;i++){
-                CLChannel * channel = (CLChannel *) objv_array_objectAt(ctx->channels, i);
-                CLChannelPostTask(channel->base.isa, channel, task, taskType);
-            }
+            if(ctx->type == CLChannelContextTypeComplicating){
             
+                for(int i=0;i<ctx->channels->length;i++){
+                    channel = (CLChannel *) objv_array_objectAt(ctx->channels, i);
+                    
+                    if(OBJVChannelStatusOK  == CLChannelConnect(channel->base.isa, channel, 0.02)){
+                        
+                        CLChannelPostTask(channel->base.isa, channel, task, taskType);
+                    
+                    }
+                }
+            
+            }
+            else {
+                
+                if(ctx->index >= ctx->channels->length){
+                    ctx->index = 0;
+                }
+                
+                while(ctx->index < ctx->channels->length){
+                    
+                    channel = (CLChannel *) objv_array_objectAt(ctx->channels, ctx->index ++);
+                    
+                    if(OBJVChannelStatusOK  == CLChannelConnect(channel->base.isa, channel, 0.02)){
+                        
+                        CLChannelPostTask(channel->base.isa, channel, task, taskType);
+                        
+                        break;
+                    }
+                    
+                }
+                
+            }
         }
         
         objv_mutex_unlock(& ctx->channels_mutex);
@@ -216,7 +244,7 @@ static void CLChannelContextTaskRun(objv_class_t * clazz, CLChannelContextTask *
     }
     else if(task->ctx) {
         task->base.delay = MIN(0.2,task->idleTimeinval);
-        objv_dispatch_queue_addTask(task->ctx->queue, (objv_dispatch_task_t *) task);
+        objv_dispatch_queue_addTask(task->ctx->base.base.queue, (objv_dispatch_task_t *) task);
     }
 }
 
@@ -268,7 +296,7 @@ OBJV_CLASS_IMP_M(CLChannelContextTask, OBJV_CLASS(DispatchTask), CLChannelContex
 
 void CLChannelContextAddChannel(CLChannelContext * ctx,CLChannel * channel){
     
-    if(ctx && channel && ctx->queue){
+    if(ctx && channel && ctx->base.base.queue){
         
         objv_zone_t * zone = ctx->base.base.base.zone;
         
@@ -284,7 +312,7 @@ void CLChannelContextAddChannel(CLChannelContext * ctx,CLChannel * channel){
         
         task->keepAlive = ctx->keepAlive;
         
-        objv_dispatch_queue_addTask(ctx->queue, (objv_dispatch_task_t *) task);
+        objv_dispatch_queue_addTask(ctx->base.base.queue, (objv_dispatch_task_t *) task);
         
         objv_object_release((objv_object_t *) task);
     }
@@ -323,14 +351,6 @@ void CLChannelContextRemoveChannel(CLChannelContext * ctx,CLChannel * channel){
         objv_object_release((objv_object_t *) ctx);
     }
     
-}
-
-void CLChannelContextSetQueue(CLChannelContext * ctx,objv_dispatch_queue_t * queue){
-    if(ctx && ctx->queue != queue){
-        objv_object_retain((objv_object_t *) queue);
-        objv_object_release((objv_object_t *) ctx->queue);
-        ctx->queue = queue;
-    }
 }
 
 OBJV_KEY_IMP(willRemoveChannel)

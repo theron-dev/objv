@@ -179,8 +179,6 @@ void objv_dispatch_queue_addTask(objv_dispatch_queue_t * queue
             
             objv_mutex_unlock(& queue->mutex);
             
-           
-        
         }
         else {
             
