@@ -6,6 +6,7 @@
 //  Copyright (c) 2014年 hailong.org. All rights reserved.
 //
 
+#include "objv_os.h"
 #include "objv_crypt.h"
 
 
@@ -67,3 +68,167 @@ unsigned long objv_crc32(unsigned long crc32,const char * bytes, unsigned int le
 	return crc ^ ~0U;
 }
 
+static char objv_base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+#define IS_BASE_BIT(c)  (((c) >='A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z') || ((c) >= '0' && (c) <= '9') || (c) == '+' || (c) == '/')
+
+typedef struct _objv_base64_token_t{
+    char byte0;
+    char byte1;
+    char byte2;
+} objv_base64_token_t;
+
+typedef union _objv_base64_value_t{
+    objv_base64_token_t token;
+    int value;
+} objv_base64_value_t;
+
+objv_boolean_t objv_base64_encode(void * inData,unsigned int length,objv_mbuf_t * mbuf){
+    if(inData && length >0 && mbuf){
+        objv_base64_value_t value ;
+        char * data = (char *) inData;
+        char t[5] = {0};
+        int len = length / 3;
+        int d = length % 3;
+        int i,n;
+        
+        for(i=0;i<len;i++){
+            value.value = 0;
+#ifdef BITS_LOW
+            value.token.byte0 = data[i *3 + 2];
+            value.token.byte1 = data[i *3 + 1];
+            value.token.byte2 = data[i *3 + 0];
+#else
+            value.token.byte0 = data[i *3 + 0];
+            value.token.byte1 = data[i *3 + 1];
+            value.token.byte2 = data[i *3 + 2];
+#endif
+            for(n=0;n<4;n++){
+                t[3-n] = objv_base64_table[(value.value & 0x003f)];
+                value.value = value.value >> 6;
+            }
+            objv_mbuf_append(mbuf, t, 4);
+        }
+        if(d){
+            value.value = 0;
+            if(d == 1){
+#ifdef BITS_LOW
+                value.token.byte2 = data[i * 3];
+#else
+                value.token.byte0 = data[i * 3];
+#endif
+                for(n=0;n<4;n++){
+                    t[3-n] = objv_base64_table[(value.value & 0x003f)];
+                    value.value = value.value >> 6;
+                    if(n ==0 || n==1){
+                        t[3-n] = '=';
+                    }
+                }
+                objv_mbuf_append(mbuf, t, 4);
+            }
+            else if(d == 2){
+#ifdef BITS_LOW
+                value.token.byte2 = data[i * 3];
+                value.token.byte1 = data[i * 3 + 1];
+#else
+                value.token.byte0 = data[i * 3];
+                value.token.byte1 = data[i * 3 + 1];
+#endif
+                for(n=0;n<4;n++){
+                    t[3-n] = objv_base64_table[(value.value & 0x003f)];
+                    value.value = value.value >> 6;
+                    if(n ==0){
+                        t[3-n] = '=';
+                    }
+                }
+                objv_mbuf_append(mbuf, t, 4);
+            }
+        }
+        return objv_true;
+    }
+    return objv_false;
+}
+
+objv_boolean_t objv_base64_decode(const char * text,objv_mbuf_t * mbuf){
+    if(text && mbuf){
+        char *p = (char *)text;
+        int i;
+        objv_base64_value_t value;
+        int last = 0;
+        
+        while(*p != '\0'){
+            if(*p == '\n' || *p == '\r' || *p == ' ' || *p =='\t'){
+                p ++;
+                continue;
+            }
+            
+            if(p[0] && p[1] && p[2] && p[3]){
+                value.value = 0;
+                for(i=0;i<4;i++){
+                    if( IS_BASE_BIT(*p)){
+                        value.value = value.value << 6;
+                        if(*p >= 'A' && *p<= 'Z'){
+                            value.value = value.value | (*p -'A');
+                        }
+                        else if(*p >= 'a' && *p <='z'){
+                            value.value = value.value | (*p - 'a' + 26);
+                        }
+                        else if(*p >= '0' && *p <= '9'){
+                            value.value = value.value | (*p - '0' + 52);
+                        }
+                        else if(*p == '+'){
+                            value.value = value.value | 62;
+                        }
+                        else if(*p == '/'){
+                            value.value = value.value | 63;
+                        }
+                    }
+                    else if(*p == '='){
+                        value.value = value.value << 6;
+                        last ++;
+                    }
+                    else{
+                        return objv_false;
+                    }
+                    p ++;
+                }
+                
+                if(last ==0){
+#ifdef BITS_LOW
+                    objv_mbuf_append(mbuf,&value.token.byte2,1);
+                    objv_mbuf_append(mbuf,&value.token.byte1,1);
+                    objv_mbuf_append(mbuf,&value.token.byte0,1);
+#else
+                    objv_mbuf_append(mbuf,&value.token.byte0,1);
+                    objv_mbuf_append(mbuf,&value.token.byte1,1);
+                    objv_mbuf_append(mbuf,&value.token.byte2,1);
+#endif
+                }
+                else if(last ==1){
+#ifdef BITS_LOW
+                    objv_mbuf_append(mbuf,&value.token.byte2,1);
+                    objv_mbuf_append(mbuf,&value.token.byte1,1);
+#else
+                    objv_mbuf_append(mbuf,&value.token.byte0,1);
+                    objv_mbuf_append(mbuf,&value.token.byte1,1);
+#endif
+                }
+                else if(last == 2){
+#ifdef BITS_LOW
+                    objv_mbuf_append(mbuf,&value.token.byte2,1);
+#else
+                    objv_mbuf_append(mbuf,&value.token.byte0,1);
+#endif
+                }
+                else {
+                    return objv_false;
+                }
+            }
+            else{
+                return objv_false;
+            }
+        }
+        return objv_true;
+    }
+    return objv_false;
+}

@@ -45,14 +45,7 @@ int objv_map_compare_key(void * key1 ,void * key2){
         return 0;
     }
     
-    long r = 0;
-    
-    if(k1->type == k2->type){
-        r = (long) k1->name - (long) k2->name;
-    }
-    else{
-        r = strcmp(k1->name, k2->name);
-    }
+    long r = strcmp(k1->name, k2->name);
     
     if(r > 0){
         return 1;

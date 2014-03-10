@@ -42,6 +42,9 @@
 
 #define closesocket(c) close(c)
 
+#define BITS_LOW
+//#define BITS_HIGH
+
 #endif
 
 #ifdef TARGET_OS_WIN32

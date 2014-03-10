@@ -110,6 +110,17 @@ extern "C" {
 
     void CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * task, objv_string_t * target);
     
+    typedef struct _CLContextChildChangedTask {
+        CLTask base;
+        objv_string_t * READONLY domain;
+        objv_string_t * READONLY state;
+    } CLContextChildChangedTask;
+    
+    OBJV_KEY_DEC(CLContextChildChangedTask)
+    OBJV_CLASS_DEC(CLContextChildChangedTask)
+    
+    OBJV_KEY_DEC(state);
+    
     void CLContextAddChild(CLContext * context, CLContext * child);
     
     void CLContextRemoveChild(CLContext * context,CLContext * child);

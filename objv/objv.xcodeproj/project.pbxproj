@@ -23,6 +23,7 @@
 		1167A91E18BED89C00AEA7B5 /* objv_http.c in Sources */ = {isa = PBXBuildFile; fileRef = 1167A91D18BED89C00AEA7B5 /* objv_http.c */; };
 		119EBDBA18A65A9400B745D7 /* objv_inifile.c in Sources */ = {isa = PBXBuildFile; fileRef = 119EBDB918A65A9400B745D7 /* objv_inifile.c */; };
 		119EBDBF18A70D2600B745D7 /* objv_cloud.c in Sources */ = {isa = PBXBuildFile; fileRef = 119EBDBE18A70D2600B745D7 /* objv_cloud.c */; };
+		11A03AAB18CDAAEF006F047E /* objv_mail.c in Sources */ = {isa = PBXBuildFile; fileRef = 11A03AAA18CDAAEF006F047E /* objv_mail.c */; };
 		11BB350F18BAF55100BF0C4F /* objv_server_posix.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BB350E18BAF55100BF0C4F /* objv_server_posix.c */; };
 		11BD79191899427E00F028AC /* objv.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD79181899427E00F028AC /* objv.c */; };
 		11BD791E189953EB00F028AC /* objv_zone.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD791D189953EB00F028AC /* objv_zone.c */; };
@@ -148,6 +149,8 @@
 		119EBDB918A65A9400B745D7 /* objv_inifile.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_inifile.c; sourceTree = "<group>"; };
 		119EBDBD18A70D1300B745D7 /* objv_cloud.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_cloud.h; sourceTree = "<group>"; };
 		119EBDBE18A70D2600B745D7 /* objv_cloud.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_cloud.c; sourceTree = "<group>"; };
+		11A03AA918CDA456006F047E /* objv_mail.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_mail.h; sourceTree = "<group>"; };
+		11A03AAA18CDAAEF006F047E /* objv_mail.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_mail.c; sourceTree = "<group>"; };
 		11BB350D18BAF33700BF0C4F /* objv_server.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_server.h; sourceTree = "<group>"; };
 		11BB350E18BAF55100BF0C4F /* objv_server_posix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_server_posix.c; sourceTree = "<group>"; };
 		11BD79091899409000F028AC /* libobjv.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libobjv.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -302,6 +305,14 @@
 			path = ../cloud;
 			sourceTree = "<group>";
 		};
+		11A03AA818CDA306006F047E /* services */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = services;
+			path = ../services;
+			sourceTree = "<group>";
+		};
 		11BB350C18BAF24600BF0C4F /* server */ = {
 			isa = PBXGroup;
 			children = (
@@ -315,6 +326,7 @@
 		11BD79001899409000F028AC = {
 			isa = PBXGroup;
 			children = (
+				11A03AA818CDA306006F047E /* services */,
 				1143853B18C962360024925A /* db */,
 				1167A91B18BED84D00AEA7B5 /* http */,
 				11BB350C18BAF24600BF0C4F /* server */,
@@ -377,6 +389,7 @@
 				11D0BAD818A8729D009761A8 /* objv_channel_tcp.h */,
 				1153BAD818C02BF4009EF09A /* objv_actree.h */,
 				1153BAFE18C5CFBD009EF09A /* objv_url.h */,
+				11A03AA918CDA456006F047E /* objv_mail.h */,
 			);
 			name = include;
 			path = ../include;
@@ -423,6 +436,7 @@
 				11D0BAD918A87302009761A8 /* objv_channel_tcp.c */,
 				1153BAD918C02C1E009EF09A /* objv_actree.c */,
 				1153BAFF18C5CFC6009EF09A /* objv_url.c */,
+				11A03AAA18CDAAEF006F047E /* objv_mail.c */,
 			);
 			name = source;
 			path = ../source;
@@ -570,6 +584,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				11D0BADD18A883DE009761A8 /* objv_clchannel.c in Sources */,
+				11A03AAB18CDAAEF006F047E /* objv_mail.c in Sources */,
 				11D0BAE118A8D1A9009761A8 /* objv_clcontext.c in Sources */,
 				1153BB0018C5CFC6009EF09A /* objv_url.c in Sources */,
 				11BD7942189A0FD400F028AC /* objv_dictionary.c in Sources */,

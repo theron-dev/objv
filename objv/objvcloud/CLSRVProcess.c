@@ -122,8 +122,24 @@ static void CLSRVProcessOpen (OBJVSRVServer * server,OBJVSRVProcess * process){
     
     CLServiceContainerSetConfig(container, cfg);
     
-    CLServiceContext * ctx = (CLServiceContext *) objv_object_new(zone, OBJV_CLASS(CLServiceContext),NULL);
+    CLServiceContext * ctx = NULL;
     
+    {
+        objv_string_t * className = objv_object_stringValueForKey(cfg, (objv_object_t *) objv_string_new_nocopy(zone, "class"), NULL);
+        objv_class_t * clazz = NULL;
+        
+        if(className){
+            clazz = objv_class(objv_key(className->UTF8String));
+        }
+        
+        if(clazz == NULL || ! objv_class_isKindOfClass(clazz, OBJV_CLASS(CLServiceContext)) ){
+            clazz = OBJV_CLASS(CLServiceContext);
+        }
+        
+        ctx = (CLServiceContext *) objv_object_new(zone, clazz,NULL);
+    }
+    
+
     CLServiceContextSetContainer(ctx, container);
     
     CLContextSetConfig(ctx->base.base.isa, (CLContext *)ctx,cfg);

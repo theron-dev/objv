@@ -105,7 +105,7 @@ void objv_zone_release(objv_zone_t * zone,void * ptr){
         zone = objv_zone_default();
     }
     
-    if(zone->retain){
+    if(zone->release){
         (* zone->release)( zone ,ptr);
     }
 }

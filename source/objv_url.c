@@ -22,6 +22,8 @@ static void objv_url_method_dealloc(objv_class_t * clazz,objv_object_t * object)
     
     objv_object_release((objv_object_t *) url->protocol);
     objv_object_release((objv_object_t *) url->domain);
+    objv_object_release((objv_object_t *) url->user);
+    objv_object_release((objv_object_t *) url->password);
     objv_object_release((objv_object_t *) url->port);
     objv_object_release((objv_object_t *) url->path);
     objv_object_release((objv_object_t *) url->query);
@@ -52,7 +54,7 @@ objv_url_t * objv_url_alloc(objv_zone_t * zone,const char * url){
         
         char * p = (char *) url;
         char * i = (char *) objv_string_indexOf(p, "://");
-        char * ii;
+        char * ii, *iii;
         
         if(i){
             u->protocol = objv_string_alloc_with_length(zone, p, i - p);
@@ -63,7 +65,24 @@ objv_url_t * objv_url_alloc(objv_zone_t * zone,const char * url){
         
         if(i){
             
-            ii = (char *) objv_string_indexOf(p, ":");
+            ii = (char *) objv_string_indexOfTo(p, "@",i);
+            
+            if(ii){
+                
+                iii = (char *) objv_string_indexOfTo(p, ":",ii);
+                
+                if(iii){
+                    u->user = objv_string_alloc_with_length(zone, p, iii - p);
+                    u->password = objv_string_alloc_with_length(zone, iii + 1, iii - ii - 1);
+                }
+                else{
+                    u->user = objv_string_alloc_with_length(zone, p, ii - p);
+                }
+                
+                p = ii + 1;
+            }
+            
+            ii = (char *) objv_string_indexOfTo(p, ":",i);
             
             if(ii && i > ii){
                 u->domain = objv_string_alloc_with_length(zone, p, ii - p);
@@ -110,6 +129,8 @@ objv_url_t * objv_url_alloc(objv_zone_t * zone,const char * url){
             
             if(i){
                 
+                u->domain = objv_string_alloc_with_length(zone, p, i - p);
+                
                 p = i + 1;
                 
                 i = (char *) objv_string_indexOf(p, "#");
@@ -121,6 +142,19 @@ objv_url_t * objv_url_alloc(objv_zone_t * zone,const char * url){
                 }
                 else{
                     u->query = objv_string_alloc(zone, p);
+                }
+                
+            }
+            else {
+                
+                i = (char *) objv_string_indexOf(p, "#");
+                
+                if(i){
+                    u->domain = objv_string_alloc_with_length(zone, p, i -p);
+                    u->token = objv_string_alloc(zone, i + 1);
+                }
+                else{
+                    u->domain = objv_string_alloc(zone, p);
                 }
                 
             }

@@ -83,7 +83,8 @@ static objv_object_t * objv_string_methods_init(objv_class_t * clazz, objv_objec
             value->length = length;
             value->UTF8String = objv_zone_malloc(object->zone, value->length + 1);
             value->copyed = objv_true;
-            memcpy(value->UTF8String, s, length + 1);
+            memcpy(value->UTF8String, s, length);
+            value->UTF8String[length] = 0;
         }
         else{
             value->length = length;
@@ -394,6 +395,28 @@ const char * objv_string_indexOf(const char * string,const char * substring){
         char * s = (char *) substring;
         
         while(*p !=0 && * s != 0){
+            
+            if(*p == *s){
+                s ++;
+            }
+            else{
+                p = p - (s - substring);
+                s = (char *) substring;
+            }
+            
+            p ++;
+        }
+        return * s == 0 ? p - (s - substring) : NULL;
+    }
+    return NULL;
+}
+
+const char * objv_string_indexOfTo(const char * string,const char * substring,const char * toString){
+    if(string && substring){
+        char * p = (char *) string;
+        char * s = (char *) substring;
+        
+        while(p != toString && *p != 0 && * s != 0){
             
             if(*p == *s){
                 s ++;

@@ -14,8 +14,13 @@
 extern "C" {
 #endif
    
-    unsigned long objv_crc32(unsigned long crc32,const char * bytes, unsigned int length);
+#include "objv_mbuf.h"
     
+    unsigned long objv_crc32(unsigned long crc32,const char * bytes, unsigned int length);
+
+    objv_boolean_t objv_base64_encode(void * data,unsigned int length,objv_mbuf_t * mbuf);
+    
+    objv_boolean_t objv_base64_decode(const char * text,objv_mbuf_t * mbuf);
     
 #ifdef __cplusplus
 }

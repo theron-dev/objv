@@ -177,15 +177,17 @@ static void objv_object_methods_setObjectForKey(objv_class_t * clazz,objv_object
     
 }
 
-static objv_method_t objv_object_methods[] = {
-    {OBJV_KEY(dealloc),"v()",(objv_method_impl_t)objv_object_methods_dealloc}
-    ,{OBJV_KEY(hashCode),"l()",(objv_method_impl_t)objv_object_method_hashCode}
-    ,{OBJV_KEY(equal),"b()",(objv_method_impl_t)objv_object_method_equal}
-    ,{OBJV_KEY(retainCount),"i()",(objv_method_impl_t)objv_object_methods_retainCount}
-    ,{OBJV_KEY(keyIterator),"@()",(objv_method_impl_t)objv_object_methods_keyIterator}
-    ,{OBJV_KEY(objectForKey),"@(@)",(objv_method_impl_t)objv_object_methods_objectForKey}
-    ,{OBJV_KEY(setObjectForKey),"v(@,@)",(objv_method_impl_t)objv_object_methods_setObjectForKey}
-};
+OBJV_CLASS_METHOD_IMP_BEGIN(Object)
+
+OBJV_CLASS_METHOD_IMP(dealloc, "v()", objv_object_methods_dealloc)
+OBJV_CLASS_METHOD_IMP(hashCode,"l()",objv_object_method_hashCode)
+OBJV_CLASS_METHOD_IMP(equal,"b()",objv_object_method_equal)
+OBJV_CLASS_METHOD_IMP(retainCount,"i()",objv_object_methods_retainCount)
+OBJV_CLASS_METHOD_IMP(keyIterator,"@()",objv_object_methods_keyIterator)
+OBJV_CLASS_METHOD_IMP(objectForKey,"@(@)",objv_object_methods_objectForKey)
+OBJV_CLASS_METHOD_IMP(setObjectForKey,"v(@,@)",objv_object_methods_setObjectForKey)
+
+OBJV_CLASS_METHOD_IMP_END(Object)
 
 
 static void objv_object_class_initialize(objv_class_t * clazz){
@@ -193,7 +195,7 @@ static void objv_object_class_initialize(objv_class_t * clazz){
 }
 
 objv_class_t objv_Object_class = {OBJV_KEY(Object),NULL
-    ,objv_object_methods,sizeof(objv_object_methods) / sizeof(objv_method_t)
+    ,objv_Object_methods,sizeof(objv_Object_methods) / sizeof(objv_method_t)
     ,NULL,0
     ,sizeof(objv_object_t)
     ,objv_object_class_initialize,0};

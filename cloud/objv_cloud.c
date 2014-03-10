@@ -13,7 +13,8 @@
 #include "objv_cloud.h"
 #include "objv_value.h"
 #include "objv_log.h"
-#include "objv_log.h"
+#include "objv_autorelease.h"
+
 
 OBJV_KEY_IMP(CLContext)
 OBJV_KEY_IMP(handleTask)
@@ -249,6 +250,66 @@ void CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * ta
     }
 }
 
+
+OBJV_KEY_IMP(CLContextChildChangedTask)
+OBJV_KEY_IMP(state)
+
+static void CLContextChildChangedTaskDealloc(objv_class_t * clazz,objv_object_t * object) {
+
+    CLContextChildChangedTask * task = (CLContextChildChangedTask *) object;
+    
+    objv_object_release((objv_object_t *) task->domain);
+    objv_object_release((objv_object_t *) task->state);
+    
+    
+}
+
+static objv_string_t * CLContextChildChangedTaskGetDomain(objv_class_t * clazz,objv_object_t * object) {
+    CLContextChildChangedTask * task = (CLContextChildChangedTask *) object;
+    return task->domain;
+}
+
+static void CLContextChildChangedTaskSetDomain(objv_class_t * clazz,objv_object_t * object,objv_string_t * domain) {
+    CLContextChildChangedTask * task = (CLContextChildChangedTask *) object;
+    if(task->domain != domain){
+        objv_object_retain((objv_object_t *) domain);
+        objv_object_release((objv_object_t *) task->domain);
+        task->domain = domain;
+    }
+}
+
+static objv_string_t * CLContextChildChangedTaskGetState(objv_class_t * clazz,objv_object_t * object) {
+    CLContextChildChangedTask * task = (CLContextChildChangedTask *) object;
+    return task->state;
+}
+
+static void CLContextChildChangedTaskSetState(objv_class_t * clazz,objv_object_t * object,objv_string_t * state) {
+    CLContextChildChangedTask * task = (CLContextChildChangedTask *) object;
+    if(task->state != state){
+        objv_object_retain((objv_object_t *) state);
+        objv_object_release((objv_object_t *) task->state);
+        task->state = state;
+    }
+}
+
+OBJV_CLASS_METHOD_IMP_BEGIN(CLContextChildChangedTask)
+
+OBJV_CLASS_METHOD_IMP(dealloc, "v()", CLContextChildChangedTaskDealloc)
+
+OBJV_CLASS_METHOD_IMP_END(CLContextChildChangedTask)
+
+
+OBJV_CLASS_PROPERTY_IMP_BEGIN(CLContextChildChangedTask)
+
+OBJV_CLASS_PROPERTY_IMP(domain, object, CLContextChildChangedTaskGetDomain, CLContextChildChangedTaskSetDomain, objv_true)
+
+OBJV_CLASS_PROPERTY_IMP(state, object, CLContextChildChangedTaskGetState, CLContextChildChangedTaskSetState, objv_true)
+
+OBJV_CLASS_PROPERTY_IMP_END(CLContextChildChangedTask)
+
+OBJV_CLASS_IMP_P_M(CLContextChildChangedTask, OBJV_CLASS(CLTask), CLContextChildChangedTask)
+
+
 void CLContextAddChild(CLContext * context, CLContext * child){
     
     const char * p;
@@ -333,6 +394,17 @@ void CLContextAddChild(CLContext * context, CLContext * child){
                 objv_object_release((objv_object_t *) task);
             }
         }
+        
+        {
+            CLContextChildChangedTask * task = (CLContextChildChangedTask *) objv_object_alloc(zone, OBJV_CLASS(CLContextChildChangedTask),NULL);
+            
+            task->domain = (objv_string_t *) objv_object_retain((objv_object_t *) child->domain);
+            task->state = objv_string_alloc_nocopy(zone, "add");
+            
+            CLContextSendTask(context, OBJV_CLASS(CLContextChildChangedTask), (CLTask *) task, NULL);
+            
+            objv_object_release((objv_object_t *) task);
+        }
     }
 }
 
@@ -345,6 +417,17 @@ void CLContextRemoveChild(CLContext * context,CLContext * child){
         
         
         objv_zone_t * zone = context->base.zone;
+        
+        {
+            CLContextChildChangedTask * task = (CLContextChildChangedTask *) objv_object_alloc(zone, OBJV_CLASS(CLContextChildChangedTask),NULL);
+            
+            task->domain = (objv_string_t *) objv_object_retain((objv_object_t *) child->domain);
+            task->state = objv_string_alloc_nocopy(zone, "remove");
+            
+            CLContextSendTask(context, OBJV_CLASS(CLContextChildChangedTask), (CLTask *) task, NULL);
+            
+            objv_object_release((objv_object_t *) task);
+        }
 
         objv_mutex_lock(& context->mutex);
         

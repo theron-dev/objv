@@ -25,6 +25,8 @@ extern "C" {
         objv_object_t base;
         objv_string_t * READONLY protocol;
         objv_string_t * READONLY domain;
+        objv_string_t * READONLY user;
+        objv_string_t * READONLY password;
         objv_string_t * READONLY port;
         objv_string_t * READONLY path;
         objv_string_t * READONLY query;
