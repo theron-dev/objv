@@ -109,56 +109,51 @@ static objv_object_t * CLChannelContextMethodInit(objv_class_t * clazz,objv_obje
 }
 
 
-static void  CLChannelContextMethodSendTaskFun (objv_class_t * clazz,CLChannelContext * ctx,objv_class_t * taskType,CLTask * task){
+static void  CLChannelContextMethodSendTaskFun (objv_class_t * clazz,CLChannelContext * ctx,objv_class_t * taskType,CLTask * task,objv_string_t * target){
     
-    if(task->source == (CLContext *) ctx){
-        CLContextHandleTask((CLContext *) ctx, taskType, task);
-    }
-    else{
+    CLChannel * channel;
+    
+    objv_mutex_lock(& ctx->channels_mutex);
+    
+    if( ctx->channels && ctx->channels->length > 0){
         
-        CLChannel * channel;
+        if(ctx->type == CLChannelContextTypeComplicating){
         
-        objv_mutex_lock(& ctx->channels_mutex);
-        
-        if( ctx->channels && ctx->channels->length > 0){
-            
-            if(ctx->type == CLChannelContextTypeComplicating){
-            
-                for(int i=0;i<ctx->channels->length;i++){
-                    channel = (CLChannel *) objv_array_objectAt(ctx->channels, i);
+            for(int i=0;i<ctx->channels->length;i++){
+                channel = (CLChannel *) objv_array_objectAt(ctx->channels, i);
+                
+                if(OBJVChannelStatusOK  == CLChannelConnect(channel->base.isa, channel, 0.02)){
                     
-                    if(OBJVChannelStatusOK  == CLChannelConnect(channel->base.isa, channel, 0.02)){
-                        
-                        CLChannelPostTask(channel->base.isa, channel, task, taskType);
-                    
-                    }
+                    CLChannelPostTask(channel->base.isa, channel, task, taskType,target);
+                
                 }
-            
             }
-            else {
-                
-                if(ctx->index >= ctx->channels->length){
-                    ctx->index = 0;
-                }
-                
-                while(ctx->index < ctx->channels->length){
-                    
-                    channel = (CLChannel *) objv_array_objectAt(ctx->channels, ctx->index ++);
-                    
-                    if(OBJVChannelStatusOK  == CLChannelConnect(channel->base.isa, channel, 0.02)){
-                        
-                        CLChannelPostTask(channel->base.isa, channel, task, taskType);
-                        
-                        break;
-                    }
-                    
-                }
-                
-            }
+        
         }
-        
-        objv_mutex_unlock(& ctx->channels_mutex);
+        else {
+            
+            if(ctx->index >= ctx->channels->length){
+                ctx->index = 0;
+            }
+            
+            while(ctx->index < ctx->channels->length){
+                
+                channel = (CLChannel *) objv_array_objectAt(ctx->channels, ctx->index ++);
+                
+                if(OBJVChannelStatusOK  == CLChannelConnect(channel->base.isa, channel, 0.02)){
+                    
+                    CLChannelPostTask(channel->base.isa, channel, task, taskType,target);
+                    
+                    break;
+                }
+                
+            }
+            
+        }
     }
+    
+    objv_mutex_unlock(& ctx->channels_mutex);
+    
 }
 
 static void CLChannelContextMethodSetConfig(objv_class_t * clazz,CLChannelContext * ctx,objv_object_t * config){
@@ -213,12 +208,18 @@ static void CLChannelContextTaskRun(objv_class_t * clazz, CLChannelContextTask *
             
             CLTask * t = NULL;
             objv_class_t * tType = NULL;
+            objv_string_t * target = NULL;
             
-            if((status = CLChannelReadTask(task->channel->base.isa,task->channel, & t, & tType, 0.02)) == OBJVChannelStatusOK){
+            if((status = CLChannelReadTask(task->channel->base.isa,task->channel, & t, & tType, & target, 0.02)) == OBJVChannelStatusOK){
                 
                 if(t && tType){
                     
-                    CLContextHandleTask((CLContext *) task->ctx, tType, t);
+                    if(target && strcmp( target->UTF8String , task->ctx->base.base.domain->UTF8String) != 0){
+                        CLContextSendTask((CLContext *) task->ctx, tType, t, target);
+                    }
+                    else{
+                        CLContextHandleTask((CLContext *) task->ctx, tType, t);
+                    }
                     
                     task->idleTimeinval = 0;
                 }

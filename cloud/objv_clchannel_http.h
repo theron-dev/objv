@@ -25,6 +25,7 @@ extern "C" {
     typedef struct _CLHttpChannelPostTask {
         CLTask * task;
         objv_class_t * taskType;
+        objv_string_t * target;
         struct _CLHttpChannelPostTask * next;
     } CLHttpChannelPostTask;
     
@@ -57,9 +58,9 @@ extern "C" {
     OBJV_CLASS_DEC(CLHttpChannel)
     
     
-    OBJVChannelStatus CLHttpChannelUnpackageTask(objv_zone_t * zone, CLTask ** task,objv_class_t ** taskType,objv_mbuf_t * data,CLHttpChannelContentType contentType);
+    OBJVChannelStatus CLHttpChannelUnpackageTask(objv_zone_t * zone, CLTask ** task,objv_class_t ** taskType,objv_string_t ** target,objv_mbuf_t * data,CLHttpChannelContentType contentType);
     
-    OBJVChannelStatus CLHttpChannelPackageTask(objv_zone_t * zone, CLTask * task,objv_class_t * taskType,objv_mbuf_t * mbuf,CLHttpChannelContentType contentType);
+    OBJVChannelStatus CLHttpChannelPackageTask(objv_zone_t * zone, CLTask * task,objv_class_t * taskType,objv_string_t * target,objv_mbuf_t * mbuf,CLHttpChannelContentType contentType);
 
         
 #ifdef __cplusplus

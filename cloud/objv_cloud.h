@@ -56,7 +56,7 @@ extern "C" {
         CLIdentifier READONLY replyIdentifier;
         objv_string_t * READONLY contentType;
         objv_mbuf_t READONLY content;
-        CLContext * READONLY source;
+        objv_string_t * READONLY source;
     } CLTask;
     
     OBJV_KEY_DEC(CLTask)
@@ -104,7 +104,7 @@ extern "C" {
     
     
     typedef void ( * CLContextHandleTaskFun ) (objv_class_t * clazz,CLContext * context,objv_class_t * taskType,CLTask * task);
-    typedef void ( * CLContextSendTaskFun ) (objv_class_t * clazz,CLContext * context,objv_class_t * taskType,CLTask * task);
+    typedef void ( * CLContextSendTaskFun ) (objv_class_t * clazz,CLContext * context,objv_class_t * taskType,CLTask * task,objv_string_t * target);
     
     void CLContextHandleTask(CLContext * context, objv_class_t * taskType, CLTask * task);
 

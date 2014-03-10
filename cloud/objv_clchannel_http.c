@@ -76,6 +76,7 @@ static void CLHttpChannelMethodDealloc(objv_class_t * clazz,objv_object_t * obje
         t = channel->beginTask;
         
         objv_object_release((objv_object_t *) t->task);
+        objv_object_release((objv_object_t *) t->target);
         
         objv_zone_free(zone, t);
         
@@ -121,7 +122,7 @@ static OBJVChannelStatus CLHttpChannelMethodDisconnect(objv_class_t * clazz,CLCh
 }
 
 
-OBJVChannelStatus CLHttpChannelUnpackageTask(objv_zone_t * zone, CLTask ** task,objv_class_t ** taskType,objv_mbuf_t * data,CLHttpChannelContentType contentType){
+OBJVChannelStatus CLHttpChannelUnpackageTask(objv_zone_t * zone, CLTask ** task,objv_class_t ** taskType,objv_string_t ** target,objv_mbuf_t * data,CLHttpChannelContentType contentType){
     
     if(contentType & CLHttpChannelContentTypeChunked){
         
@@ -200,6 +201,25 @@ OBJVChannelStatus CLHttpChannelUnpackageTask(objv_zone_t * zone, CLTask ** task,
                 p[h->value.location + h->value.length] = 0;
                 
                 t->replyIdentifier = atoll(p + h->value.location);
+                
+                h = OBJVHttpRequestGetHeader(& request, "source");
+                
+                if(! h){
+                    break;
+                }
+                
+                p[h->value.location + h->value.length] = 0;
+                
+                t->source = objv_string_alloc(zone, p + h->value.location);
+                
+                h = OBJVHttpRequestGetHeader(& request, "target");
+                
+                if(h && target){
+                    
+                    p[h->value.location + h->value.length] = 0;
+                    * target = objv_string_new(zone, p + h->value.location);
+                    
+                }
                 
                 h = OBJVHttpRequestGetHeader(& request, "Content-Type");
                 
@@ -282,7 +302,7 @@ OBJVChannelStatus CLHttpChannelUnpackageTask(objv_zone_t * zone, CLTask ** task,
     return OBJVChannelStatusError;
 }
 
-OBJVChannelStatus CLHttpChannelPackageTask(objv_zone_t * zone, CLTask * task,objv_class_t * taskType,objv_mbuf_t * mbuf,CLHttpChannelContentType contentType){
+OBJVChannelStatus CLHttpChannelPackageTask(objv_zone_t * zone, CLTask * task,objv_class_t * taskType,objv_string_t * target,objv_mbuf_t * mbuf,CLHttpChannelContentType contentType){
     
     if( contentType & CLHttpChannelContentTypeChunked ){
         
@@ -297,6 +317,11 @@ OBJVChannelStatus CLHttpChannelPackageTask(objv_zone_t * zone, CLTask * task,obj
         objv_mbuf_format(mbuf, "taskClass: %s\r\n",task->base.isa->name->name);
         objv_mbuf_format(mbuf, "identifier: %lld\r\n",task->identifier);
         objv_mbuf_format(mbuf, "replyIdentifier: %lld\r\n",task->replyIdentifier);
+        objv_mbuf_format(mbuf, "source: %s\r\n",task->source->UTF8String);
+        
+        if(target){
+            objv_mbuf_format(mbuf, "target: %s\r\n",target->UTF8String);
+        }
         
         {
             objv_class_t * clazz = task->base.isa;
@@ -355,7 +380,7 @@ OBJVChannelStatus CLHttpChannelPackageTask(objv_zone_t * zone, CLTask * task,obj
 }
 
 
-static OBJVChannelStatus CLHttpChannelMethodReadTask(objv_class_t * clazz,CLChannel * channel,CLTask ** task,objv_class_t ** taskType,objv_timeinval_t timeout){
+static OBJVChannelStatus CLHttpChannelMethodReadTask(objv_class_t * clazz,CLChannel * channel,CLTask ** task,objv_class_t ** taskType,objv_string_t ** target,objv_timeinval_t timeout){
     
     
     CLHttpChannel * httpChannel = (CLHttpChannel *) channel;
@@ -430,7 +455,7 @@ static OBJVChannelStatus CLHttpChannelMethodReadTask(objv_class_t * clazz,CLChan
                 
                 if(httpChannel->read.dataLength == httpChannel->read.data.length){
                     
-                    status = CLHttpChannelUnpackageTask(zone,task,taskType, & httpChannel->read.data,httpChannel->contentType);
+                    status = CLHttpChannelUnpackageTask(zone,task,taskType,target, & httpChannel->read.data,httpChannel->contentType);
                     
                     if(status != OBJVChannelStatusOK){
                         return status;
@@ -469,7 +494,7 @@ static OBJVChannelStatus CLHttpChannelMethodReadTask(objv_class_t * clazz,CLChan
     return OBJVChannelStatusError;
 }
 
-static void CLHttpChannelMethodPostTask(objv_class_t * clazz,CLChannel * channel,CLTask * task,objv_class_t * taskType){
+static void CLHttpChannelMethodPostTask(objv_class_t * clazz,CLChannel * channel,CLTask * task,objv_class_t * taskType,objv_string_t * target){
     
     CLHttpChannel * httpChannel = (CLHttpChannel *) channel;
     
@@ -483,6 +508,7 @@ static void CLHttpChannelMethodPostTask(objv_class_t * clazz,CLChannel * channel
         
         t->task = (CLTask *) objv_object_retain((objv_object_t *) task);
         t->taskType = taskType;
+        t->target = (objv_string_t *) objv_object_retain((objv_object_t *) target);
         
         objv_mutex_lock(& httpChannel->tasks_mutex);
 
@@ -533,7 +559,7 @@ static OBJVChannelStatus CLHttpChannelMethodTick(objv_class_t * clazz,CLChannel 
             
                 objv_mbuf_clear( & httpChannel->write.mbuf);
                 
-                CLHttpChannelPackageTask(zone,task->task,task->taskType,& httpChannel->write.mbuf, CLHttpChannelContentTypeChunked);
+                CLHttpChannelPackageTask(zone,task->task,task->taskType,task->target,& httpChannel->write.mbuf, CLHttpChannelContentTypeChunked);
                 
                 httpChannel->write.off = 0;
                 httpChannel->write.state = 1;

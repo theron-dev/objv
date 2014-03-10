@@ -116,7 +116,7 @@ OBJVChannelStatus CLChannelDisconnect(objv_class_t * clazz, CLChannel * channel)
     return OBJVChannelStatusError;
 }
 
-OBJVChannelStatus CLChannelReadTask(objv_class_t * clazz,CLChannel * channel,CLTask ** task,objv_class_t ** taskType,objv_timeinval_t timeout){
+OBJVChannelStatus CLChannelReadTask(objv_class_t * clazz,CLChannel * channel,CLTask ** task,objv_class_t ** taskType,objv_string_t ** target,objv_timeinval_t timeout){
     
     if(clazz && channel){
         
@@ -130,7 +130,7 @@ OBJVChannelStatus CLChannelReadTask(objv_class_t * clazz,CLChannel * channel,CLT
         }
         
         if(method){
-            return (* (CLChannelMethodReadTask) method->impl)(c,channel,task,taskType,timeout);
+            return (* (CLChannelMethodReadTask) method->impl)(c,channel,task,taskType,target,timeout);
         }
         
     }
@@ -139,7 +139,7 @@ OBJVChannelStatus CLChannelReadTask(objv_class_t * clazz,CLChannel * channel,CLT
 
 }
 
-void CLChannelPostTask(objv_class_t * clazz,CLChannel * channel,CLTask * task,objv_class_t * taskType){
+void CLChannelPostTask(objv_class_t * clazz,CLChannel * channel,CLTask * task,objv_class_t * taskType,objv_string_t * target){
   
     if(clazz && channel){
         
@@ -153,7 +153,7 @@ void CLChannelPostTask(objv_class_t * clazz,CLChannel * channel,CLTask * task,ob
         }
         
         if(method){
-            (* (CLChannelMethodPostTask) method->impl)(c,channel,task,taskType);
+            (* (CLChannelMethodPostTask) method->impl)(c,channel,task,taskType,target);
         }
         
     }

@@ -122,7 +122,7 @@ void CLContextHandleTask(CLContext * context, objv_class_t * taskType, CLTask * 
     }
 }
 
-static void _CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * task){
+static void _CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * task,objv_string_t * target){
     
     objv_class_t * c = context->base.isa;
     
@@ -134,7 +134,7 @@ static void _CLContextSendTask(CLContext * context, objv_class_t * taskType, CLT
     }
     
     if(method){
-        (* (CLContextSendTaskFun) method->impl)(c,context,taskType,task);
+        (* (CLContextSendTaskFun) method->impl)(c,context,taskType,task,target);
     }
     
 }
@@ -151,7 +151,7 @@ void CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * ta
     
         if(task->source == NULL){
             task->identifier = ++ context->identifier;
-            task->source = (CLContext *) objv_object_retain( (objv_object_t *) context);
+            task->source = (objv_string_t *) objv_object_retain( (objv_object_t *) context->domain);
         }
         
         if(target == NULL){
@@ -173,7 +173,7 @@ void CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * ta
                 if((lp = objv_string_hasSuffix(target->UTF8String, ".*"))){
                     
                     if(objv_string_hasPrefixTo(context->domain->UTF8String,target->UTF8String, lp)){
-                        _CLContextSendTask(context,taskType,task);
+                        _CLContextSendTask(context,taskType,task,target);
                     }
                     
                     contexts = objv_array_new(zone, 4);
@@ -197,7 +197,7 @@ void CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * ta
                     
                     for(i=0;i<contexts->length;i++){
                         
-                        _CLContextSendTask((CLContext *) objv_array_objectAt(contexts, i), taskType, task);
+                        _CLContextSendTask((CLContext *) objv_array_objectAt(contexts, i), taskType, task,target);
                         
                     }
                 
@@ -205,7 +205,7 @@ void CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * ta
                 else{
                     
                     if(strcmp(target->UTF8String, context->domain->UTF8String) == 0){
-                        _CLContextSendTask(context,taskType,task);
+                        _CLContextSendTask(context,taskType,task,target);
                     }
                     else {
                     
@@ -233,7 +233,7 @@ void CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * ta
                         
                         if(ctx){
                             
-                            _CLContextSendTask(ctx,taskType,task);
+                            _CLContextSendTask(ctx,taskType,task,target);
                             
                             objv_object_release((objv_object_t *) ctx);
                         }
@@ -244,7 +244,7 @@ void CLContextSendTask(CLContext * context, objv_class_t * taskType, CLTask * ta
 
         }
         else if( context->parent ){
-            _CLContextSendTask( context->parent , taskType, task);
+            _CLContextSendTask( context->parent , taskType, task,target);
         }
     
     }
