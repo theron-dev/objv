@@ -455,6 +455,42 @@ void CLContextRemoveChild(CLContext * context,CLContext * child){
     }
 }
 
+CLContext * CLContextGetChild(CLContext * context,objv_string_t * domain){
+    
+    
+    const char * p;
+    
+    if(context && domain && ! objv_string_hasSuffix(domain->UTF8String, ".*")
+       && (p = objv_string_hasPrefix(domain->UTF8String, context->domain->UTF8String))){
+        
+        objv_zone_t * zone = context->base.zone;
+        objv_array_t * keys = objv_string_split_UTF8String(zone, p, ".");
+        CLContext * ctx = NULL;
+        
+        if(keys && keys->length > 1){
+            
+            objv_string_t * key = (objv_string_t *) objv_array_objectAt(keys, 0);
+            
+            if(key->length == 0){
+                
+                objv_array_replaceAt(keys, (objv_object_t *) context->domain, 0);
+                
+            }
+            
+            objv_mutex_lock(& context->mutex);
+            
+            ctx = (CLContext *) objv_actree_value(context->childsTree, keys);
+            
+            objv_mutex_unlock(& context->mutex);
+            
+            return ctx;
+        }
+        
+    }
+    
+    return NULL;
+}
+
 void CLContextSetDomain(CLContext * context, objv_string_t * domain){
     if(context && context->domain != domain){
         objv_mutex_lock(& context->mutex);

@@ -206,6 +206,7 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
                     {
                         char * p = httpChannel->httpRequest.ofString + httpChannel->httpRequest.path.location ;
                         CLChannelContext * context ;
+                        objv_string_t * domain;
                         
                         p[httpChannel->httpRequest.path.length] = 0;
                         p += 9;
@@ -244,30 +245,40 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
                         
                         objv_mbuf_clear(&httpChannel->write.mbuf);
                         
-                        context = (CLChannelContext *) objv_object_new(zone, OBJV_CLASS(CLChannelContext),NULL);
+                        domain = objv_string_new(zone, p);
                         
-                        CLContextSetQueue((CLContext *) context, conn->queue);
+                        context = (CLChannelContext *) CLContextGetChild(conn->ctx, domain);
                         
-                        context->allowRemovedFromParent = objv_true;
-                        context->keepAlive = keepAlive;
-                        
-                        keepAlive = objv_object_doubleValueForKey(conn->ctx->config, (objv_object_t *) objv_string_new_nocopy(zone, "keepAlive"), 20);
-                        
-                        if(context->keepAlive == 0){
+                        if(context == NULL || !objv_object_isKindOfClass((objv_object_t *) context, OBJV_CLASS(CLChannelContext))){
+                            
+                            context = (CLChannelContext *) objv_object_new(zone, OBJV_CLASS(CLChannelContext),NULL);
+                            
+                            CLContextSetQueue((CLContext *) context, conn->queue);
+                            
+                            context->allowRemovedFromParent = objv_true;
                             context->keepAlive = keepAlive;
+                            
+                            keepAlive = objv_object_doubleValueForKey(conn->ctx->config, (objv_object_t *) objv_string_new_nocopy(zone, "keepAlive"), 20);
+                            
+                            if(context->keepAlive == 0){
+                                context->keepAlive = keepAlive;
+                            }
+                            else if(context->keepAlive > keepAlive){
+                                context->keepAlive = keepAlive;
+                            }
+                            
+                            CLContextSetDomain((CLContext *) context, domain);
+                            
                         }
-                        else if(context->keepAlive > keepAlive){
-                            context->keepAlive = keepAlive;
-                        }
-                        
-                        CLContextSetDomain((CLContext *) context, objv_string_new(zone, p));
-                        
+
                         CLChannelSetURL((CLChannel *) conn->httpChannel, objv_url_newWithFormat(zone, "http://%s:%d/channel/%s",inet_ntoa(conn->from.sin_addr)
                                                                                       ,ntohs(conn->from.sin_port),p));
                         
                         CLChannelContextAddChannel(context, (CLChannel *) httpChannel);
                         
-                        CLContextAddChild(conn->ctx, (CLContext *) context);
+                        if(context->base.base.parent == NULL){
+                            CLContextAddChild(conn->ctx, (CLContext *) context);
+                        }
                         
                         status = OBJVChannelStatusOK;
                         

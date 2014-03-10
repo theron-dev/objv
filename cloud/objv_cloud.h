@@ -125,6 +125,8 @@ extern "C" {
     
     void CLContextRemoveChild(CLContext * context,CLContext * child);
     
+    CLContext * CLContextGetChild(CLContext * context,objv_string_t * domain);
+    
     void CLContextSetDomain(CLContext * context, objv_string_t * domain);
 
     void CLContextSetQueue(CLContext * ctx,objv_dispatch_queue_t * queue);
