@@ -72,6 +72,8 @@ static char objv_base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrs
 
 #define IS_BASE_BIT(c)  (((c) >='A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z') || ((c) >= '0' && (c) <= '9') || (c) == '+' || (c) == '/')
 
+#define BASE64_CHUNKED_WIDTH 19
+
 typedef struct _objv_base64_token_t{
     char byte0;
     char byte1;
@@ -83,12 +85,12 @@ typedef union _objv_base64_value_t{
     int value;
 } objv_base64_value_t;
 
-objv_boolean_t objv_base64_encode(void * inData,unsigned int length,objv_mbuf_t * mbuf){
+objv_boolean_t objv_base64_encode(void * inData,size_t length,objv_mbuf_t * mbuf,objv_boolean_t chunked){
     if(inData && length >0 && mbuf){
         objv_base64_value_t value ;
         char * data = (char *) inData;
         char t[5] = {0};
-        int len = length / 3;
+        size_t len = length / 3;
         int d = length % 3;
         int i,n;
         
@@ -103,6 +105,9 @@ objv_boolean_t objv_base64_encode(void * inData,unsigned int length,objv_mbuf_t 
             value.token.byte1 = data[i *3 + 1];
             value.token.byte2 = data[i *3 + 2];
 #endif
+            if(chunked && i && (i % BASE64_CHUNKED_WIDTH) ==0){
+                objv_mbuf_append(mbuf, "\n", 1);
+            }
             for(n=0;n<4;n++){
                 t[3-n] = objv_base64_table[(value.value & 0x003f)];
                 value.value = value.value >> 6;
@@ -117,6 +122,10 @@ objv_boolean_t objv_base64_encode(void * inData,unsigned int length,objv_mbuf_t 
 #else
                 value.token.byte0 = data[i * 3];
 #endif
+                if(chunked && i && (i % BASE64_CHUNKED_WIDTH) ==0){
+                    objv_mbuf_append(mbuf, "\n", 1);
+                }
+                
                 for(n=0;n<4;n++){
                     t[3-n] = objv_base64_table[(value.value & 0x003f)];
                     value.value = value.value >> 6;
@@ -134,6 +143,9 @@ objv_boolean_t objv_base64_encode(void * inData,unsigned int length,objv_mbuf_t 
                 value.token.byte0 = data[i * 3];
                 value.token.byte1 = data[i * 3 + 1];
 #endif
+                if(chunked && i && (i % BASE64_CHUNKED_WIDTH) ==0){
+                    objv_mbuf_append(mbuf, "\n", 1);
+                }
                 for(n=0;n<4;n++){
                     t[3-n] = objv_base64_table[(value.value & 0x003f)];
                     value.value = value.value >> 6;

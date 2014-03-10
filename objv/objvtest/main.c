@@ -77,7 +77,7 @@ int main(int argc, const char * argv[])
     
     objv_mail_setSmtp(mail, objv_url_new(zone, "tcp://smtp.exmail.qq.com"), objv_string_new(zone, "mail@hailong.org"), objv_string_new(zone, "h1234567"));
     
-    if(OBJVChannelStatusOK != objv_mail_send(mail, objv_string_new(zone, "hailongz@qq.com"), objv_string_new(zone, "objv mail test"), objv_string_new(zone, "objv mail 测试"), 20)){
+    if(OBJVChannelStatusOK != objv_mail_send(mail, objv_string_new(zone, "hailongz@qq.com"), objv_string_new(zone, "标题测试"), objv_string_new(zone, "<a href='#'>内容</a>测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试内容测试"), 20)){
         
         objv_log("%d %s\n",mail->exception ? mail->exception->code : 0, mail->exception ? mail->exception->message->UTF8String : "");
     }

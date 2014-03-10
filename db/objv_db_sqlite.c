@@ -201,10 +201,10 @@ static void objv_db_sqlite_bind_data(objv_zone_t * zone,sqlite3_stmt * stmt,objv
                     sqlite3_bind_int(stmt, i, value->uintValue);
                 }
                 else if(value->type == OBJV_TYPE(long)){
-                    sqlite3_bind_int(stmt, i, value->longValue);
+                    sqlite3_bind_int64(stmt, i, value->longValue);
                 }
                 else if(value->type == OBJV_TYPE(ulong)){
-                    sqlite3_bind_int(stmt, i, value->ulongValue);
+                    sqlite3_bind_int64(stmt, i, value->ulongValue);
                 }
                 else if(value->type == OBJV_TYPE(longLong)){
                     sqlite3_bind_int64(stmt, i, value->longLongValue);

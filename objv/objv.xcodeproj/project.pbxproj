@@ -66,6 +66,8 @@
 		11D0BADA18A87302009761A8 /* objv_channel_tcp.c in Sources */ = {isa = PBXBuildFile; fileRef = 11D0BAD918A87302009761A8 /* objv_channel_tcp.c */; };
 		11D0BADD18A883DE009761A8 /* objv_clchannel.c in Sources */ = {isa = PBXBuildFile; fileRef = 11D0BADC18A883DE009761A8 /* objv_clchannel.c */; };
 		11D0BAE118A8D1A9009761A8 /* objv_clcontext.c in Sources */ = {isa = PBXBuildFile; fileRef = 11D0BADF18A8AEC3009761A8 /* objv_clcontext.c */; };
+		11E94A8018CDF19F00497593 /* CLMonitorService.c in Sources */ = {isa = PBXBuildFile; fileRef = 11E94A7F18CDF19F00497593 /* CLMonitorService.c */; };
+		11F23C9F18CDFBA600C76F70 /* CLLoader.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F23C9E18CDFBA600C76F70 /* CLLoader.c */; };
 		11F67EB118A4B00F006E4EC1 /* objv_vmcompiler_expression.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EB018A4B00F006E4EC1 /* objv_vmcompiler_expression.c */; };
 		11F67EB418A4B266006E4EC1 /* objv_vmcompiler_invokes.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EB318A4B266006E4EC1 /* objv_vmcompiler_invokes.c */; };
 		11F67EB718A4B3FF006E4EC1 /* objv_vmcompiler_class.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EB618A4B3FF006E4EC1 /* objv_vmcompiler_class.c */; };
@@ -206,6 +208,10 @@
 		11D0BADC18A883DE009761A8 /* objv_clchannel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_clchannel.c; sourceTree = "<group>"; };
 		11D0BADE18A8AE61009761A8 /* objv_clcontext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_clcontext.h; sourceTree = "<group>"; };
 		11D0BADF18A8AEC3009761A8 /* objv_clcontext.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_clcontext.c; sourceTree = "<group>"; };
+		11E94A7E18CDF19100497593 /* CLMonitorService.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CLMonitorService.h; sourceTree = "<group>"; };
+		11E94A7F18CDF19F00497593 /* CLMonitorService.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CLMonitorService.c; sourceTree = "<group>"; };
+		11F23C9D18CDFB8700C76F70 /* CLLoader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CLLoader.h; sourceTree = "<group>"; };
+		11F23C9E18CDFBA600C76F70 /* CLLoader.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CLLoader.c; sourceTree = "<group>"; };
 		11F67EAF18A4AFD6006E4EC1 /* objv_vmcompiler_expression.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_vmcompiler_expression.h; sourceTree = "<group>"; };
 		11F67EB018A4B00F006E4EC1 /* objv_vmcompiler_expression.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_vmcompiler_expression.c; sourceTree = "<group>"; };
 		11F67EB218A4B243006E4EC1 /* objv_vmcompiler_invokes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_vmcompiler_invokes.h; sourceTree = "<group>"; };
@@ -275,6 +281,8 @@
 				1114061D18C4751100C03FFA /* CLSRVProcess.h */,
 				1114061E18C4751C00C03FFA /* CLSRVProcess.c */,
 				1114062018C49EB000C03FFA /* cfg.json */,
+				11F23C9D18CDFB8700C76F70 /* CLLoader.h */,
+				11F23C9E18CDFBA600C76F70 /* CLLoader.c */,
 			);
 			path = objvcloud;
 			sourceTree = "<group>";
@@ -308,6 +316,8 @@
 		11A03AA818CDA306006F047E /* services */ = {
 			isa = PBXGroup;
 			children = (
+				11E94A7E18CDF19100497593 /* CLMonitorService.h */,
+				11E94A7F18CDF19F00497593 /* CLMonitorService.c */,
 			);
 			name = services;
 			path = ../services;
@@ -574,6 +584,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1114061F18C4751C00C03FFA /* CLSRVProcess.c in Sources */,
+				11F23C9F18CDFBA600C76F70 /* CLLoader.c in Sources */,
 				1153BAF018C08AB9009EF09A /* CLAccept.c in Sources */,
 				1153BAE418C0853D009EF09A /* main.c in Sources */,
 			);
@@ -626,6 +637,7 @@
 				11F67ECE18A4EC98006E4EC1 /* objv_vm.c in Sources */,
 				11BD7970189F1C1F00F028AC /* objv_mbuf.c in Sources */,
 				11BD797B18A0F04A00F028AC /* objv_vermin.c in Sources */,
+				11E94A8018CDF19F00497593 /* CLMonitorService.c in Sources */,
 				11BD798C18A3B73C00F028AC /* objv_tokenizer.c in Sources */,
 				11BD798318A3A94600F028AC /* objv_iterator.c in Sources */,
 				11D0BAD718A86E24009761A8 /* objv_channel.c in Sources */,

@@ -219,7 +219,14 @@ extern "C" {
 #define OBJV_CLASS_IMP_P_M(clazz,superClazz,object) objv_class_t objv_##clazz##_class = {OBJV_KEY(clazz),(superClazz), objv_##clazz##_methods,sizeof( objv_##clazz##_methods) / sizeof(objv_method_t),objv_##clazz##_propertys,sizeof(objv_##clazz##_propertys) / sizeof(objv_property_t),sizeof(object),NULL,0};
     
 #define OBJV_CLASS_IMP_M(clazz,superClazz,object) objv_class_t objv_##clazz##_class = {OBJV_KEY(clazz),(superClazz), objv_##clazz##_methods,sizeof( objv_##clazz##_methods) / sizeof(objv_method_t),NULL,0,sizeof(object),NULL,0};
+
+#define OBJV_CLASS_IMP_I(clazz,superClazz,object,initialize) objv_class_t objv_##clazz##_class = {OBJV_KEY(clazz),(superClazz),NULL,0,NULL,0,sizeof(object),(initialize),0};
     
+#define OBJV_CLASS_IMP_P_I(clazz,superClazz,object,initialize) objv_class_t objv_##clazz##_class = {OBJV_KEY(clazz),(superClazz),NULL,0,objv_##clazz##_propertys,sizeof(objv_##clazz##_propertys) / sizeof(objv_property_t),sizeof(object),(initialize),0};
+
+#define OBJV_CLASS_IMP_M_I(clazz,superClazz,object,initialize) objv_class_t objv_##clazz##_class = {OBJV_KEY(clazz),(superClazz), objv_##clazz##_methods,sizeof( objv_##clazz##_methods) / sizeof(objv_method_t),NULL,0,sizeof(object),(initialize),0};
+
+#define OBJV_CLASS_IMP_P_M_I(clazz,superClazz,object,initialize) objv_class_t objv_##clazz##_class = {OBJV_KEY(clazz),(superClazz), objv_##clazz##_methods,sizeof( objv_##clazz##_methods) / sizeof(objv_method_t),objv_##clazz##_propertys,sizeof(objv_##clazz##_propertys) / sizeof(objv_property_t),sizeof(object),(initialize),0};
     
 #ifdef __cplusplus
 }

@@ -236,7 +236,7 @@ void objv_zombie_print(objv_zombie_t * zombie){
     
     size_t size = 0;
 
-    for(int i=zombie->tag;i< zombie->length;i++){
+    for(size_t i=zombie->tag;i< zombie->length;i++){
         objv_zombie_block_t * block = zombie->blocks[i];
         if(block->size){
             

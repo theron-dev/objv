@@ -623,11 +623,15 @@ OBJV_CLASS_IMP_M(CLService, OBJV_CLASS(Object), CLService)
 
 
 void CLServiceSetConfig(CLService * service, objv_object_t * config){
-    if(service && config){
+    if(service && service->config != config){
         objv_zone_t * zone = service->base.zone;
         objv_array_t * taskTypes = (objv_array_t *) objv_object_objectForKey(config->isa, config, (objv_object_t *)objv_string_new_nocopy(zone, "taskTypes"));
         objv_string_t * string;
         objv_class_t * taskType;
+        
+        objv_object_retain((objv_object_t *) config);
+        objv_object_release((objv_object_t *) service->config);
+        service->config = config;
         
         if(taskTypes && objv_object_isKindOfClass((objv_object_t *)taskTypes, OBJV_CLASS(Array))){
             for(int i=0;i<taskTypes->length;i++){

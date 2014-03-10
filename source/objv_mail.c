@@ -85,7 +85,6 @@ OBJVChannelStatus objv_mail_send(objv_mail_t * mail, objv_string_t * to, objv_st
         ssize_t len;
         char * p;
         int repeatCount;
-        unsigned int boundary;
         
         if(strcmp(mail->smtp->protocol->UTF8String, "tcp") == 0){
             
@@ -153,7 +152,7 @@ OBJVChannelStatus objv_mail_send(objv_mail_t * mail, objv_string_t * to, objv_st
                         
                         objv_mbuf_format(& mbuf, "AUTH LOGIN ");
                         
-                        objv_base64_encode(mail->user->UTF8String, mail->user->length, & mbuf);
+                        objv_base64_encode(mail->user->UTF8String, mail->user->length, & mbuf,objv_false);
                         
                         objv_mbuf_format(& mbuf, "\r\n");
                         
@@ -194,7 +193,7 @@ OBJVChannelStatus objv_mail_send(objv_mail_t * mail, objv_string_t * to, objv_st
                         // password
                         objv_mbuf_clear(& mbuf);
                         
-                        objv_base64_encode(mail->password->UTF8String, mail->password->length, & mbuf);
+                        objv_base64_encode(mail->password->UTF8String, mail->password->length, & mbuf,objv_false);
                         
                         objv_mbuf_format(& mbuf, "\r\n");
                         
@@ -276,7 +275,7 @@ OBJVChannelStatus objv_mail_send(objv_mail_t * mail, objv_string_t * to, objv_st
                         
                         objv_mbuf_clear(& mbuf);
                         
-                        objv_mbuf_format(& mbuf, "RCPT TO:<%s>\r\n",to->UTF8String);
+                        objv_mbuf_format(& mbuf, "RCPT TO:%s\r\n",to->UTF8String);
                         
                         status = objv_channel_canWrite(channel->base.isa, channel, timeout);
                         
@@ -346,33 +345,24 @@ OBJVChannelStatus objv_mail_send(objv_mail_t * mail, objv_string_t * to, objv_st
                 else if(s == 0x80) {
                     // DATA results
                     if(code == 354){
-                        
-                        boundary = time(NULL) ^ rand();
-                        
+                       
                         objv_mbuf_clear(& mbuf);
                         
                         objv_mbuf_format(& mbuf, "MIME_Version: 1.0\r\n");
                         objv_mbuf_format(& mbuf, "To: %s\r\n",to->UTF8String);
                         objv_mbuf_format(& mbuf, "From: %s\r\n",mail->user->UTF8String);
-                        objv_mbuf_format(& mbuf, "Subject: ");
+                        objv_mbuf_format(& mbuf, "Subject: =?utf8?B?");
                         
-                        objv_url_encode_mbuf(zone, title->UTF8String, & mbuf);
+                        objv_base64_encode(title->UTF8String, title->length, & mbuf,objv_false);
                         
-                        objv_mbuf_format(& mbuf, "\r\n");
+                        objv_mbuf_format(& mbuf, "?=\r\n");
                         
-                        objv_mbuf_format(& mbuf, "Content-Type: multipart/alternative; boundary=\"objv%x\"\r\n\r\n",boundary);
-                     
-                        objv_mbuf_format(& mbuf, "--objv%x\r\n",boundary);
+                        objv_mbuf_format(& mbuf, "Content-Type: text/html; charset=utf8\r\n");
+                        objv_mbuf_format(& mbuf, "Content-Transfer-Encoding: base64\r\n\r\n");
                         
-                        objv_mbuf_format(& mbuf, "Content-Type: text/plan; charset=\"utf-8\";\r\n\r\n");
+                        objv_base64_encode(body->UTF8String, body->length, & mbuf,objv_true);
                         
-                        objv_mbuf_append(& mbuf, body->UTF8String, body->length);
-                        
-                        objv_mbuf_format(& mbuf, "\r\n");
-                        
-                        objv_mbuf_format(& mbuf, "\r\n--objv%x--\r\n",boundary);
-                        
-                        objv_mbuf_format(& mbuf, "\r\n.\r\n");
+                        objv_mbuf_format(& mbuf, "\r\n\r\n.\r\n");
                         
                         status = objv_channel_canWrite(channel->base.isa, channel, timeout);
                         

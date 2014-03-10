@@ -16,6 +16,7 @@
 #include "CLAccept.h"
 #include "objv_zombie.h"
 #include "CLSRVProcess.h"
+#include "CLLoader.h"
 
 #define DEFAULT_PROCESS_COUNT   1
 
@@ -67,6 +68,8 @@ int main(int argc, char ** argv)
             srv.config.process.data[i].clazz = & CLSRVProcessClass;
         }
     }
+    
+    CLLoader();
     
     return OBJVSRVServerRun(& srv);
 }
