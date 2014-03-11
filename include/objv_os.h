@@ -91,6 +91,21 @@
 #define BITS_LOW
 //#define BITS_HIGH
 
+#ifndef PATH_MAX
+#define PATH_MAX    1024
+#endif
+
+#ifndef PATH_SPLIT
+#define PATH_SPLIT  '/'
+#endif
+
+#ifndef MIN
+#define	MIN(a,b) (((a)<(b))?(a):(b))
+#endif /* MIN */
+#ifndef MAX
+#define	MAX(a,b) (((a)>(b))?(a):(b))
+#endif	/* MAX */
+
 
 #endif
 
