@@ -16,32 +16,15 @@ OUTPUT = ./libs
 TARGET = $(OUTPUT)/libobjv.a
 OBJOUTPUT = ./objs
 
-CORE_C      = $(CORE_SRC)/objv.c $(CORE_SRC)/objv_zone.c $(CORE_SRC)/objv_types.c $(CORE_SRC)/objv_value.c $(CORE_SRC)/objv_data.c \
-                 $(CORE_SRC)/objv_string.c $(CORE_SRC)/objv_array.c $(CORE_SRC)/objv_dispatch.c $(CORE_SRC)/objv_dispatch_queue.c $(CORE_SRC)/objv_map.c \
-                 $(CORE_SRC)/objv_hash_map.c $(CORE_SRC)/objv_autorelease.c $(CORE_SRC)/objv_log.c $(CORE_SRC)/objv_dictionary.c $(CORE_SRC)/objv_mbuf.c \
-                 $(CORE_SRC)/objv_json.c $(CORE_SRC)/objv_zombie.c $(CORE_SRC)/objv_vermin.c $(CORE_SRC)/objv_vermin_runtime.c $(CORE_SRC)/objv_exception.c \
-                 $(CORE_SRC)/objv_iterator.c $(CORE_SRC)/objv_tokenizer.c $(CORE_SRC)/objv_vmcompiler.c $(CORE_SRC)/objv_vmcompiler_tokenizer.c $(CORE_SRC)/objv_vmcompiler_expression.c \
-                 $(CORE_SRC)/objv_vmcompiler_invokes.c $(CORE_SRC)/objv_vmcompiler_class.c $(CORE_SRC)/objv_vmcompiler_meta.c $(CORE_SRC)/objv_vmcompiler_binary.c \
-                 $(CORE_SRC)/objv_crypt.c $(CORE_SRC)/md5.c $(CORE_SRC)/objv_vm.c $(CORE_SRC)/objv_gc.c $(CORE_SRC)/objv_inifile.c $(CORE_SRC)/objv_channel.c \
-                 $(CORE_SRC)/objv_channel_tcp.c $(CORE_SRC)/objv_actree.c $(CORE_SRC)/objv_url.c $(CORE_SRC)/objv_mail.c
-
-CLOUD_C     = $(CLOUD)/objv_cloud.c $(CLOUD)/objv_clchannel.h $(CLOUD)/objv_clcontext.c $(CLOUD)/objv_clchannel_http.c
-HTTP_C      = $(HTTP)/objv_http.c 
-SERVER_C    = $(SERVER)/objv_server_posix.c
-DB_C        = $(DB)/objv_db.c $(DB)/objv_db_sqlite.c $(DB)/objv_db_mysql.c
-TASKS_C     = $(TASKS)/CLMessageTask.c
-DBOBJECTS_C = $(DBOBJECTS)/CLMessageObject.c
-SERVICES_C  = $(SERVICES)/CLMonitorService.c $(SERVICES)/CLMessageService.c
-
-OBJECTS := $(OBJOUTPUT)/hconfig.o $(OBJOUTPUT)/htypes.o $(OBJOUTPUT)/hbase64.o $(OBJOUTPUT)/hbtree.o $(OBJOUTPUT)/hbuffer.o $(OBJOUTPUT)/hclass.o \
-	 $(OBJOUTPUT)/hdata.o $(OBJOUTPUT)/hdata_alloc.o $(OBJOUTPUT)/hdata_binary.o $(OBJOUTPUT)/hdata_json.o $(OBJOUTPUT)/hdata_set.o $(OBJOUTPUT)/hdata_storage.o \
-	 $(OBJOUTPUT)/hdata_xml.o $(OBJOUTPUT)/hdebug.o  $(OBJOUTPUT)/hext_obj.o $(OBJOUTPUT)/hfile.o $(OBJOUTPUT)/hinifile.o $(OBJOUTPUT)/hlibrary.o \
-	 $(OBJOUTPUT)/hlist.o $(OBJOUTPUT)/hlog.o $(OBJOUTPUT)/hmap.o $(OBJOUTPUT)/hmem.o $(OBJOUTPUT)/hmutex.o $(OBJOUTPUT)/hqueue.o $(OBJOUTPUT)/hrecursive.o \
-	 $(OBJOUTPUT)/hserial_list.o $(OBJOUTPUT)/hserial_map.o $(OBJOUTPUT)/hstack.o $(OBJOUTPUT)/hstr.o $(OBJOUTPUT)/hstruct_list.o $(OBJOUTPUT)/hthread.o \
-	 $(OBJOUTPUT)/htime.o $(OBJOUTPUT)/huniquekey.o $(OBJOUTPUT)/hurl.o $(OBJOUTPUT)/hwaiter.o $(OBJOUTPUT)/md5.o $(OBJOUTPUT)/hrunloop.o $(OBJOUTPUT)/hform_data.o \
-	 $(OBJOUTPUT)/hstream.o $(OBJOUTPUT)/hpeer.o $(OBJOUTPUT)/hpeer_remote.o $(OBJOUTPUT)/hpeer_stream.o $(OBJOUTPUT)/hpeer_remote_peer.o \
-	 $(OBJOUTPUT)/hpeer_remote_runloop.o $(OBJOUTPUT)/hpeer_package.o $(OBJOUTPUT)/hprocess.o $(OBJOUTPUT)/hstream_websocket.o $(OBJOUTPUT)/sha1.o $(OBJOUTPUT)/hbytes.o \
-	 $(OBJOUTPUT)/hstream_tcp.o $(OBJOUTPUT)/hstream_process.o $(OBJOUTPUT)/hhttp_request.o $(OBJOUTPUT)/hhttp_response.o
+OBJECTS := $(OBJOUTPUT)/objv.o $(OBJOUTPUT)/objv_zone.o $(OBJOUTPUT)/objv_types.o $(OBJOUTPUT)/objv_value.o $(OBJOUTPUT)/objv_data.o $(OBJOUTPUT)/objv_string.o \
+	 $(OBJOUTPUT)/objv_array.o $(OBJOUTPUT)/objv_dispatch.o $(OBJOUTPUT)/objv_dispatch_queue.o $(OBJOUTPUT)/objv_map.o $(OBJOUTPUT)/objv_hash_map.o $(OBJOUTPUT)/objv_autorelease.o \
+	 $(OBJOUTPUT)/objv_log.o $(OBJOUTPUT)/objv_dictionary.o  $(OBJOUTPUT)/objv_mbuf.o $(OBJOUTPUT)/objv_json.o $(OBJOUTPUT)/objv_zombie.o $(OBJOUTPUT)/objv_vermin.o \
+	 $(OBJOUTPUT)/objv_vermin_runtime.o $(OBJOUTPUT)/objv_exception.o $(OBJOUTPUT)/objv_iterator.o $(OBJOUTPUT)/objv_tokenizer.o $(OBJOUTPUT)/objv_vmcompiler.o $(OBJOUTPUT)/objv_vmcompiler_tokenizer.o $(OBJOUTPUT)/objv_vmcompiler_expression.o \
+	 $(OBJOUTPUT)/objv_vmcompiler_invokes.o $(OBJOUTPUT)/objv_vmcompiler_class.o $(OBJOUTPUT)/objv_vmcompiler_meta.o $(OBJOUTPUT)/objv_vmcompiler_binary.o $(OBJOUTPUT)/objv_crypt.o $(OBJOUTPUT)/md5.o \
+	 $(OBJOUTPUT)/objv_vm.o $(OBJOUTPUT)/objv_gc.o $(OBJOUTPUT)/objv_inifile.o $(OBJOUTPUT)/objv_channel.o $(OBJOUTPUT)/objv_channel_tcp.o $(OBJOUTPUT)/objv_actree.o $(OBJOUTPUT)/objv_url.o \
+	 $(OBJOUTPUT)/objv_mail.o $(OBJOUTPUT)/objv_cloud.o $(OBJOUTPUT)/objv_clchannel.o $(OBJOUTPUT)/objv_clcontext.o $(OBJOUTPUT)/objv_clchannel_http.o \
+	 $(OBJOUTPUT)/objv_http.o $(OBJOUTPUT)/objv_server_posix.o $(OBJOUTPUT)/objv_db.o $(OBJOUTPUT)/objv_db_sqlite.o $(OBJOUTPUT)/objv_db_mysql.o $(OBJOUTPUT)/CLMessageTask.o \
+	 $(OBJOUTPUT)/CLMessageObject.o $(OBJOUTPUT)/CLMonitorService.o $(OBJOUTPUT)/CLMessageService.o
 
 
 $(TARGET):$(OBJECTS)
@@ -177,8 +160,33 @@ $(OBJOUTPUT)/objv_clcontext.o:$(CLOUD)/objv_clcontext.c $(CLOUD)/objv_clcontext.
 $(OBJOUTPUT)/objv_clchannel_http.o:$(CLOUD)/objv_clchannel_http.c $(CLOUD)/objv_clchannel_http.h
 	cc $(CFLAGS) $(INCLUDE) -c $(CLOUD)/objv_clchannel_http.c -o $(OBJOUTPUT)/objv_clchannel_http.o
 
-$(OBJOUTPUT)/objv_clchannel_http.o:$(CLOUD)/objv_clchannel_http.c $(CLOUD)/objv_clchannel_http.h
-	cc $(CFLAGS) $(INCLUDE) -c $(CLOUD)/objv_clchannel_http.c -o $(OBJOUTPUT)/objv_clchannel_http.o
+
+$(OBJOUTPUT)/objv_http.o:$(HTTP)/objv_http.c $(HTTP)/objv_http.h
+	cc $(CFLAGS) $(INCLUDE) -c $(HTTP)/objv_http.c -o $(OBJOUTPUT)/objv_http.o
+
+$(OBJOUTPUT)/objv_server_posix.o:$(SERVER)/objv_server_posix.c $(SERVER)/objv_server.h
+	cc $(CFLAGS) $(INCLUDE) -c $(SERVER)/objv_server_posix.c -o $(OBJOUTPUT)/objv_server_posix.o
+
+$(OBJOUTPUT)/objv_db.o:$(DB)/objv_db.c $(DB)/objv_db.h
+	cc $(CFLAGS) $(INCLUDE) -c $(DB)/objv_db.c -o $(OBJOUTPUT)/objv_db.o
+
+$(OBJOUTPUT)/objv_db_sqlite.o:$(DB)/objv_db_sqlite.c $(DB)/objv_db_sqlite.h
+	cc $(CFLAGS) $(INCLUDE) -c $(DB)/objv_db_sqlite.c -o $(OBJOUTPUT)/objv_db_sqlite.o
+
+$(OBJOUTPUT)/objv_db_mysql.o:$(DB)/objv_db_mysql.c $(DB)/objv_db_mysql.h
+	cc $(CFLAGS) $(INCLUDE) -c $(DB)/objv_db_mysql.c -o $(OBJOUTPUT)/objv_db_mysql.o
+
+$(OBJOUTPUT)/CLMessageTask.o:$(TASKS)/CLMessageTask.c $(TASKS)/CLMessageTask.h
+	cc $(CFLAGS) $(INCLUDE) -c $(DB)/CLMessageTask.c -o $(OBJOUTPUT)/CLMessageTask.o
+
+$(OBJOUTPUT)/CLMessageObject.o:$(DBOBJECTS)/CLMessageObject.c $(DBOBJECTS)/CLMessageObject.h
+	cc $(CFLAGS) $(INCLUDE) -c $(DBOBJECTS)/CLMessageObject.c -o $(OBJOUTPUT)/CLMessageObject.o
+
+$(OBJOUTPUT)/CLMonitorService.o:$(SERVICES)/CLMonitorService.c $(SERVICES)/CLMonitorService.h
+	cc $(CFLAGS) $(INCLUDE) -c $(SERVICES)/CLMonitorService.c -o $(OBJOUTPUT)/CLMonitorService.o
+
+$(OBJOUTPUT)/CLMessageService.o:$(SERVICES)/CLMessageService.c $(SERVICES)/CLMessageService.h
+	cc $(CFLAGS) $(INCLUDE) -c $(SERVICES)/CLMessageService.c -o $(OBJOUTPUT)/CLMessageService.o
 
 clean:
 	rm -rf $(OBJOUTPUT)/*.o $(TARGET) 
