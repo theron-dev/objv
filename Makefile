@@ -55,7 +55,7 @@ $(OBJOUTPUT)/objv_array.o:$(CORE_SRC)/objv_array.c $(CORE)/objv_array.h
 $(OBJOUTPUT)/objv_dispatch.o:$(CORE_SRC)/objv_dispatch.c $(CORE)/objv_dispatch.h
 	cc $(CFLAGS) $(INCLUDE) -c $(CORE_SRC)/objv_dispatch.c -o $(OBJOUTPUT)/objv_dispatch.o
 
-$(OBJOUTPUT)/objv_dispatch_queue.o:$(CORE_SRC)/objv_dispatch_queue.c $(CORE)/objv_dispatch_queue.h
+$(OBJOUTPUT)/objv_dispatch_queue.o:$(CORE_SRC)/objv_dispatch_queue.c
 	cc $(CFLAGS) $(INCLUDE) -c $(CORE_SRC)/objv_dispatch_queue.c -o $(OBJOUTPUT)/objv_dispatch_queue.o
 
 $(OBJOUTPUT)/objv_map.o:$(CORE_SRC)/objv_map.c $(CORE)/objv_map.h
