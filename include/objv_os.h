@@ -11,6 +11,8 @@
 
 #ifdef TARGET_OS_MAC
 
+#pragma pack(4)
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -48,6 +50,45 @@
 #endif
 
 #ifdef TARGET_OS_WIN32
+
+
+#endif
+
+#ifdef TARGET_OS_LINUX
+
+#pragma pack(4)
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <signal.h>
+#include <pthread.h>
+#include <time.h>
+#include <netinet/in.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <utime.h>
+#include <zlib.h>
+#include <stdarg.h>
+#include <dlfcn.h>
+#include <assert.h>
+#include <fcntl.h>
+#include <netdb.h>
+#include <errno.h>
+#include <math.h>
+#include <net/if.h>
+
+#define closesocket(a) close(a)
+
+#define EXPORT
+
+#define HAS_PTHREAD
+
+#define BITS_LOW
+//#define BITS_HIGH
 
 
 #endif

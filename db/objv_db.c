@@ -39,6 +39,10 @@ OBJV_KEY_IMP(count)
 OBJV_KEY_IMP(beginTransaction)
 OBJV_KEY_IMP(commit)
 OBJV_KEY_IMP(rollback)
+OBJV_KEY_IMP(objectRegClass)
+OBJV_KEY_IMP(objectInsert)
+OBJV_KEY_IMP(objectDelete)
+OBJV_KEY_IMP(objectUpdate)
 
 static void objv_db_method_dealloc(objv_class_t * clazz,objv_object_t * object){
 
@@ -65,6 +69,148 @@ static objv_db_cursor_t * objv_db_method_query(objv_class_t * clazz,objv_db_t * 
     return NULL;
 }
 
+static OBJVDBStatus objv_db_method_object_insert(objv_class_t * clazz,objv_db_t * db,objv_db_object_t * dbObject){
+    
+    objv_class_t * tableClass = dbObject->tableClass;
+    objv_mbuf_t mbuf;
+    objv_mbuf_t values;
+    objv_property_t * rowid;
+    objv_property_t * prop;
+    unsigned int propCount;
+    int count = 0;
+    OBJVDBStatus status = OBJVDBStatusException;
+    if(tableClass == NULL){
+        tableClass = dbObject->base.isa;
+    }
+    
+    rowid = objv_class_getPropertyOfClass(tableClass, objv_key("rowid"),NULL);
+    
+    objv_mbuf_init(& mbuf, 128);
+    objv_mbuf_init(& values, 128);
+    
+    objv_mbuf_format(& mbuf, "INSERT INTO %s (",tableClass->name->name);
+    
+    objv_mbuf_format(& values, " VALUES(");
+    
+
+    while(tableClass){
+        
+        prop = tableClass->propertys;
+        propCount = tableClass->propertyCount;
+        
+        while(prop && propCount >0){
+            
+            if(rowid != prop && prop->serialization){
+                
+                if(count == 0){
+                    objv_mbuf_format(& mbuf,"%s",prop->name->name);
+                    objv_mbuf_format(& values,":%s",prop->name->name);
+                }
+                else{
+                    objv_mbuf_format(& mbuf,",%s",prop->name->name);
+                    objv_mbuf_format(& values,",:%s",prop->name->name);
+                }
+                
+                count ++;
+            }
+            
+            prop ++;
+            propCount --;
+        }
+        
+        tableClass = tableClass->superClass;
+    }
+    
+    objv_mbuf_format(& mbuf, ")");
+    
+    objv_mbuf_format(& values, ");");
+    
+    objv_mbuf_append(& mbuf, values.data, values.length);
+    
+    status = objv_db_exec(db->base.isa, db, objv_mbuf_str(& mbuf), (objv_object_t *) dbObject);
+    
+    objv_mbuf_destroy(& mbuf);
+    objv_mbuf_destroy(& values);
+    
+    return status;
+}
+
+static OBJVDBStatus objv_db_method_object_delete(objv_class_t * clazz,objv_db_t * db,objv_db_object_t * dbObject){
+    objv_class_t * tableClass = dbObject->tableClass;
+    objv_mbuf_t mbuf;
+    
+    OBJVDBStatus status = OBJVDBStatusException;
+    
+    if(tableClass == NULL){
+        tableClass = dbObject->base.isa;
+    }
+    
+    objv_mbuf_init(& mbuf, 128);
+
+    objv_mbuf_format(& mbuf, "DELETE FROM %s WHERE rowid=:rowid",tableClass->name->name);
+
+    status = objv_db_exec(db->base.isa, db, objv_mbuf_str(& mbuf), (objv_object_t *) dbObject);
+    
+    objv_mbuf_destroy(& mbuf);
+    
+    return status;
+}
+
+static OBJVDBStatus objv_db_method_object_update(objv_class_t * clazz,objv_db_t * db,objv_db_object_t * dbObject){
+    
+    objv_class_t * tableClass = dbObject->tableClass;
+    objv_mbuf_t mbuf;
+    objv_property_t * rowid;
+    objv_property_t * prop;
+    unsigned int propCount;
+    int count = 0;
+    OBJVDBStatus status = OBJVDBStatusException;
+    
+    if(tableClass == NULL){
+        tableClass = dbObject->base.isa;
+    }
+    
+    rowid = objv_class_getPropertyOfClass(tableClass, objv_key("rowid"),NULL);
+    
+    objv_mbuf_init(& mbuf, 128);
+    
+    objv_mbuf_format(& mbuf, "UPDATE %s SET ",tableClass->name->name);
+    
+    while(tableClass){
+        
+        prop = tableClass->propertys;
+        propCount = tableClass->propertyCount;
+        
+        while(prop && propCount >0){
+            
+            if(rowid != prop && prop->serialization){
+                
+                if(count == 0){
+                    objv_mbuf_format(& mbuf,"%s=:%s",prop->name->name,prop->name->name);
+                }
+                else{
+                    objv_mbuf_format(& mbuf,",%s=:%s",prop->name->name,prop->name->name);
+                }
+                
+                count ++;
+            }
+            
+            prop ++;
+            propCount --;
+        }
+        
+        tableClass = tableClass->superClass;
+    }
+    
+    objv_mbuf_format(& mbuf, " WHERE rowid=:rowid");
+    
+    status = objv_db_exec(db->base.isa, db, objv_mbuf_str(& mbuf), (objv_object_t *) dbObject);
+    
+    objv_mbuf_destroy(& mbuf);
+    
+    return status;
+}
+
 OBJV_CLASS_METHOD_IMP_BEGIN(DB)
 
 OBJV_CLASS_METHOD_IMP(dealloc, "v()", objv_db_method_dealloc)
@@ -72,6 +218,12 @@ OBJV_CLASS_METHOD_IMP(dealloc, "v()", objv_db_method_dealloc)
 OBJV_CLASS_METHOD_IMP(exec, "i(*,@)", objv_db_method_exec)
 
 OBJV_CLASS_METHOD_IMP(query, "@(*,@)", objv_db_method_query)
+
+OBJV_CLASS_METHOD_IMP(objectInsert, "i(@)", objv_db_method_object_insert)
+
+OBJV_CLASS_METHOD_IMP(objectDelete, "i(@)", objv_db_method_object_delete)
+
+OBJV_CLASS_METHOD_IMP(objectUpdate, "i(@)", objv_db_method_object_update)
 
 OBJV_CLASS_METHOD_IMP_END(DB)
 
@@ -213,6 +365,94 @@ OBJVDBStatus objv_db_rollback(objv_class_t * clazz,objv_db_t * db){
     }
     
     return OBJVDBStatusException;
+}
+
+OBJVDBStatus objv_db_object_regClass(objv_class_t * clazz,objv_db_t * db,objv_class_t * dbObjectClass){
+    
+    if(clazz && db){
+        
+        objv_class_t * c = clazz;
+        
+        objv_method_t * method = NULL;
+        
+        while(c && (method = objv_class_getMethod(c, OBJV_KEY(objectRegClass))) == NULL){
+            
+            c = c->superClass;
+        }
+        
+        if(method){
+            return (* (objv_db_method_object_regClass_t) method->impl)(c,db,dbObjectClass);
+        }
+    }
+    
+    return OBJVDBStatusException;
+    
+}
+
+OBJVDBStatus objv_db_object_insert(objv_class_t * clazz,objv_db_t * db,objv_db_object_t * dbObject){
+    
+    if(clazz && db){
+        
+        objv_class_t * c = clazz;
+        
+        objv_method_t * method = NULL;
+        
+        while(c && (method = objv_class_getMethod(c, OBJV_KEY(objectInsert))) == NULL){
+            
+            c = c->superClass;
+        }
+        
+        if(method){
+            return (* (objv_db_method_object_insert_t) method->impl)(c,db,dbObject);
+        }
+    }
+    
+    return OBJVDBStatusException;
+    
+}
+
+OBJVDBStatus objv_db_object_delete(objv_class_t * clazz,objv_db_t * db,objv_db_object_t * dbObject){
+    
+    if(clazz && db){
+        
+        objv_class_t * c = clazz;
+        
+        objv_method_t * method = NULL;
+        
+        while(c && (method = objv_class_getMethod(c, OBJV_KEY(objectDelete))) == NULL){
+            
+            c = c->superClass;
+        }
+        
+        if(method){
+            return (* (objv_db_method_object_delete_t) method->impl)(c,db,dbObject);
+        }
+    }
+    
+    return OBJVDBStatusException;
+    
+}
+
+OBJVDBStatus objv_db_object_update(objv_class_t * clazz,objv_db_t * db,objv_db_object_t * dbObject){
+
+    if(clazz && db){
+        
+        objv_class_t * c = clazz;
+        
+        objv_method_t * method = NULL;
+        
+        while(c && (method = objv_class_getMethod(c, OBJV_KEY(objectUpdate))) == NULL){
+            
+            c = c->superClass;
+        }
+        
+        if(method){
+            return (* (objv_db_method_object_update_t) method->impl)(c,db,dbObject);
+        }
+    }
+    
+    return OBJVDBStatusException;
+    
 }
 
 

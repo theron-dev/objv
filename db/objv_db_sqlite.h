@@ -17,9 +17,11 @@ extern "C" {
 #include "objv_db.h"
 #include "objv_array.h"
     
+    struct sqlite3;
+    
     typedef struct _objv_db_sqlite_t {
         objv_db_t base;
-        sqlite3 * READONLY sqlite;
+        struct sqlite3 * READONLY sqlite;
     } objv_db_sqlite_t;
     
     OBJV_KEY_DEC(DBSqlite)

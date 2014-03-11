@@ -20,6 +20,16 @@ extern "C" {
         OBJVDBStatusOK,OBJVDBStatusException
     } OBJVDBStatus;
     
+    typedef struct _objv_db_object_t{
+        objv_object_t base;
+        objv_class_t * tableClass;
+        unsigned long long rowid;
+    } objv_db_object_t;
+    
+    OBJV_KEY_DEC(DBObject)
+    OBJV_CLASS_DEC(DBObject)
+
+    
     typedef struct _objv_db_t {
         objv_object_t base;
         objv_exception_t * READONLY exception;
@@ -46,6 +56,10 @@ extern "C" {
     OBJV_KEY_DEC(beginTransaction)
     OBJV_KEY_DEC(commit)
     OBJV_KEY_DEC(rollback)
+    OBJV_KEY_DEC(objectRegClass)
+    OBJV_KEY_DEC(objectInsert)
+    OBJV_KEY_DEC(objectDelete)
+    OBJV_KEY_DEC(objectUpdate)
     
     typedef OBJVDBStatus ( * objv_db_method_exec_t) (objv_class_t * clazz,objv_db_t * db,const char * sql,objv_object_t * data);
     
@@ -57,6 +71,13 @@ extern "C" {
     
     typedef OBJVDBStatus ( * objv_db_method_rollback_t) (objv_class_t * clazz,objv_db_t * db);
     
+    typedef OBJVDBStatus ( * objv_db_method_object_regClass_t) (objv_class_t * clazz,objv_db_t * db,objv_class_t * dbObjectClass);
+    
+    typedef OBJVDBStatus ( * objv_db_method_object_insert_t) (objv_class_t * clazz,objv_db_t * db,objv_db_object_t * dbObject);
+    
+    typedef OBJVDBStatus ( * objv_db_method_object_delete_t) (objv_class_t * clazz,objv_db_t * db,objv_db_object_t * dbObject);
+    
+    typedef OBJVDBStatus ( * objv_db_method_object_update_t) (objv_class_t * clazz,objv_db_t * db,objv_db_object_t * dbObject);
     
     OBJVDBStatus objv_db_exec(objv_class_t * clazz,objv_db_t * db,const char * sql,objv_object_t * data);
     
@@ -67,6 +88,14 @@ extern "C" {
     OBJVDBStatus objv_db_commit(objv_class_t * clazz,objv_db_t * db);
     
     OBJVDBStatus objv_db_rollback(objv_class_t * clazz,objv_db_t * db);
+    
+    OBJVDBStatus objv_db_object_regClass(objv_class_t * clazz,objv_db_t * db,objv_class_t * dbObjectClass);
+    
+    OBJVDBStatus objv_db_object_insert(objv_class_t * clazz,objv_db_t * db,objv_db_object_t * dbObject);
+    
+    OBJVDBStatus objv_db_object_delete(objv_class_t * clazz,objv_db_t * db,objv_db_object_t * dbObject);
+    
+    OBJVDBStatus objv_db_object_update(objv_class_t * clazz,objv_db_t * db,objv_db_object_t * dbObject);
     
     OBJV_KEY_DEC(next)
     OBJV_KEY_DEC(indexOfKey)
@@ -115,6 +144,7 @@ extern "C" {
     
     unsigned int objv_db_cursor_count (objv_class_t * clazz,objv_db_cursor_t * cursor);
 
+    
     
 #ifdef __cplusplus
 }

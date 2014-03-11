@@ -135,16 +135,19 @@ typedef struct _objv_db_sqlite_cursor_t {
     objv_db_cursor_t * base;
     objv_db_sqlite_t * sqlite;
     sqlite3_stmt * stmt;
+    objv_hash_map_t * keys;
 } objv_db_sqlite_cursor_t;
 
 static void objv_db_sqlite_cursor_dealloc(objv_class_t * clazz,objv_object_t * object){
     
     objv_db_sqlite_cursor_t * cursor = (objv_db_sqlite_cursor_t *) object;
     
+    objv_hash_map_dealloc(cursor->keys);
+    
     if(cursor->stmt){
         sqlite3_finalize(cursor->stmt);
     }
-    
+
     objv_object_release((objv_object_t *) cursor->sqlite);
     
     if(clazz->superClass){
@@ -152,9 +155,89 @@ static void objv_db_sqlite_cursor_dealloc(objv_class_t * clazz,objv_object_t * o
     }
 }
 
+
+static objv_boolean_t objv_db_sqlite_cursor_method_next(objv_class_t * clazz,objv_db_sqlite_cursor_t * cursor){
+    return sqlite3_step(cursor->stmt) == SQLITE_ROW;
+}
+
+static int objv_db_sqlite_cursor_method_indexOfKey(objv_class_t * clazz,objv_db_sqlite_cursor_t * cursor,const char * key){
+    
+    void * fd = (void *) objv_hash_map_get(cursor->keys,(void *) key);
+    
+    if(fd){
+        return (int) (((long) fd) - 1);
+    }
+    
+    return -1;
+}
+
+static const char * objv_db_sqlite_cursor_method_keyAtIndex(objv_class_t * clazz,objv_db_sqlite_cursor_t * cursor,int index){
+    if(index >= 0 && index < sqlite3_column_count(cursor->stmt)){
+        return sqlite3_column_name(cursor->stmt,index);
+    }
+    return NULL;
+}
+
+static const char * objv_db_sqlite_cursor_method_cStringValueAtIndex(objv_class_t * clazz,objv_db_sqlite_cursor_t * cursor,int index,const char * defaultValue){
+    if(index >= 0 && index < sqlite3_column_count(cursor->stmt)){
+        return (const char * ) sqlite3_column_text(cursor->stmt, index);
+    }
+    return defaultValue;
+}
+
+static int objv_db_sqlite_cursor_method_intValueAtIndex(objv_class_t * clazz,objv_db_sqlite_cursor_t * cursor,int index,int defaultValue){
+    if(index >= 0 && index < sqlite3_column_count(cursor->stmt)){
+        return sqlite3_column_int(cursor->stmt, index);
+    }
+    return defaultValue;
+}
+
+static long objv_db_sqlite_cursor_method_longValueAtIndex(objv_class_t * clazz,objv_db_sqlite_cursor_t * cursor,int index,long defaultValue){
+    if(index >= 0 && index < sqlite3_column_count(cursor->stmt)){
+        return sqlite3_column_int(cursor->stmt, index);
+    }
+    return defaultValue;
+}
+
+static long long objv_db_sqlite_cursor_method_longlongValueAtIndex(objv_class_t * clazz,objv_db_sqlite_cursor_t * cursor,int index,long long defaultValue){
+    if(index >= 0 && index < sqlite3_column_count(cursor->stmt)){
+        return sqlite3_column_int64(cursor->stmt, index);
+    }
+    return defaultValue;
+}
+
+static double objv_db_sqlite_cursor_method_doubleValueAtIndex(objv_class_t * clazz,objv_db_sqlite_cursor_t * cursor,int index,double defaultValue){
+    if(index >= 0 && index < sqlite3_column_count(cursor->stmt)){
+        return sqlite3_column_double(cursor->stmt, index);
+    }
+    return defaultValue;
+}
+
+static unsigned int objv_db_sqlite_cursor_method_count(objv_class_t * clazz,objv_db_sqlite_cursor_t * cursor){
+    return (unsigned int)  sqlite3_column_count(cursor->stmt);
+}
+
 OBJV_CLASS_METHOD_IMP_BEGIN(DBSqliteCursor)
 
 OBJV_CLASS_METHOD_IMP(dealloc, "v()", objv_db_sqlite_cursor_dealloc)
+
+OBJV_CLASS_METHOD_IMP(next, "b()", objv_db_sqlite_cursor_method_next)
+
+OBJV_CLASS_METHOD_IMP(indexOfKey, "i(*)", objv_db_sqlite_cursor_method_indexOfKey)
+
+OBJV_CLASS_METHOD_IMP(keyAtIndex, "*(i)", objv_db_sqlite_cursor_method_keyAtIndex)
+
+OBJV_CLASS_METHOD_IMP(cStringValueAtIndex, "*(i)", objv_db_sqlite_cursor_method_cStringValueAtIndex)
+
+OBJV_CLASS_METHOD_IMP(intValueAtIndex, "i(i)", objv_db_sqlite_cursor_method_intValueAtIndex)
+
+OBJV_CLASS_METHOD_IMP(longValueAtIndex, "l(i)", objv_db_sqlite_cursor_method_longValueAtIndex)
+
+OBJV_CLASS_METHOD_IMP(longlongValueAtIndex, "q(i)", objv_db_sqlite_cursor_method_longlongValueAtIndex)
+
+OBJV_CLASS_METHOD_IMP(doubleValueAtIndex, "d(i)", objv_db_sqlite_cursor_method_doubleValueAtIndex)
+
+OBJV_CLASS_METHOD_IMP(count, "I()", objv_db_sqlite_cursor_method_count)
 
 OBJV_CLASS_METHOD_IMP_END(DBSqliteCursor)
 
@@ -162,9 +245,17 @@ OBJV_CLASS_IMP_M(DBSqliteCursor, OBJV_CLASS(DBCursor), objv_db_sqlite_cursor_t)
 
 static objv_db_cursor_t * objv_db_sqlite_cursor_new(objv_zone_t * zone,objv_db_sqlite_t * db,sqlite3_stmt * stmt){
     objv_db_sqlite_cursor_t  * cursor = (objv_db_sqlite_cursor_t *) objv_object_new(zone, OBJV_CLASS(DBSqliteCursor),NULL);
+    int i,c;
     if(cursor){
         cursor->sqlite = (objv_db_sqlite_t *) objv_object_retain((objv_object_t *) db);
         cursor->stmt = stmt;
+        cursor->keys = objv_hash_map_alloc(4,objv_hash_map_hash_code_string,objv_map_compare_string);
+        c = sqlite3_column_count(cursor->stmt);
+        
+        for(i=0;i<c;i++){
+            objv_hash_map_put(cursor->keys, (void *) sqlite3_column_name(stmt,i), (void *) (long) (i + 1));
+        }
+        
     }
     return (objv_db_cursor_t *) cursor;
 }

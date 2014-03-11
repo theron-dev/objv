@@ -13,6 +13,7 @@
 #include "objv_mail.h"
 #include "objv_value.h"
 #include "objv_autorelease.h"
+#include "objv_log.h"
 
 OBJV_KEY_IMP(CLMonitorService)
 
@@ -55,7 +56,15 @@ static objv_boolean_t CLMonitorServicetHandleTask (objv_class_t * clazz,CLServic
                     title = objv_string_new_format(zone, "服务[%s] %s",t->state->UTF8String,t->domain->UTF8String);
                 }
                 
-                objv_mail_send(m, to, title, title, 0.2);
+                if(OBJVChannelStatusOK == objv_mail_send(m, to, title, title, 10)){
+                    objv_log("\nCLMonitorServicetHandleTask objv_mail_send OK\n");
+                }
+                else if(m->exception){
+                    objv_log("\nCLMonitorServicetHandleTask objv_mail_send %d %s\n",m->exception->code,m->exception->message->UTF8String);
+                }
+                else {
+                    objv_log("\nCLMonitorServicetHandleTask objv_mail_send timeout\n");
+                }
                 
             }
         }

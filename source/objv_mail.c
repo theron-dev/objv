@@ -421,6 +421,13 @@ OBJVChannelStatus objv_mail_send(objv_mail_t * mail, objv_string_t * to, objv_st
                         s = 0xA1;
 
                     }
+                    else if(code == 0){
+                        
+                        status = OBJVChannelStatusOK;
+                        
+                        break;
+                        
+                    }
                     else{
                         
                         status = OBJVChannelStatusError;
@@ -492,6 +499,7 @@ OBJVChannelStatus objv_mail_send(objv_mail_t * mail, objv_string_t * to, objv_st
                         
                         *p = 0;
                         
+                        code = 0;
                         code = atoi(objv_mbuf_str(& mbuf));
                         
                         objv_mbuf_clear(& text);

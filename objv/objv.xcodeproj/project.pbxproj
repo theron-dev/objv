@@ -24,6 +24,13 @@
 		119EBDBA18A65A9400B745D7 /* objv_inifile.c in Sources */ = {isa = PBXBuildFile; fileRef = 119EBDB918A65A9400B745D7 /* objv_inifile.c */; };
 		119EBDBF18A70D2600B745D7 /* objv_cloud.c in Sources */ = {isa = PBXBuildFile; fileRef = 119EBDBE18A70D2600B745D7 /* objv_cloud.c */; };
 		11A03AAB18CDAAEF006F047E /* objv_mail.c in Sources */ = {isa = PBXBuildFile; fileRef = 11A03AAA18CDAAEF006F047E /* objv_mail.c */; };
+		11A03AAF18CEA555006F047E /* CLMessageTask.c in Sources */ = {isa = PBXBuildFile; fileRef = 11A03AAE18CEA555006F047E /* CLMessageTask.c */; };
+		11A03AB218CEC8E1006F047E /* CLMessageService.c in Sources */ = {isa = PBXBuildFile; fileRef = 11A03AB118CEC8E1006F047E /* CLMessageService.c */; };
+		11A03AB518CECDA5006F047E /* objv_db_mysql.c in Sources */ = {isa = PBXBuildFile; fileRef = 11A03AB418CECDA5006F047E /* objv_db_mysql.c */; };
+		11A03AB718CECF2D006F047E /* libmysqlclient.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11A03AB618CECF2D006F047E /* libmysqlclient.a */; };
+		11A03ABE18CF01C8006F047E /* CLMessageObject.c in Sources */ = {isa = PBXBuildFile; fileRef = 11A03ABD18CF01C8006F047E /* CLMessageObject.c */; };
+		11A03AC018CF10F0006F047E /* libmysqlclient.18.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 11A03ABF18CF10F0006F047E /* libmysqlclient.18.dylib */; };
+		11A03AC218CF177B006F047E /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 11A03AC118CF177B006F047E /* Makefile */; };
 		11BB350F18BAF55100BF0C4F /* objv_server_posix.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BB350E18BAF55100BF0C4F /* objv_server_posix.c */; };
 		11BD79191899427E00F028AC /* objv.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD79181899427E00F028AC /* objv.c */; };
 		11BD791E189953EB00F028AC /* objv_zone.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD791D189953EB00F028AC /* objv_zone.c */; };
@@ -153,6 +160,17 @@
 		119EBDBE18A70D2600B745D7 /* objv_cloud.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_cloud.c; sourceTree = "<group>"; };
 		11A03AA918CDA456006F047E /* objv_mail.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_mail.h; sourceTree = "<group>"; };
 		11A03AAA18CDAAEF006F047E /* objv_mail.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_mail.c; sourceTree = "<group>"; };
+		11A03AAD18CEA54D006F047E /* CLMessageTask.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CLMessageTask.h; sourceTree = "<group>"; };
+		11A03AAE18CEA555006F047E /* CLMessageTask.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CLMessageTask.c; sourceTree = "<group>"; };
+		11A03AB018CEC8D7006F047E /* CLMessageService.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CLMessageService.h; sourceTree = "<group>"; };
+		11A03AB118CEC8E1006F047E /* CLMessageService.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CLMessageService.c; sourceTree = "<group>"; };
+		11A03AB318CECD9C006F047E /* objv_db_mysql.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_db_mysql.h; sourceTree = "<group>"; };
+		11A03AB418CECDA5006F047E /* objv_db_mysql.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_db_mysql.c; sourceTree = "<group>"; };
+		11A03AB618CECF2D006F047E /* libmysqlclient.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmysqlclient.a; path = "../../../../../../usr/local/mysql-connector-c-6.1.3-osx10.7-x86_64/lib/libmysqlclient.a"; sourceTree = "<group>"; };
+		11A03ABC18CF01C0006F047E /* CLMessageObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CLMessageObject.h; sourceTree = "<group>"; };
+		11A03ABD18CF01C8006F047E /* CLMessageObject.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CLMessageObject.c; sourceTree = "<group>"; };
+		11A03ABF18CF10F0006F047E /* libmysqlclient.18.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.18.dylib; path = "../../../../../../usr/local/mysql-connector-c-6.1.3-osx10.7-x86_64/lib/libmysqlclient.18.dylib"; sourceTree = "<group>"; };
+		11A03AC118CF177B006F047E /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../Makefile; sourceTree = "<group>"; };
 		11BB350D18BAF33700BF0C4F /* objv_server.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_server.h; sourceTree = "<group>"; };
 		11BB350E18BAF55100BF0C4F /* objv_server_posix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_server_posix.c; sourceTree = "<group>"; };
 		11BD79091899409000F028AC /* libobjv.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libobjv.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -237,6 +255,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				11A03AC018CF10F0006F047E /* libmysqlclient.18.dylib in Frameworks */,
+				11A03AB718CECF2D006F047E /* libmysqlclient.a in Frameworks */,
 				1153BAEC18C0854B009EF09A /* libobjv.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -266,6 +286,8 @@
 				1143853D18C962AC0024925A /* objv_db.c */,
 				1143853F18C972330024925A /* objv_db_sqlite.h */,
 				1143854018C9723B0024925A /* objv_db_sqlite.c */,
+				11A03AB318CECD9C006F047E /* objv_db_mysql.h */,
+				11A03AB418CECDA5006F047E /* objv_db_mysql.c */,
 			);
 			name = db;
 			path = ../db;
@@ -318,9 +340,31 @@
 			children = (
 				11E94A7E18CDF19100497593 /* CLMonitorService.h */,
 				11E94A7F18CDF19F00497593 /* CLMonitorService.c */,
+				11A03AB018CEC8D7006F047E /* CLMessageService.h */,
+				11A03AB118CEC8E1006F047E /* CLMessageService.c */,
 			);
 			name = services;
 			path = ../services;
+			sourceTree = "<group>";
+		};
+		11A03AAC18CEA526006F047E /* tasks */ = {
+			isa = PBXGroup;
+			children = (
+				11A03AAD18CEA54D006F047E /* CLMessageTask.h */,
+				11A03AAE18CEA555006F047E /* CLMessageTask.c */,
+			);
+			name = tasks;
+			path = ../tasks;
+			sourceTree = "<group>";
+		};
+		11A03ABB18CF0199006F047E /* dbobjects */ = {
+			isa = PBXGroup;
+			children = (
+				11A03ABC18CF01C0006F047E /* CLMessageObject.h */,
+				11A03ABD18CF01C8006F047E /* CLMessageObject.c */,
+			);
+			name = dbobjects;
+			path = ../dbobjects;
 			sourceTree = "<group>";
 		};
 		11BB350C18BAF24600BF0C4F /* server */ = {
@@ -336,6 +380,10 @@
 		11BD79001899409000F028AC = {
 			isa = PBXGroup;
 			children = (
+				11A03ABF18CF10F0006F047E /* libmysqlclient.18.dylib */,
+				11A03AB618CECF2D006F047E /* libmysqlclient.a */,
+				11A03ABB18CF0199006F047E /* dbobjects */,
+				11A03AAC18CEA526006F047E /* tasks */,
 				11A03AA818CDA306006F047E /* services */,
 				1143853B18C962360024925A /* db */,
 				1167A91B18BED84D00AEA7B5 /* http */,
@@ -346,6 +394,7 @@
 				11BD7910189940B300F028AC /* include */,
 				11BD7948189A5F6400F028AC /* objvtest */,
 				1153BAE218C0853D009EF09A /* objvcloud */,
+				11A03AC118CF177B006F047E /* Makefile */,
 				11BD790A1899409000F028AC /* Products */,
 			);
 			sourceTree = "<group>";
@@ -608,10 +657,13 @@
 				11BD797818A0DE0300F028AC /* objv_zombie.c in Sources */,
 				11F67EC818A4C746006E4EC1 /* md5.c in Sources */,
 				1121043118A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c in Sources */,
+				11A03AC218CF177B006F047E /* Makefile in Sources */,
 				119EBDBA18A65A9400B745D7 /* objv_inifile.c in Sources */,
 				11BD793A189A00EE00F028AC /* objv_autorelease.c in Sources */,
 				11BD791E189953EB00F028AC /* objv_zone.c in Sources */,
 				11F67EC418A4C556006E4EC1 /* objv_crypt.c in Sources */,
+				11A03AB518CECDA5006F047E /* objv_db_mysql.c in Sources */,
+				11A03AAF18CEA555006F047E /* CLMessageTask.c in Sources */,
 				11BD792C1899828B00F028AC /* objv_string.c in Sources */,
 				11BD7967189A98F000F028AC /* objv_dispatch_queue.c in Sources */,
 				11BD798018A3356F00F028AC /* objv_exception.c in Sources */,
@@ -625,6 +677,7 @@
 				11F67EBD18A4C42A006E4EC1 /* objv_vmcompiler_binary.c in Sources */,
 				1153BADA18C02C1E009EF09A /* objv_actree.c in Sources */,
 				113206A218A49630006C9112 /* objv_vmcompiler.c in Sources */,
+				11A03AB218CEC8E1006F047E /* CLMessageService.c in Sources */,
 				11BD792B189978D400F028AC /* objv_array.c in Sources */,
 				11F67ED118A61833006E4EC1 /* objv_gc.c in Sources */,
 				11D0BADA18A87302009761A8 /* objv_channel_tcp.c in Sources */,
@@ -640,6 +693,7 @@
 				11E94A8018CDF19F00497593 /* CLMonitorService.c in Sources */,
 				11BD798C18A3B73C00F028AC /* objv_tokenizer.c in Sources */,
 				11BD798318A3A94600F028AC /* objv_iterator.c in Sources */,
+				11A03ABE18CF01C8006F047E /* CLMessageObject.c in Sources */,
 				11D0BAD718A86E24009761A8 /* objv_channel.c in Sources */,
 				11BD79191899427E00F028AC /* objv.c in Sources */,
 			);
@@ -676,6 +730,10 @@
 					TARGET_OS_MAC,
 					"$(inherited)",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/usr/local/mysql-connector-c-6.1.3-osx10.7-x86_64/lib",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -684,6 +742,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_PREPROCESSOR_DEFINITIONS = TARGET_OS_MAC;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/usr/local/mysql-connector-c-6.1.3-osx10.7-x86_64/lib",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -766,6 +828,12 @@
 					TARGET_OS_MAC,
 					"$(inherited)",
 				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"/usr/local/mysql-connector-c-6.1.3-osx10.7-x86_64/include",
+				);
+				LIBRARY_SEARCH_PATHS = "/usr/local/mysql-connector-c-6.1.3-osx10.7-x86_64/lib";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -775,6 +843,12 @@
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREPROCESSOR_DEFINITIONS = TARGET_OS_MAC;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"/usr/local/mysql-connector-c-6.1.3-osx10.7-x86_64/include",
+				);
+				LIBRARY_SEARCH_PATHS = "/usr/local/mysql-connector-c-6.1.3-osx10.7-x86_64/lib";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
