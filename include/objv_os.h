@@ -80,6 +80,7 @@
 #include <errno.h>
 #include <math.h>
 #include <net/if.h>
+#include <sys/time.h>
 
 #define closesocket(a) close(a)
 
