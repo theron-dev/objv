@@ -1,5 +1,6 @@
 
 CORE = ./include
+CORE_PRIVATE = ./private
 CORE_SRC = ./source
 CLOUD = ./cloud
 HTTP = ./http
@@ -9,7 +10,7 @@ TASKS = ./tasks
 DBOBJECTS = ./dbobjects
 SERVICES = ./services
 
-INCLUDE = -I$(CORE) -I$(CLOUD) -I$(HTTP) -I$(SERVER) -I$(DB) -I$(TASKS) -I$(DBOBJECTS) -I$(SERVICES)
+INCLUDE = -I$(CORE) -I$(CORE_PRIVATE) -I$(CLOUD) -I$(HTTP) -I$(SERVER) -I$(DB) -I$(TASKS) -I$(DBOBJECTS) -I$(SERVICES)
 CFLAGS = -DTARGET_OS_LINUX
 
 OUTPUT = ./libs
