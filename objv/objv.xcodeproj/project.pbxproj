@@ -75,6 +75,7 @@
 		11D0BAE118A8D1A9009761A8 /* objv_clcontext.c in Sources */ = {isa = PBXBuildFile; fileRef = 11D0BADF18A8AEC3009761A8 /* objv_clcontext.c */; };
 		11E94A8018CDF19F00497593 /* CLMonitorService.c in Sources */ = {isa = PBXBuildFile; fileRef = 11E94A7F18CDF19F00497593 /* CLMonitorService.c */; };
 		11F23C9F18CDFBA600C76F70 /* CLLoader.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F23C9E18CDFBA600C76F70 /* CLLoader.c */; };
+		11F23CA118CF528A00C76F70 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 11F23CA018CF528A00C76F70 /* Makefile */; };
 		11F67EB118A4B00F006E4EC1 /* objv_vmcompiler_expression.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EB018A4B00F006E4EC1 /* objv_vmcompiler_expression.c */; };
 		11F67EB418A4B266006E4EC1 /* objv_vmcompiler_invokes.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EB318A4B266006E4EC1 /* objv_vmcompiler_invokes.c */; };
 		11F67EB718A4B3FF006E4EC1 /* objv_vmcompiler_class.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EB618A4B3FF006E4EC1 /* objv_vmcompiler_class.c */; };
@@ -230,6 +231,7 @@
 		11E94A7F18CDF19F00497593 /* CLMonitorService.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CLMonitorService.c; sourceTree = "<group>"; };
 		11F23C9D18CDFB8700C76F70 /* CLLoader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CLLoader.h; sourceTree = "<group>"; };
 		11F23C9E18CDFBA600C76F70 /* CLLoader.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CLLoader.c; sourceTree = "<group>"; };
+		11F23CA018CF528A00C76F70 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		11F67EAF18A4AFD6006E4EC1 /* objv_vmcompiler_expression.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_vmcompiler_expression.h; sourceTree = "<group>"; };
 		11F67EB018A4B00F006E4EC1 /* objv_vmcompiler_expression.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = objv_vmcompiler_expression.c; sourceTree = "<group>"; };
 		11F67EB218A4B243006E4EC1 /* objv_vmcompiler_invokes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objv_vmcompiler_invokes.h; sourceTree = "<group>"; };
@@ -305,6 +307,7 @@
 				1114062018C49EB000C03FFA /* cfg.json */,
 				11F23C9D18CDFB8700C76F70 /* CLLoader.h */,
 				11F23C9E18CDFBA600C76F70 /* CLLoader.c */,
+				11F23CA018CF528A00C76F70 /* Makefile */,
 			);
 			path = objvcloud;
 			sourceTree = "<group>";
@@ -632,6 +635,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				11F23CA118CF528A00C76F70 /* Makefile in Sources */,
 				1114061F18C4751C00C03FFA /* CLSRVProcess.c in Sources */,
 				11F23C9F18CDFBA600C76F70 /* CLLoader.c in Sources */,
 				1153BAF018C08AB9009EF09A /* CLAccept.c in Sources */,
