@@ -85,7 +85,7 @@ $(OBJOUTPUT)/objv_zombie.o:$(CORE_SRC)/objv_zombie.c $(CORE)/objv_zombie.h
 $(OBJOUTPUT)/objv_vermin.o:$(CORE_SRC)/objv_vermin.c $(CORE)/objv_vermin.h
 	cc $(CFLAGS) $(INCLUDE) -c $(CORE_SRC)/objv_vermin.c -o $(OBJOUTPUT)/objv_vermin.o
 
-$(OBJOUTPUT)/objv_vermin_runtime.o:$(CORE_SRC)/objv_vermin_runtime.c $(CORE)/objv_vermin_runtime.h
+$(OBJOUTPUT)/objv_vermin_runtime.o:$(CORE_SRC)/objv_vermin_runtime.c
 	cc $(CFLAGS) $(INCLUDE) -c $(CORE_SRC)/objv_vermin_runtime.c -o $(OBJOUTPUT)/objv_vermin_runtime.o
    
 $(OBJOUTPUT)/objv_exception.o:$(CORE_SRC)/objv_exception.c $(CORE)/objv_exception.h
