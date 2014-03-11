@@ -26,7 +26,7 @@ static void OBJVSRVServerLogMSG(OBJVSRVServer * srv,const char * format,va_list 
     int fno;
     int len;
     
-    snprintf(sbuf, sizeof(sbuf),"/var/log/%s.log",getprogname());
+    snprintf(sbuf, sizeof(sbuf),"/var/log/objvcloud.log");
     
     fno = open(sbuf, O_WRONLY | O_APPEND);
     
