@@ -10,7 +10,7 @@ TASKS = ../../tasks
 DBOBJECTS = ../../dbobjects
 SERVICES = ../../services
 
-LIBRARY = -lz -lpthread -lmysqlclient -lobjv -L../../libs
+LIBRARY = -lz -lpthread -lmysqlclient -lobjv -L../../libs -L/usr/lib64/mysql
 INCLUDE = -I/usr/include/libmysqlclient16/mysql -I$(CORE) -I$(CORE_PRIVATE) -I$(CLOUD) -I$(HTTP) -I$(SERVER) -I$(DB) -I$(TASKS) -I$(DBOBJECTS) -I$(SERVICES)
 CFLAGS = -std=gnu99 -DTARGET_OS_LINUX
 
