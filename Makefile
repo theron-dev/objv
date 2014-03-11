@@ -178,7 +178,7 @@ $(OBJOUTPUT)/objv_db_mysql.o:$(DB)/objv_db_mysql.c $(DB)/objv_db_mysql.h
 	cc $(CFLAGS) $(INCLUDE) -c $(DB)/objv_db_mysql.c -o $(OBJOUTPUT)/objv_db_mysql.o
 
 $(OBJOUTPUT)/CLMessageTask.o:$(TASKS)/CLMessageTask.c $(TASKS)/CLMessageTask.h
-	cc $(CFLAGS) $(INCLUDE) -c $(DB)/CLMessageTask.c -o $(OBJOUTPUT)/CLMessageTask.o
+	cc $(CFLAGS) $(INCLUDE) -c $(TASKS)/CLMessageTask.c -o $(OBJOUTPUT)/CLMessageTask.o
 
 $(OBJOUTPUT)/CLMessageObject.o:$(DBOBJECTS)/CLMessageObject.c $(DBOBJECTS)/CLMessageObject.h
 	cc $(CFLAGS) $(INCLUDE) -c $(DBOBJECTS)/CLMessageObject.c -o $(OBJOUTPUT)/CLMessageObject.o
