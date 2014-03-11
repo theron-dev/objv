@@ -1,16 +1,16 @@
 
-CORE = ../include
-CORE_PRIVATE = ../private
-CORE_SRC = ../source
-CLOUD = ../cloud
-HTTP = ../http
-SERVER = ../server
-DB = ../db
-TASKS = ../tasks
-DBOBJECTS = ../dbobjects
-SERVICES = ../services
+CORE = ../../include
+CORE_PRIVATE = ../../private
+CORE_SRC = ../../source
+CLOUD = ../../cloud
+HTTP = ../../http
+SERVER = ../../server
+DB = ../../db
+TASKS = ../../tasks
+DBOBJECTS = ../../dbobjects
+SERVICES = ../../services
 
-LIBRARY = -lz -lpthread -lmysqlclient -lobjv -L../libs
+LIBRARY = -lz -lpthread -lmysqlclient -lobjv -L../../libs
 INCLUDE = -I/usr/include/libmysqlclient16/mysql -I$(CORE) -I$(CORE_PRIVATE) -I$(CLOUD) -I$(HTTP) -I$(SERVER) -I$(DB) -I$(TASKS) -I$(DBOBJECTS) -I$(SERVICES)
 CFLAGS = -std=gnu99 -DTARGET_OS_LINUX
 
