@@ -83,6 +83,8 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/file.h>
+#include <sys/stat.h>
 
 #define closesocket(a) close(a)
 
