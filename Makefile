@@ -10,7 +10,7 @@ TASKS = ./tasks
 DBOBJECTS = ./dbobjects
 SERVICES = ./services
 
-INCLUDE = -L/usr/lib -I$(CORE) -I$(CORE_PRIVATE) -I$(CLOUD) -I$(HTTP) -I$(SERVER) -I$(DB) -I$(TASKS) -I$(DBOBJECTS) -I$(SERVICES)
+INCLUDE = -I$(CORE) -I$(CORE_PRIVATE) -I$(CLOUD) -I$(HTTP) -I$(SERVER) -I$(DB) -I$(TASKS) -I$(DBOBJECTS) -I$(SERVICES)
 CFLAGS = -DTARGET_OS_LINUX
 
 OUTPUT = ./libs
@@ -34,7 +34,7 @@ $(TARGET):$(OBJECTS)
 $(OBJOUTPUT)/objv.o:$(CORE_SRC)/objv.c $(CORE)/objv.h
 	cc $(CFLAGS) $(INCLUDE) -c $(CORE_SRC)/objv.c -o $(OBJOUTPUT)/objv.o
 
-$(OBJOUTPUT)/objv_zone.o:$(CORE_SRC)/objv_zone.c $(CORE)/objv_zone.h
+$(OBJOUTPUT)/objv_zone.o:$(CORE_SRC)/objv_zone.c
 	cc $(CFLAGS) $(INCLUDE) -c $(CORE_SRC)/objv_zone.c -o $(OBJOUTPUT)/objv_zone.o
     
 $(OBJOUTPUT)/objv_types.o:$(CORE_SRC)/objv_types.c $(CORE)/objv_types.h
