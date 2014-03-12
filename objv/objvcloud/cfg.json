@@ -1,5 +1,9 @@
 
 {
     "domain":"com.9vteam.im",
+    "parent":{
+        "url":"http://www.9vteam.com:9888/channel/com.9vteam.im",
+        "domain":"com.9vteam"
+    }
 }
 
