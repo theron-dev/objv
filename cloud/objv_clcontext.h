@@ -41,7 +41,7 @@ extern "C" {
         objv_array_t * READONLY channels;
         objv_mutex_t READONLY channels_mutex;
         objv_boolean_t allowRemovedFromParent;
-        objv_timeinval_t keepAlive;
+        objv_timeinval_t keepAlive;         // >0 空闲时间超过 keepAlive 断开连接， <0 空闲时间超过 - keepAlive 发起 CLKeepAliveTask 保持连接
         CLChannelContextType type;
         unsigned int READONLY index;
     } CLChannelContext;

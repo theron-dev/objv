@@ -45,17 +45,31 @@ extern "C" {
         ,OBJVHttpRequestStateHeaderValue
         ,OBJVHttpRequestStateOK
         ,OBJVHttpRequestStateFail
+        ,OBJVHttpRequestStateStatusCode
+        ,OBJVHttpRequestStateStatus
     } OBJVHttpRequestState;
+    
+    typedef struct _OBJVHttpHeaders {
+        OBJVHttpHeader * data;
+        unsigned int size;
+        unsigned int length;
+    } OBJVHttpHeaders;
+    
+    void OBJVHTTPHeadersInit(OBJVHttpHeaders * headers);
+    
+    void OBJVHTTPHeadersDestroy(OBJVHttpHeaders * headers);
+    
+    void OBJVHTTPHeadersClear(OBJVHttpHeaders * headers);
+    
+    OBJVHttpHeader * OBJVHttpHeadersGetHeader(OBJVHttpHeaders * headers,const char * key,char * ofString);
+    
+    OBJVHttpHeader * OBJVHttpHeadersNextHeader(OBJVHttpHeaders * headers,OBJVHttpHeader * header);
     
     typedef struct _OBJVHttpRequest {
         OBJVHttpString method;
         OBJVHttpString path;
         OBJVHttpString version;
-        struct {
-            OBJVHttpHeader * data;
-            unsigned int size;
-            unsigned int length;
-        } headers;
+        OBJVHttpHeaders headers;
         struct {
             OBJVHttpRequestState state;
             OBJVHttpString key;
@@ -71,11 +85,31 @@ extern "C" {
     
     void OBJVHTTPRequestReset(OBJVHttpRequest * request);
     
-    OBJVHttpRequestState OBJVHTTPRequestRead(OBJVHttpRequest * request,size_t,size_t,char * ofString);
+    OBJVHttpRequestState OBJVHTTPRequestRead(OBJVHttpRequest * request,size_t offset,size_t length,char * ofString);
     
-    OBJVHttpHeader * OBJVHttpRequestGetHeader(OBJVHttpRequest * request,const char * key);
+
+    typedef struct _OBJVHttpResponse {
+        OBJVHttpString statusCode;
+        OBJVHttpString status;
+        OBJVHttpString version;
+        OBJVHttpHeaders headers;
+        struct {
+            OBJVHttpRequestState state;
+            OBJVHttpString key;
+            OBJVHttpString value;
+        } state;
+        char * ofString;
+        size_t length;
+    } OBJVHttpResponse;
     
-    OBJVHttpHeader * OBJVHttpRequestNextHeader(OBJVHttpRequest * request,OBJVHttpHeader * header);
+    void OBJVHTTPResponseInit(OBJVHttpResponse * response);
+    
+    void OBJVHTTPResponseDestroy(OBJVHttpResponse * response);
+    
+    void OBJVHTTPResponseReset(OBJVHttpResponse * response);
+    
+    OBJVHttpRequestState OBJVHTTPResponseRead(OBJVHttpResponse * response,size_t offset,size_t length,char * ofString);
+
 
 #ifdef __cplusplus
 }

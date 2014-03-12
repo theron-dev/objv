@@ -855,3 +855,6 @@ void CLServiceContainerHandleTask(CLServiceContainer * container,CLContext * ctx
     }
 }
 
+OBJV_KEY_IMP(CLKeepAliveTask)
+OBJV_CLASS_IMP(CLKeepAliveTask,OBJV_CLASS(CLTask),CLKeepAliveTask)
+

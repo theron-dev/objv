@@ -6,9 +6,12 @@
 //  Copyright (c) 2014年 hailong.org. All rights reserved.
 //
 
+#define READONLY
+
 #include "objv_os.h"
 #include "objv_crypt.h"
 
+#include <zlib.h>
 
 static unsigned int objv_crc32_table[] = {
 	0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
@@ -242,5 +245,84 @@ objv_boolean_t objv_base64_decode(const char * text,objv_mbuf_t * mbuf){
         }
         return objv_true;
     }
+    return objv_false;
+}
+
+objv_boolean_t objv_gzip_encode(void * data,size_t length,objv_mbuf_t * mbuf){
+    if(data && length > 0 && mbuf){
+        
+        z_stream stream;
+        stream.zalloc = Z_NULL;
+        stream.zfree = Z_NULL;
+        stream.opaque = Z_NULL;
+        stream.avail_in = (uInt) length;
+        stream.next_in = data;
+        stream.total_out = 0;
+        stream.avail_out = 0;
+        
+        size_t off = mbuf->length;
+        
+        if (deflateInit2(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 31, 8, Z_DEFAULT_STRATEGY) == Z_OK)
+        {
+            while (stream.avail_out == 0)
+            {
+                objv_mbuf_extend(mbuf, mbuf->length + 1024);
+                
+                stream.next_out = (Bytef *) mbuf->data + mbuf->length;
+                stream.avail_out = (uInt) (mbuf->size - mbuf->length);
+                
+                deflate(&stream, Z_FINISH);
+                
+                mbuf->length = off + stream.total_out;
+            }
+            
+            deflateEnd(&stream);
+        
+            return objv_true;
+        }
+
+    }
+    return objv_false;
+}
+
+objv_boolean_t objv_gzip_decode(void * data,size_t length,objv_mbuf_t * mbuf){
+   
+    if(data && length > 0 && mbuf){
+        
+        z_stream stream;
+        stream.zalloc = Z_NULL;
+        stream.zfree = Z_NULL;
+        stream.avail_in = (uInt)length;
+        stream.next_in = (Bytef *)data;
+        stream.total_out = 0;
+        stream.avail_out = 0;
+        
+        size_t off = mbuf->length;
+        
+        if (inflateInit2(&stream, 47) == Z_OK)
+        {
+            int status = Z_OK;
+            while (status == Z_OK)
+            {
+                objv_mbuf_extend(mbuf, mbuf->length + 1024);
+                
+                stream.next_out = (Bytef *) mbuf->data + mbuf->length;
+                stream.avail_out = (uInt) (mbuf->size - mbuf->length);
+                
+                status = inflate (&stream, Z_SYNC_FLUSH);
+                
+                mbuf->length = off + stream.total_out;
+            }
+            
+            if (inflateEnd(&stream) == Z_OK)
+            {
+                if (status == Z_STREAM_END)
+                {
+                    return objv_true;
+                }
+            }
+        }
+    }
+    
     return objv_false;
 }

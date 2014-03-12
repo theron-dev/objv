@@ -42,6 +42,7 @@ extern "C" {
             int port;
             int listenSocket;
             objv_mutex_t listenMutex;
+            objv_mutex_t stdoutMutex;
         } run;
         OBJVSRVServerLogCallback logCallback;
     } OBJVSRVServer;

@@ -121,12 +121,7 @@ static void  CLChannelContextMethodSendTaskFun (objv_class_t * clazz,CLChannelCo
         
             for(int i=0;i<ctx->channels->length;i++){
                 channel = (CLChannel *) objv_array_objectAt(ctx->channels, i);
-                
-                if(OBJVChannelStatusOK  == CLChannelConnect(channel->base.isa, channel, 0.02)){
-                    
-                    CLChannelPostTask(channel->base.isa, channel, task, taskType,target);
-                
-                }
+                CLChannelPostTask(channel->base.isa, channel, task, taskType,target);
             }
         
         }
@@ -136,16 +131,11 @@ static void  CLChannelContextMethodSendTaskFun (objv_class_t * clazz,CLChannelCo
                 ctx->index = 0;
             }
             
-            while(ctx->index < ctx->channels->length){
+            if(ctx->index < ctx->channels->length){
                 
                 channel = (CLChannel *) objv_array_objectAt(ctx->channels, ctx->index ++);
                 
-                if(OBJVChannelStatusOK  == CLChannelConnect(channel->base.isa, channel, 0.02)){
-                    
-                    CLChannelPostTask(channel->base.isa, channel, task, taskType,target);
-                    
-                    break;
-                }
+                CLChannelPostTask(channel->base.isa, channel, task, taskType,target);
                 
             }
             
@@ -179,7 +169,12 @@ OBJV_CLASS_METHOD_IMP(setConfig, "v(@)", CLChannelContextMethodSetConfig)
 
 OBJV_CLASS_METHOD_IMP_END(CLChannelContext)
 
-OBJV_CLASS_IMP_M(CLChannelContext,OBJV_CLASS(CLContext),CLChannelContext)
+static void CLChannelContextInitialize (struct _objv_class_t * clazz){
+    objv_class_initialize(OBJV_CLASS(CLKeepAliveTask));
+    objv_class_initialize(OBJV_CLASS(CLDomainSetTask));
+}
+
+OBJV_CLASS_IMP_M_I(CLChannelContext,OBJV_CLASS(CLContext),CLChannelContext,CLChannelContextInitialize)
 
 
 typedef struct _CLChannelContextTask {
@@ -240,7 +235,17 @@ static void CLChannelContextTaskRun(objv_class_t * clazz, CLChannelContextTask *
         }
     }
     
-    if(status == OBJVChannelStatusError || (task->keepAlive != 0.0 && task->idleTimeinval > task->keepAlive)){
+    if(status != OBJVChannelStatusError && task->keepAlive < 0 && task->idleTimeinval >= - task->keepAlive){
+        {
+            CLKeepAliveTask * keepAliveTask = (CLKeepAliveTask *) objv_object_alloc(task->base.base.zone, OBJV_CLASS(CLKeepAliveTask),NULL);
+            
+            CLContextSendTask( (CLContext *) task->ctx, OBJV_CLASS(CLKeepAliveTask), (CLTask *) keepAliveTask, NULL);
+            
+            objv_object_release( (objv_object_t *) keepAliveTask );
+        }
+    }
+    
+    if(status == OBJVChannelStatusError || (task->keepAlive > 0.0 && task->idleTimeinval > task->keepAlive)){
         CLChannelContextRemoveChannel(task->ctx, task->channel);
     }
     else if(task->ctx) {

@@ -117,6 +117,10 @@ static void CLSRVProcessOpen (OBJVSRVServer * server,OBJVSRVProcess * process){
         }
     }
     
+    unsigned int maxThreadCount = objv_object_uintValueForKey(cfg, (objv_object_t *) objv_string_new_nocopy(zone, "maxThreadCount"), 128);
+    
+    
+    objv_dispatch_queue_t * connectQueue = objv_dispatch_queue_alloc(zone, "connectQueue", maxThreadCount);
     
     CLServiceContainer * container = (CLServiceContainer *) objv_object_new(zone, OBJV_CLASS(CLServiceContainer),NULL);
     
@@ -139,24 +143,53 @@ static void CLSRVProcessOpen (OBJVSRVServer * server,OBJVSRVProcess * process){
         ctx = (CLServiceContext *) objv_object_new(zone, clazz,NULL);
     }
     
+    {
+        objv_autorelease_pool_push();
+        
+        objv_object_t * parent = objv_object_objectValueForKey(cfg, (objv_object_t *) objv_string_new_nocopy(zone, "parent"), NULL);
+        objv_string_t * url = objv_object_stringValueForKey(parent, (objv_object_t *) objv_string_new_nocopy(zone, "url"), NULL);
+        objv_string_t * domain = objv_object_stringValueForKey(parent, (objv_object_t *) objv_string_new_nocopy(zone, "domain"), NULL);
+        
+        if(url && domain){
+            
+            objv_url_t * u = objv_url_new(zone, url->UTF8String);
+            
+            if(u && u->protocol && strcmp(u->protocol->UTF8String, "http") == 0){
+                
+                objv_channel_tcp_t * oChannel = objv_channel_tcp_allocWithHost(zone, u->domain, u->port ? atoi(u->port->UTF8String) : 9888);
+                
+                CLHttpChannel * httpChannel = (CLHttpChannel *) objv_object_alloc(zone, OBJV_CLASS(CLHttpChannel),NULL);
+                
+                CLChannelContext * parentContext = (CLChannelContext *) objv_object_alloc(zone, OBJV_CLASS(CLChannelContext),NULL);
+                
+                CLChannelSetDomain((CLChannel *) httpChannel, domain);
+                CLChannelSetURL((CLChannel *) httpChannel, u);
+                CLChannelSetChannel((CLChannel *) httpChannel, (objv_channel_t *) oChannel);
+                
+                CLContextSetDomain((CLContext *) parentContext, domain);
+                CLContextSetQueue((CLContext *) parentContext, connectQueue);
+                
+                parentContext->keepAlive = - 6;
+                
+                CLChannelContextAddChannel(parentContext, (CLChannel *) httpChannel);
+                
+                ctx->base.parent = (CLContext *) parentContext;
+                
+                objv_object_release((objv_object_t *) httpChannel);
+                objv_object_release((objv_object_t *) oChannel);
+                
+            }
+            
+        }
+        
+        objv_autorelease_pool_pop();
+    }
+    
 
     CLServiceContextSetContainer(ctx, container);
     
     CLContextSetConfig(ctx->base.base.isa, (CLContext *)ctx,cfg);
     
-    unsigned int maxThreadCount = 128;
-
-    char * s = getenv(CL_ENV_MAX_THREAD_COUNT_KEY);
-    
-    if(s) {
-        maxThreadCount = atoi(s);
-    }
-    
-    if(maxThreadCount < 1){
-        maxThreadCount = 1;
-    }
-    
-    objv_dispatch_queue_t * connectQueue = objv_dispatch_queue_alloc(zone, "connectQueue", maxThreadCount);
     
     CLAcceptHandler handler = {server->run.listenSocket,server->run.listenMutex};
     

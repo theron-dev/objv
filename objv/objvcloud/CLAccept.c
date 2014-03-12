@@ -175,8 +175,10 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
         if(httpChannel->httpRequest.state.state == OBJVHttpRequestStateOK){
             
             {
-                OBJVHttpHeader * h = OBJVHttpRequestGetHeader(&httpChannel->httpRequest, "Transfer-Encoding");
+                OBJVHttpHeader * h = OBJVHttpHeadersGetHeader(&httpChannel->httpRequest.headers, "Transfer-Encoding",httpChannel->httpRequest.ofString);
                 objv_timeinval_t keepAlive = 0;
+             
+                httpChannel->read.off = httpChannel->httpRequest.length;
                 
                 if(h){
                     
@@ -186,7 +188,21 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
                     
                 }
                 
-                h = OBJVHttpRequestGetHeader(&httpChannel->httpRequest, "Keep-Alive");
+                h = OBJVHttpHeadersGetHeader(&httpChannel->httpRequest.headers, "Accept-Encoding",httpChannel->httpRequest.ofString);
+                
+                if(h){
+                    
+                    char *p = httpChannel->httpRequest.ofString + h->value.location;
+                    
+                    p[h->value.length] = 0;
+                    
+                    if(objv_string_indexOf(p, "gzip") >= 0){
+                        httpChannel->contentType |= CLHttpChannelContentTypeGzip;
+                    }
+                    
+                }
+                
+                h = OBJVHttpHeadersGetHeader(&httpChannel->httpRequest.headers, "Keep-Alive",httpChannel->httpRequest.ofString);
                 
                 if(h){
                     
@@ -225,7 +241,7 @@ static void CLAcceptConnectMethodRun (objv_class_t * clazz,objv_object_t * objec
                         
                         objv_mbuf_clear(&httpChannel->write.mbuf);
                         
-                        objv_mbuf_format(&httpChannel->write.mbuf, "HTTP/1.1 200 OK\r\nContent-Type: text/task\r\nTransfer-Encoding: chunked\r\n\r\n");
+                        objv_mbuf_format(&httpChannel->write.mbuf, "HTTP/1.1 200 OK\r\nContent-Type: text/task\r\nTransfer-Encoding: chunked\r\nContent-Encoding: gzip\r\n\r\n");
                         
                         status = objv_channel_canWrite(conn->channel->base.base.isa, (objv_channel_t *) conn->channel, 0.02);
                         

@@ -1,17 +1,5 @@
 
 {
     "domain":"com.9vteam.im",
-    "services":[
-        {
-            "class":"CLMonitorService",
-            "taskTypes":[ "CLContextChildChangedTask" ],
-            "mail":{
-                "smtp":"tcp://smtp.exmail.qq.com",
-                "user":"mail@hailong.org",
-                "password":"h1234567",
-                "to":"hailongz@qq.com"
-            }
-        }
-    ]
 }
 

@@ -10,6 +10,7 @@
 #include "objv.h"
 #include "objv_server.h"
 
+#include <execinfo.h>
 
 static OBJVSRVServer * gServer = NULL;
 static void OBJVSRVServerRunProcess(OBJVSRVProcess * process);
@@ -57,12 +58,14 @@ int OBJVSRVServerRun(OBJVSRVServer * server){
     
     server->run.mainpid = getpid();
     
+    objv_mutex_init(&server->run.stdoutMutex);
+    
     OBJVSRVServerLog("OBJVSRVServerRun(%d) begin\n",server->run.mainpid);
     
     
     server->run.listenSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     
-    pthread_mutex_init(&server->run.listenMutex, NULL);
+    objv_mutex_init(&server->run.listenMutex);
     
     {
         int res;
@@ -111,7 +114,7 @@ int OBJVSRVServerRun(OBJVSRVServer * server){
     signal(SIGTERM, OBJVSRVServerSIGProcessQuit);
     signal(SIGKILL, OBJVSRVServerSIGProcessQuit);
     signal(SIGABRT, OBJVSRVServerSIGProcessQuit);
-    signal(SIGPIPE, OBJVSRVServerSIGNAN);
+    signal(SIGPIPE, SIG_IGN);
     signal(SIGTTOU, OBJVSRVServerSIGNAN);
     signal(ETIMEDOUT, OBJVSRVServerSIGNAN);
     
@@ -204,9 +207,11 @@ int OBJVSRVServerRun(OBJVSRVServer * server){
     
     
     close(server->run.listenSocket);
-    pthread_mutex_destroy(&server->run.listenMutex);
-    
+    objv_mutex_destroy(&server->run.listenMutex);
+
     OBJVSRVServerLog("main end\n");
+    
+    objv_mutex_destroy(&server->run.stdoutMutex);
     
     gServer = NULL;
     
@@ -215,7 +220,16 @@ int OBJVSRVServerRun(OBJVSRVServer * server){
 
 
 static void OBJVSRVServerSIGNAN(int signo){
-    OBJVSRVServerLog("sig_nan %d\n",signo);
+    
+    OBJVSRVServerLog("NAN sig:%d errno:%d\n",signo,errno);
+    
+    void * array[30];
+    int size = backtrace( array, 30);
+    char ** symbols = backtrace_symbols( array, size);
+    for(int i=0;i<size;i++){
+        OBJVSRVServerLog("%s\n",symbols[i]);
+    }
+    free(symbols);
 }
 
 static void OBJVSRVServerSIGProcessQuit(int signo)
@@ -312,7 +326,7 @@ static void OBJVSRVServerRunProcess(OBJVSRVProcess * process){
             signal(SIGKILL, OBJVSRVServerSIGProcessKill);
             
             signal(SIGFPE, OBJVSRVServerSIGNAN);
-            signal(SIGPIPE, OBJVSRVServerSIGNAN);
+            signal(SIGPIPE, SIG_IGN);
             signal(SIGTTOU, OBJVSRVServerSIGNAN);
             signal(ETIMEDOUT, OBJVSRVServerSIGNAN);
             
@@ -407,9 +421,21 @@ void OBJVSRVServerLog(const char * format,...){
     
 #ifdef DEBUG
     
+    if(gServer){
+        objv_mutex_lock( & gServer->run.stdoutMutex );
+    }
+    
     vprintf(format, va);
     
+    if(gServer){
+        objv_mutex_unlock( & gServer->run.stdoutMutex );
+    }
+    
 #else
+    
+    if(gServer){
+        objv_mutex_lock( & gServer->run.stdoutMutex );
+    }
     
     {
         fd_set rds;
@@ -442,6 +468,9 @@ void OBJVSRVServerLog(const char * format,...){
         
     }
     
+    if(gServer){
+        objv_mutex_unlock( & gServer->run.stdoutMutex );
+    }
     
 #endif
     

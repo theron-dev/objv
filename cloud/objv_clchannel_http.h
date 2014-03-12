@@ -16,10 +16,12 @@ extern "C" {
     
 #include "objv_clchannel.h"
 #include "objv_http.h"
+#include "objv_url.h"
     
     typedef enum _CLHttpChannelContentType {
         CLHttpChannelContentTypeNone = 0,
         CLHttpChannelContentTypeChunked = 1<<0,
+        CLHttpChannelContentTypeGzip = 1<<1,
     } CLHttpChannelContentType;
     
     typedef struct _CLHttpChannelPostTask {
@@ -32,6 +34,7 @@ extern "C" {
     typedef struct _CLHttpChannel{
         CLChannel base;
         OBJVHttpRequest httpRequest;
+        OBJVHttpResponse httpResponse;
         CLHttpChannelPostTask * beginTask;
         CLHttpChannelPostTask * endTask;
         objv_mutex_t tasks_mutex;
@@ -39,6 +42,7 @@ extern "C" {
         struct {
             objv_mbuf_t mbuf;
             objv_mbuf_t data;
+            objv_mbuf_t decode;
             size_t dataLength;
             size_t off;
             int state;
@@ -46,6 +50,7 @@ extern "C" {
         
         struct {
             objv_mbuf_t mbuf;
+            objv_mbuf_t encode;
             size_t off;
             int state;
         } write;
@@ -58,9 +63,9 @@ extern "C" {
     OBJV_CLASS_DEC(CLHttpChannel)
     
     
-    OBJVChannelStatus CLHttpChannelUnpackageTask(objv_zone_t * zone, CLTask ** task,objv_class_t ** taskType,objv_string_t ** target,objv_mbuf_t * data,CLHttpChannelContentType contentType);
+    OBJVChannelStatus CLHttpChannelUnpackageTask(objv_zone_t * zone, CLTask ** task,objv_class_t ** taskType,objv_string_t ** target,objv_mbuf_t * data,objv_mbuf_t * decode,CLHttpChannelContentType contentType);
     
-    OBJVChannelStatus CLHttpChannelPackageTask(objv_zone_t * zone, CLTask * task,objv_class_t * taskType,objv_string_t * target,objv_mbuf_t * mbuf,CLHttpChannelContentType contentType);
+    OBJVChannelStatus CLHttpChannelPackageTask(objv_zone_t * zone, CLTask * task,objv_class_t * taskType,objv_string_t * target,objv_mbuf_t * mbuf,objv_mbuf_t * encode,CLHttpChannelContentType contentType);
 
         
 #ifdef __cplusplus

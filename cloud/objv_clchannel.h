@@ -28,7 +28,6 @@ extern "C" {
     
     typedef struct _CLChannel{
         objv_object_t base;
-        objv_boolean_t READONLY connected;
         objv_channel_t * READONLY oChannel;
         objv_string_t * READONLY domain;
         objv_url_t * READONLY url;

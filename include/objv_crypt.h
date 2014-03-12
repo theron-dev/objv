@@ -22,6 +22,10 @@ extern "C" {
     
     objv_boolean_t objv_base64_decode(const char * text,objv_mbuf_t * mbuf);
     
+    objv_boolean_t objv_gzip_encode(void * data,size_t length,objv_mbuf_t * mbuf);
+    
+    objv_boolean_t objv_gzip_decode(void * data,size_t length,objv_mbuf_t * mbuf);
+    
 #ifdef __cplusplus
 }
 #endif

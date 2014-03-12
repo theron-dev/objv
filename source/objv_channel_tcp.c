@@ -29,8 +29,9 @@ static OBJVChannelStatus objv_channel_tcp_connect(objv_class_t * clazz, objv_cha
             objv_channel_tcp_disconnect(clazz,channel);
             state = OBJVChannelStatusNone;
         }
-        else if(state == OBJVChannelStatusOK){
+        else{
             channel->base.connected = objv_true;
+            state = OBJVChannelStatusOK;
         }
     }
     

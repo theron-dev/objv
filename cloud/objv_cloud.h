@@ -137,6 +137,13 @@ extern "C" {
     
     void CLContextSetConfig(objv_class_t * clazz, CLContext * context,objv_object_t * config);
     
+    typedef struct _CLKeepAliveTask {
+        CLTask base;
+    } CLKeepAliveTask;
+    
+    OBJV_KEY_DEC(CLKeepAliveTask)
+    OBJV_CLASS_DEC(CLKeepAliveTask)
+    
 #ifdef __cplusplus
 }
 #endif

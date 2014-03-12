@@ -218,6 +218,7 @@ void objv_mbuf_format(objv_mbuf_t * mbuf,const char * format,...){
 
 const char * objv_mbuf_str(objv_mbuf_t * mbuf){
     char * p = (char *) mbuf->data;
+    objv_mbuf_extend(mbuf, mbuf->length + 1);
     p[mbuf->length] = 0;
     return p;
 }
