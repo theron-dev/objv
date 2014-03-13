@@ -23,11 +23,31 @@
 
 #include "objv_autorelease.h"
 
+
+OBJV_KEY_IMP(DBObject)
+OBJV_KEY_IMP(rowid)
+
+static unsigned long long objv_db_object_rowid(objv_class_t * clazz, objv_db_object_t * dbObject){
+    return dbObject->rowid;
+}
+
+static void objv_db_object_set_rowid(objv_class_t * clazz, objv_db_object_t * dbObject,unsigned long long rowid){
+    dbObject->rowid = rowid;
+}
+
+OBJV_CLASS_PROPERTY_IMP_BEGIN(DBObject)
+
+OBJV_CLASS_PROPERTY_IMP(rowid, ulongLong, objv_db_object_rowid, objv_db_object_set_rowid, objv_true)
+
+OBJV_CLASS_PROPERTY_IMP_END(DBObject)
+
+OBJV_CLASS_IMP_P(DBObject, OBJV_CLASS(Object), objv_db_object_t);
+
+
 OBJV_KEY_IMP(DB)
 OBJV_KEY_IMP(DBCursor)
 OBJV_KEY_IMP(exec)
 OBJV_KEY_IMP(query)
-OBJV_KEY_IMP(next)
 OBJV_KEY_IMP(indexOfKey)
 OBJV_KEY_IMP(keyAtIndex)
 OBJV_KEY_IMP(cStringValueAtIndex)

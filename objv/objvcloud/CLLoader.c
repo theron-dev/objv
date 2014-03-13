@@ -9,11 +9,13 @@
 #include "objv_os.h"
 #include "objv.h"
 #include "CLMonitorService.h"
+#include "CLMessageService.h"
 
 void CLLoader(void){
     
     
     objv_class_initialize(OBJV_CLASS(CLMonitorService));
+    objv_class_initialize(OBJV_CLASS(CLMessageService));
     
 }
 

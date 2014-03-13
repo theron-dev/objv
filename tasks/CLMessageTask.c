@@ -14,9 +14,7 @@
 OBJV_KEY_IMP(CLMessageTask)
 OBJV_KEY_IMP(timestamp)
 OBJV_KEY_IMP(messageId)
-OBJV_KEY_IMP(uid)
 OBJV_KEY_IMP(tuid)
-OBJV_KEY_IMP(mettingId)
 
 static objv_timeinval_t CLMessageTaskTimestamp(objv_class_t * clazz, CLMessageTask * task){
     return task->timestamp;
@@ -72,8 +70,7 @@ OBJV_CLASS_IMP_P(CLMessageTask, OBJV_CLASS(CLTask), CLMessageTask)
 
 
 OBJV_KEY_IMP(CLMessageImageTask)
-OBJV_KEY_IMP(width)
-OBJV_KEY_IMP(height)
+
 
 static unsigned int CLMessageImageTaskWidth(objv_class_t * clazz,CLMessageImageTask * task){
     return task->width;
@@ -103,7 +100,6 @@ OBJV_CLASS_IMP_P(CLMessageImageTask, OBJV_CLASS(CLMessageTask), CLMessageImageTa
 
 
 OBJV_KEY_IMP(CLMessageAudioTask)
-OBJV_KEY_IMP(duration)
 
 static double CLMessageAudioTaskDuration(objv_class_t * clazz,CLMessageAudioTask * task){
     return task->duration;
@@ -124,7 +120,6 @@ OBJV_CLASS_IMP_P(CLMessageAudioTask, OBJV_CLASS(CLMessageTask), CLMessageAudioTa
 
 OBJV_KEY_IMP(CLMessageVideoTask)
 OBJV_KEY_IMP(uuid)
-OBJV_KEY_IMP(length)
 OBJV_KEY_IMP(offset)
 
 static double CLMessageVideoTaskDuration(objv_class_t * clazz,CLMessageVideoTask * task){

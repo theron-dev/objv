@@ -1,9 +1,9 @@
 
 {
-    "domain":"com.9vteam.im",
+    "domain":"com.9vteam.im.hailong",
     "parent":{
-        "url":"http://www.9vteam.com:9888/channel/com.9vteam.im",
-        "domain":"com.9vteam"
+        "url":"http://www.9vteam.com:9988/channel/com.9vteam.im.hailong",
+        "domain":"com.9vteam.im"
     }
 }
 

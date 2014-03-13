@@ -28,7 +28,7 @@ extern "C" {
     
     OBJV_KEY_DEC(DBObject)
     OBJV_CLASS_DEC(DBObject)
-
+    OBJV_KEY_DEC(rowid)
     
     typedef struct _objv_db_t {
         objv_object_t base;
