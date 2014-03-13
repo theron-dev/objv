@@ -266,6 +266,12 @@ objv_boolean_t objv_gzip_encode(void * data,size_t length,objv_mbuf_t * mbuf){
 
         int ret = deflateInit2(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 31, 8, Z_DEFAULT_STRATEGY);
         
+        if(ret != Z_OK){
+            
+            ret = deflateInit(&stream, 7);
+
+        }
+        
         if (ret == Z_OK)
         {
             while (stream.avail_out == 0)
@@ -305,7 +311,13 @@ objv_boolean_t objv_gzip_decode(void * data,size_t length,objv_mbuf_t * mbuf){
         stream.total_out = 0;
         stream.avail_out = 0;
 
-        if (inflateInit2(&stream, 47) == Z_OK)
+        int ret = inflateInit2( & stream , 47);
+        
+        if(ret != Z_OK) {
+            ret = inflateInit( & stream );
+        }
+        
+        if (ret == Z_OK)
         {
             int status = Z_OK;
             while (status == Z_OK)
