@@ -44,54 +44,31 @@ extern "C" {
     
     void objv_zone_release(objv_zone_t * zone,void * ptr);
     
+    typedef const char objv_key_t;
+    
+#define OBJV_KEY_DEC(key)
+#define OBJV_KEY_IMP(key)
+#define OBJV_KEY(key)   #key
+    
     enum {
-        objv_key_type_static = 0,objv_key_type_dynamic = 1
+        objv_type_void,         //v
+        objv_type_int,          //i
+        objv_type_uint,         //I
+        objv_type_long,         //l
+        objv_type_ulong,        //L
+        objv_type_longLong,     //q
+        objv_type_ulongLong,    //Q
+        objv_type_float,        //f
+        objv_type_double,       //d
+        objv_type_boolean,      //b
+        objv_type_ptr,          //*
+        objv_type_object,       //@
+        objv_type_bytes,       //B
     };
     
-    typedef unsigned long objv_key_type;
+#define OBJV_TYPE(type) objv_type_##type
     
-    typedef struct _objv_key_t {
-        const char * name;
-        objv_key_type type;
-    } objv_key_t;
-   
-#define OBJV_KEY_DEC(name)  extern objv_key_t __objv_key_##name;
-#define OBJV_KEY_IMP(name)  objv_key_t __objv_key_##name = {#name,objv_key_type_static};
-#define OBJV_KEY(name)      (& __objv_key_##name )
-    
-    OBJV_KEY_DEC(init)
-    OBJV_KEY_DEC(dealloc)
-    OBJV_KEY_DEC(retainCount)
-    OBJV_KEY_DEC(equal)
-    OBJV_KEY_DEC(hashCode)
-    OBJV_KEY_DEC(copy)
-    OBJV_KEY_DEC(Object)
-    
-    objv_boolean_t objv_key_equal(objv_key_t * key1,objv_key_t * key2);
-    
-    objv_key_t * objv_key(const char * key);
-    
-    typedef struct _objv_type_t {
-        const char * READONLY name;
-        size_t READONLY size;
-    } objv_type_t;
-    
-    extern objv_type_t objv_type_int;       //i
-    extern objv_type_t objv_type_uint;      //I
-    extern objv_type_t objv_type_long;      //l
-    extern objv_type_t objv_type_ulong;     //L
-    extern objv_type_t objv_type_longLong;  //q
-    extern objv_type_t objv_type_ulongLong; //Q
-    extern objv_type_t objv_type_float;     //f
-    extern objv_type_t objv_type_double;    //d
-    extern objv_type_t objv_type_void;      //v
-    extern objv_type_t objv_type_boolean;   //b
-    extern objv_type_t objv_type_ptr;       //*
-    extern objv_type_t objv_type_object;    //@
-    
-#define OBJV_TYPE_DEC(S)        extern objv_type_t objv_type_##S;
-#define OBJV_TYPE_IMP(S)        objv_type_t objv_type_##S = {#S,sizeof(S)};
-#define OBJV_TYPE(S)            ( & objv_type_##S )
+    typedef unsigned int objv_type_t;
     
     typedef void * objv_method_impl_t;
     
@@ -103,7 +80,7 @@ extern "C" {
     
     typedef struct _objv_property_t {
         objv_key_t * READONLY name;
-        objv_type_t * READONLY type;
+        objv_type_t READONLY type;
         objv_method_impl_t * READONLY getter;
         objv_method_impl_t * READONLY setter;
         objv_boolean_t serialization;
@@ -152,6 +129,8 @@ extern "C" {
     objv_class_t * objv_class(objv_key_t * className);
 
     void objv_class_initialize(objv_class_t * clazz);
+
+    void objv_class_reg(objv_class_t * clazz);
     
     typedef objv_object_t * (* objv_object_method_init_t) (objv_class_t * clazz, objv_object_t * object,va_list ap);
     
@@ -201,32 +180,32 @@ extern "C" {
     
 #define OBJV_CLASS_METHOD_IMP_BEGIN(clazz) static objv_method_t objv_##clazz##_methods[] = {
     
-#define OBJV_CLASS_METHOD_IMP(name,type,impl) {OBJV_KEY(name),(type),(objv_method_impl_t)(impl)},
+#define OBJV_CLASS_METHOD_IMP(name,type,impl) {(#name),(type),(objv_method_impl_t)(impl)},
     
 #define OBJV_CLASS_METHOD_IMP_END(clazz) };
     
 #define OBJV_CLASS_PROPERTY_IMP_BEGIN(clazz) static objv_property_t objv_##clazz##_propertys[] = {
     
-#define OBJV_CLASS_PROPERTY_IMP(name,type,getter,setter,serialization) {OBJV_KEY(name),OBJV_TYPE(type),(objv_method_impl_t)(getter),(objv_method_impl_t)(setter),(serialization)},
+#define OBJV_CLASS_PROPERTY_IMP(name,type,getter,setter,serialization) {(#name),objv_type_##type,(objv_method_impl_t)(getter),(objv_method_impl_t)(setter),(serialization)},
     
 #define OBJV_CLASS_PROPERTY_IMP_END(clazz) };
     
     
-#define OBJV_CLASS_IMP(clazz,superClazz,object) objv_class_t objv_##clazz##_class = {OBJV_KEY(clazz),(superClazz),NULL,0,NULL,0,sizeof(object),NULL,0};
+#define OBJV_CLASS_IMP(clazz,superClazz,object) objv_class_t objv_##clazz##_class = {(#clazz),(superClazz),NULL,0,NULL,0,sizeof(object),NULL,0};
   
-#define OBJV_CLASS_IMP_P(clazz,superClazz,object) objv_class_t objv_##clazz##_class = {OBJV_KEY(clazz),(superClazz),NULL,0,objv_##clazz##_propertys,sizeof(objv_##clazz##_propertys) / sizeof(objv_property_t),sizeof(object),NULL,0};
+#define OBJV_CLASS_IMP_P(clazz,superClazz,object) objv_class_t objv_##clazz##_class = {(#clazz),(superClazz),NULL,0,objv_##clazz##_propertys,sizeof(objv_##clazz##_propertys) / sizeof(objv_property_t),sizeof(object),NULL,0};
 
-#define OBJV_CLASS_IMP_P_M(clazz,superClazz,object) objv_class_t objv_##clazz##_class = {OBJV_KEY(clazz),(superClazz), objv_##clazz##_methods,sizeof( objv_##clazz##_methods) / sizeof(objv_method_t),objv_##clazz##_propertys,sizeof(objv_##clazz##_propertys) / sizeof(objv_property_t),sizeof(object),NULL,0};
+#define OBJV_CLASS_IMP_P_M(clazz,superClazz,object) objv_class_t objv_##clazz##_class = {(#clazz),(superClazz), objv_##clazz##_methods,sizeof( objv_##clazz##_methods) / sizeof(objv_method_t),objv_##clazz##_propertys,sizeof(objv_##clazz##_propertys) / sizeof(objv_property_t),sizeof(object),NULL,0};
     
-#define OBJV_CLASS_IMP_M(clazz,superClazz,object) objv_class_t objv_##clazz##_class = {OBJV_KEY(clazz),(superClazz), objv_##clazz##_methods,sizeof( objv_##clazz##_methods) / sizeof(objv_method_t),NULL,0,sizeof(object),NULL,0};
+#define OBJV_CLASS_IMP_M(clazz,superClazz,object) objv_class_t objv_##clazz##_class = {(#clazz),(superClazz), objv_##clazz##_methods,sizeof( objv_##clazz##_methods) / sizeof(objv_method_t),NULL,0,sizeof(object),NULL,0};
 
-#define OBJV_CLASS_IMP_I(clazz,superClazz,object,initialize) objv_class_t objv_##clazz##_class = {OBJV_KEY(clazz),(superClazz),NULL,0,NULL,0,sizeof(object),(initialize),0};
+#define OBJV_CLASS_IMP_I(clazz,superClazz,object,initialize) objv_class_t objv_##clazz##_class = {(#clazz),(superClazz),NULL,0,NULL,0,sizeof(object),(initialize),0};
     
-#define OBJV_CLASS_IMP_P_I(clazz,superClazz,object,initialize) objv_class_t objv_##clazz##_class = {OBJV_KEY(clazz),(superClazz),NULL,0,objv_##clazz##_propertys,sizeof(objv_##clazz##_propertys) / sizeof(objv_property_t),sizeof(object),(initialize),0};
+#define OBJV_CLASS_IMP_P_I(clazz,superClazz,object,initialize) objv_class_t objv_##clazz##_class = {(#clazz),(superClazz),NULL,0,objv_##clazz##_propertys,sizeof(objv_##clazz##_propertys) / sizeof(objv_property_t),sizeof(object),(initialize),0};
 
-#define OBJV_CLASS_IMP_M_I(clazz,superClazz,object,initialize) objv_class_t objv_##clazz##_class = {OBJV_KEY(clazz),(superClazz), objv_##clazz##_methods,sizeof( objv_##clazz##_methods) / sizeof(objv_method_t),NULL,0,sizeof(object),(initialize),0};
+#define OBJV_CLASS_IMP_M_I(clazz,superClazz,object,initialize) objv_class_t objv_##clazz##_class = {(#clazz),(superClazz), objv_##clazz##_methods,sizeof( objv_##clazz##_methods) / sizeof(objv_method_t),NULL,0,sizeof(object),(initialize),0};
 
-#define OBJV_CLASS_IMP_P_M_I(clazz,superClazz,object,initialize) objv_class_t objv_##clazz##_class = {OBJV_KEY(clazz),(superClazz), objv_##clazz##_methods,sizeof( objv_##clazz##_methods) / sizeof(objv_method_t),objv_##clazz##_propertys,sizeof(objv_##clazz##_propertys) / sizeof(objv_property_t),sizeof(object),(initialize),0};
+#define OBJV_CLASS_IMP_P_M_I(clazz,superClazz,object,initialize) objv_class_t objv_##clazz##_class = {(#clazz),(superClazz), objv_##clazz##_methods,sizeof( objv_##clazz##_methods) / sizeof(objv_method_t),objv_##clazz##_propertys,sizeof(objv_##clazz##_propertys) / sizeof(objv_property_t),sizeof(object),(initialize),0};
     
 #ifdef __cplusplus
 }

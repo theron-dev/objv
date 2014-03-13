@@ -42,7 +42,7 @@ static void ConsoleTaskMethodRun (objv_class_t * clazz, objv_object_t * object){
 
 static void ConsoleTaskMethodDealloc (objv_class_t * clazz, objv_object_t * object){
     
-    objv_log("\n%s(0x%x) dealloc\n", object->isa->name->name,(unsigned long) object);
+    objv_log("\n%s(0x%x) dealloc\n", object->isa->name,(unsigned long) object);
     
     if(clazz->superClass){
         objv_object_dealloc(clazz->superClass, object);

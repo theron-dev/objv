@@ -103,12 +103,12 @@ static OBJVDBStatus objv_db_method_object_insert(objv_class_t * clazz,objv_db_t 
         tableClass = dbObject->base.isa;
     }
     
-    rowid = objv_class_getPropertyOfClass(tableClass, objv_key("rowid"),NULL);
+    rowid = objv_class_getPropertyOfClass(tableClass, ("rowid"),NULL);
     
     objv_mbuf_init(& mbuf, 128);
     objv_mbuf_init(& values, 128);
     
-    objv_mbuf_format(& mbuf, "INSERT INTO %s (",tableClass->name->name);
+    objv_mbuf_format(& mbuf, "INSERT INTO %s (",tableClass->name);
     
     objv_mbuf_format(& values, " VALUES(");
     
@@ -123,12 +123,12 @@ static OBJVDBStatus objv_db_method_object_insert(objv_class_t * clazz,objv_db_t 
             if(rowid != prop && prop->serialization){
                 
                 if(count == 0){
-                    objv_mbuf_format(& mbuf,"%s",prop->name->name);
-                    objv_mbuf_format(& values,":%s",prop->name->name);
+                    objv_mbuf_format(& mbuf,"%s",prop->name);
+                    objv_mbuf_format(& values,":%s",prop->name);
                 }
                 else{
-                    objv_mbuf_format(& mbuf,",%s",prop->name->name);
-                    objv_mbuf_format(& values,",:%s",prop->name->name);
+                    objv_mbuf_format(& mbuf,",%s",prop->name);
+                    objv_mbuf_format(& values,",:%s",prop->name);
                 }
                 
                 count ++;
@@ -167,7 +167,7 @@ static OBJVDBStatus objv_db_method_object_delete(objv_class_t * clazz,objv_db_t 
     
     objv_mbuf_init(& mbuf, 128);
 
-    objv_mbuf_format(& mbuf, "DELETE FROM %s WHERE rowid=:rowid",tableClass->name->name);
+    objv_mbuf_format(& mbuf, "DELETE FROM %s WHERE rowid=:rowid",tableClass->name);
 
     status = objv_db_exec(db->base.isa, db, objv_mbuf_str(& mbuf), (objv_object_t *) dbObject);
     
@@ -190,11 +190,11 @@ static OBJVDBStatus objv_db_method_object_update(objv_class_t * clazz,objv_db_t 
         tableClass = dbObject->base.isa;
     }
     
-    rowid = objv_class_getPropertyOfClass(tableClass, objv_key("rowid"),NULL);
+    rowid = objv_class_getPropertyOfClass(tableClass, ("rowid"),NULL);
     
     objv_mbuf_init(& mbuf, 128);
     
-    objv_mbuf_format(& mbuf, "UPDATE %s SET ",tableClass->name->name);
+    objv_mbuf_format(& mbuf, "UPDATE %s SET ",tableClass->name);
     
     while(tableClass){
         
@@ -206,10 +206,10 @@ static OBJVDBStatus objv_db_method_object_update(objv_class_t * clazz,objv_db_t 
             if(rowid != prop && prop->serialization){
                 
                 if(count == 0){
-                    objv_mbuf_format(& mbuf,"%s=:%s",prop->name->name,prop->name->name);
+                    objv_mbuf_format(& mbuf,"%s=:%s",prop->name,prop->name);
                 }
                 else{
-                    objv_mbuf_format(& mbuf,",%s=:%s",prop->name->name,prop->name->name);
+                    objv_mbuf_format(& mbuf,",%s=:%s",prop->name,prop->name);
                 }
                 
                 count ++;

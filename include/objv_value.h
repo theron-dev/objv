@@ -35,7 +35,7 @@ extern "C" {
     
     typedef struct _objv_value_t {
         objv_object_t base;
-        objv_type_t * READONLY type;
+        objv_type_t READONLY type;
         union {
             int READONLY intValue;
             unsigned int READONLY uintValue;
@@ -47,8 +47,11 @@ extern "C" {
             double READONLY doubleValue;
             objv_boolean_t READONLY booleanValue;
             void * READONLY ptrValue;
+            struct {
+                void * READONLY bytes;
+                size_t READONLY length;
+            } bytesValue;
         };
-        objv_boolean_t READONLY malloc;
     } objv_value_t;
     
     extern objv_class_t objv_value_class;
@@ -75,7 +78,7 @@ extern "C" {
     
     objv_value_t * objv_value_alloc_ptrValue(objv_zone_t * zone,void * value);
     
-    objv_value_t * objv_value_alloc_structValue(objv_zone_t * zone,void * value,objv_type_t * type);
+    objv_value_t * objv_value_alloc_structValue(objv_zone_t * zone,void * bytes,size_t length);
     
     
     objv_value_t * objv_value_new_nullValue(objv_zone_t * zone);

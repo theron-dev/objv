@@ -256,7 +256,7 @@ vmVariant vmObjectOperatorExecute(vmContext * ctx,objv_class_t * clazz,objv_obje
             
 			if(objClass == NULL){
                 rs.type = vmVariantTypeObject | vmVariantTypeThrowable;
-                rs.objectValue = (objv_object_t *) objv_exception_new(ctx->base.zone,0,"[new] not found class %s", uniqueKey->name);
+                rs.objectValue = (objv_object_t *) objv_exception_new(ctx->base.zone,0,"[new] not found class %s", uniqueKey);
                 break;
 			}
             
@@ -1287,7 +1287,7 @@ vmVariant vmObjectOperatorExecute(vmContext * ctx,objv_class_t * clazz,objv_obje
             
 			if(objClass == NULL){
                 rs.type = vmVariantTypeObject | vmVariantTypeThrowable;
-				rs.objectValue = (objv_object_t *) objv_exception_new(ctx->base.zone, 0, "[is] not found class %s",uniqueKey->name);
+				rs.objectValue = (objv_object_t *) objv_exception_new(ctx->base.zone, 0, "[is] not found class %s",uniqueKey);
 			}
 			else{
 				rs.type = vmVariantTypeBoolean;

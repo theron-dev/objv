@@ -133,7 +133,7 @@ static void CLSRVProcessOpen (OBJVSRVServer * server,OBJVSRVProcess * process){
         objv_class_t * clazz = NULL;
         
         if(className){
-            clazz = objv_class(objv_key(className->UTF8String));
+            clazz = objv_class((className->UTF8String));
         }
         
         if(clazz == NULL || ! objv_class_isKindOfClass(clazz, OBJV_CLASS(CLServiceContext)) ){

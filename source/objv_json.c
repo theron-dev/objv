@@ -112,31 +112,31 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
         
         {
             objv_value_t * v = (objv_value_t *) object;
-            if(v->type == & objv_type_int){
+            if(v->type == objv_type_int){
                 objv_mbuf_format(mbuf,"%d",v->intValue);
             }
-            else if(v->type == & objv_type_uint){
+            else if(v->type == objv_type_uint){
                 objv_mbuf_format(mbuf,"%u",v->uintValue);
             }
-            else if(v->type == & objv_type_long){
+            else if(v->type == objv_type_long){
                 objv_mbuf_format(mbuf,"%ld",v->longValue);
             }
-            else if(v->type == & objv_type_ulong){
+            else if(v->type == objv_type_ulong){
                 objv_mbuf_format(mbuf,"%lu",v->ulongValue);
             }
-            else if(v->type == & objv_type_longLong){
+            else if(v->type == objv_type_longLong){
                 objv_mbuf_format(mbuf,"%lld",v->longLongValue);
             }
-            else if(v->type == & objv_type_ulongLong){
+            else if(v->type == objv_type_ulongLong){
                 objv_mbuf_format(mbuf,"%llu",v->ulongLongValue);
             }
-            else if(v->type == & objv_type_float){
+            else if(v->type == objv_type_float){
                 objv_mbuf_format(mbuf,"%f",(double) v->floatValue);
             }
-            else if(v->type == & objv_type_double){
+            else if(v->type == objv_type_double){
                 objv_mbuf_format(mbuf,"%lf",v->doubleValue);
             }
-            else if(v->type == & objv_type_boolean){
+            else if(v->type == objv_type_boolean){
                 if(v->booleanValue){
                     objv_mbuf_append(mbuf,"true",4);
                 }
@@ -144,10 +144,10 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                     objv_mbuf_append(mbuf,"false",5);
                 }
             }
-            else{
+            else if(v->type == objv_type_bytes){
                 {
-                    size_t size = v->type->size;
-                    unsigned char * p = v->ptrValue;
+                    size_t size = v->bytesValue.length;
+                    unsigned char * p = v->bytesValue.bytes;
                     
                     objv_mbuf_append(mbuf,"\"",1);
                 
@@ -307,7 +307,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                     
                     if(p->getter && p->serialization){
                         
-                        if(p->type == & objv_type_int){
+                        if(p->type == objv_type_int){
                             
                             if(foramtted){
                                 objv_json_encode_mbuf_level_space(mbuf,level + 1);
@@ -317,7 +317,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                                 objv_mbuf_append(mbuf,",",1);
                             }
                             
-                            objv_mbuf_format(mbuf,"\"%s\":",p->name->name);
+                            objv_mbuf_format(mbuf,"\"%s\":",p->name);
                             
                             objv_mbuf_format(mbuf,"%d", (* (objv_object_property_intValue_t)p->getter)(clazz,object));
                             
@@ -328,7 +328,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                             }
 
                         }
-                        else if(p->type == & objv_type_uint){
+                        else if(p->type == objv_type_uint){
                             
                             if(foramtted){
                                 objv_json_encode_mbuf_level_space(mbuf,level + 1);
@@ -338,7 +338,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                                 objv_mbuf_append(mbuf,",",1);
                             }
                             
-                            objv_mbuf_format(mbuf,"\"%s\":",p->name->name);
+                            objv_mbuf_format(mbuf,"\"%s\":",p->name);
                             
                             objv_mbuf_format(mbuf,"%u", (* (objv_object_property_uintValue_t)p->getter)(clazz,object));
                             
@@ -349,7 +349,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                             }
 
                         }
-                        else if(p->type == & objv_type_long){
+                        else if(p->type == objv_type_long){
                             
                             if(foramtted){
                                 objv_json_encode_mbuf_level_space(mbuf,level + 1);
@@ -360,7 +360,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                                 objv_mbuf_append(mbuf,",",1);
                             }
                             
-                            objv_mbuf_format(mbuf,"\"%s\":",p->name->name);
+                            objv_mbuf_format(mbuf,"\"%s\":",p->name);
                             
                             objv_mbuf_format(mbuf,"%ld", (* (objv_object_property_longValue_t)p->getter)(clazz,object));
                             
@@ -371,7 +371,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                             }
 
                         }
-                        else if(p->type == & objv_type_ulong){
+                        else if(p->type == objv_type_ulong){
                             
                             if(foramtted){
                                 objv_json_encode_mbuf_level_space(mbuf,level + 1);
@@ -381,7 +381,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                                 objv_mbuf_append(mbuf,",",1);
                             }
                             
-                            objv_mbuf_format(mbuf,"\"%s\":",p->name->name);
+                            objv_mbuf_format(mbuf,"\"%s\":",p->name);
                             
                             objv_mbuf_format(mbuf,"%lu", (* (objv_object_property_ulongValue_t)p->getter)(clazz,object));
                             
@@ -392,7 +392,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                             }
 
                         }
-                        else if(p->type == & objv_type_longLong){
+                        else if(p->type == objv_type_longLong){
                             
                             if(foramtted){
                                 objv_json_encode_mbuf_level_space(mbuf,level + 1);
@@ -402,7 +402,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                                 objv_mbuf_append(mbuf,",",1);
                             }
                             
-                            objv_mbuf_format(mbuf,"\"%s\":",p->name->name);
+                            objv_mbuf_format(mbuf,"\"%s\":",p->name);
                             
                             objv_mbuf_format(mbuf,"%lld", (* (objv_object_property_longLongValue_t)p->getter)(clazz,object));
                             
@@ -413,7 +413,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                             }
 
                         }
-                        else if(p->type == & objv_type_ulongLong){
+                        else if(p->type == objv_type_ulongLong){
                             
                             if(foramtted){
                                 objv_json_encode_mbuf_level_space(mbuf,level + 1);
@@ -423,7 +423,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                                 objv_mbuf_append(mbuf,",",1);
                             }
                             
-                            objv_mbuf_format(mbuf,"\"%s\":",p->name->name);
+                            objv_mbuf_format(mbuf,"\"%s\":",p->name);
                             
                             objv_mbuf_format(mbuf,"%llu", (* (objv_object_property_ulongLongValue_t)p->getter)(clazz,object));
                             
@@ -434,7 +434,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                             }
 
                         }
-                        else if(p->type == & objv_type_float){
+                        else if(p->type == objv_type_float){
                             
                             if(foramtted){
                                 objv_json_encode_mbuf_level_space(mbuf,level + 1);
@@ -444,7 +444,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                                 objv_mbuf_append(mbuf,",",1);
                             }
                             
-                            objv_mbuf_format(mbuf,"\"%s\":",p->name->name);
+                            objv_mbuf_format(mbuf,"\"%s\":",p->name);
                             
                             objv_mbuf_format(mbuf,"%f", (double) (* (objv_object_property_floatValue_t)p->getter)(clazz,object));
                             
@@ -455,7 +455,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                             }
 
                         }
-                        else if(p->type == & objv_type_double){
+                        else if(p->type == objv_type_double){
                             
                             if(foramtted){
                                 objv_json_encode_mbuf_level_space(mbuf,level + 1);
@@ -465,7 +465,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                                 objv_mbuf_append(mbuf,",",1);
                             }
                             
-                            objv_mbuf_format(mbuf,"\"%s\":",p->name->name);
+                            objv_mbuf_format(mbuf,"\"%s\":",p->name);
                             
                             objv_mbuf_format(mbuf,"%lf", (* (objv_object_property_doubleValue_t)p->getter)(clazz,object));
                             
@@ -476,7 +476,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                             }
 
                         }
-                        else if(p->type == & objv_type_boolean){
+                        else if(p->type == objv_type_boolean){
                             
                             if(foramtted){
                                 objv_json_encode_mbuf_level_space(mbuf,level + 1);
@@ -486,7 +486,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                                 objv_mbuf_append(mbuf,",",1);
                             }
                         
-                            objv_mbuf_format(mbuf,"\"%s\":",p->name->name);
+                            objv_mbuf_format(mbuf,"\"%s\":",p->name);
                             
                             if((* (objv_object_property_booleanValue_t)p->getter)(clazz,object)){
                                 objv_mbuf_append(mbuf,"true",4);
@@ -502,7 +502,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                             }
 
                         }
-                        else if(p->type == & objv_type_object){
+                        else if(p->type == objv_type_object){
                             
                             if(foramtted){
                                 objv_json_encode_mbuf_level_space(mbuf,level + 1);
@@ -512,7 +512,7 @@ static void objv_json_encode_mbuf_level(objv_zone_t * zone, objv_object_t * obje
                                 objv_mbuf_append(mbuf,",",1);
                             }
                             
-                            objv_mbuf_format(mbuf,"\"%s\":",p->name->name);
+                            objv_mbuf_format(mbuf,"\"%s\":",p->name);
                             
                             objv_json_encode_mbuf_level(zone,(* (objv_object_property_objectValue_t)p->getter)(clazz,object),mbuf,foramtted,level + 1);
                             

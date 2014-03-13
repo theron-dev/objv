@@ -26,60 +26,13 @@ OBJV_KEY_IMP(hashCode)
 OBJV_KEY_IMP(copy)
 OBJV_KEY_IMP(Object)
 
-static objv_hash_map_t * objv_keys = NULL;
-static objv_mutex_t objv_keys_mutex;
-
-objv_key_t * objv_key(const char * key){
-    
-    if(objv_keys == NULL){
-        
-        objv_mutex_init(& objv_keys_mutex);
-        
-        objv_mutex_lock(& objv_keys_mutex);
-        
-        if(objv_keys == NULL){
-            objv_keys = objv_hash_map_alloc(32, objv_hash_map_hash_code_string, objv_map_compare_string);
-        }
-        
-        objv_mutex_unlock(& objv_keys_mutex);
-    }
-    
-    objv_mutex_lock(& objv_keys_mutex);
-    
-    objv_key_t * k = (objv_key_t *) objv_hash_map_get(objv_keys, (void *) key);
-    
-    if(k == NULL){
-        
-        k = (objv_key_t *) objv_zone_malloc(NULL, sizeof(objv_key_t) + strlen(key) + 1);
-        
-        k->name = (const char *) (k + 1);
-        k->type = objv_key_type_dynamic;
-        
-        strcpy((char *) k->name, key);
-        
-        objv_hash_map_put(objv_keys, (void *) k->name, k);
-    }
-    
-    objv_mutex_unlock(& objv_keys_mutex);
-    
-    return k;
-}
-
 objv_boolean_t objv_key_equal(objv_key_t * key1,objv_key_t * key2){
     
     if(key1 == key2){
         return objv_true;
     }
     
-    if(key1->name == key2->name){
-        return objv_true;
-    }
-    
-    if(key1->type != key2->type){
-        return strcmp(key1->name, key2->name) == 0 ? objv_true : objv_false;
-    }
-    
-    return objv_false;
+    return strcmp(key1, key2) == 0 ? objv_true : objv_false;
 }
 
 static void objv_object_methods_dealloc(objv_class_t * clazz, objv_object_t * obj){
@@ -126,7 +79,7 @@ static objv_object_t * objv_object_methods_objectForKey(objv_class_t * clazz,obj
             
             while(prop && propCount >0){
                 
-                if(prop->name->name == skey->UTF8String || strcmp(prop->name->name, skey->UTF8String)){
+                if(prop->name == skey->UTF8String || strcmp(prop->name, skey->UTF8String)){
                     
                     return objv_property_objectValue(c, obj, prop, NULL);
                     
@@ -160,7 +113,7 @@ static void objv_object_methods_setObjectForKey(objv_class_t * clazz,objv_object
             
             while(prop && propCount >0){
                 
-                if(prop->name->name == skey->UTF8String || strcmp(prop->name->name, skey->UTF8String)){
+                if(prop->name == skey->UTF8String || strcmp(prop->name, skey->UTF8String)){
                     
                     objv_property_setObjectValue(c, obj, prop, value);
 
@@ -189,38 +142,11 @@ OBJV_CLASS_METHOD_IMP(setObjectForKey,"v(@,@)",objv_object_methods_setObjectForK
 
 OBJV_CLASS_METHOD_IMP_END(Object)
 
-
-static void objv_object_class_initialize(objv_class_t * clazz){
-    
-}
-
-objv_class_t objv_Object_class = {OBJV_KEY(Object),NULL
-    ,objv_Object_methods,sizeof(objv_Object_methods) / sizeof(objv_method_t)
-    ,NULL,0
-    ,sizeof(objv_object_t)
-    ,objv_object_class_initialize,0};
-
 static objv_hash_map_t * _objv_classs = NULL;
 static objv_mutex_t _objv_classs_mutex;
 
 
-objv_class_t * objv_class(objv_key_t * className){
-    
-    if(className && _objv_classs){
-        
-        objv_mutex_lock(& _objv_classs_mutex);
-        
-        objv_class_t * clazz = (objv_class_t *) objv_hash_map_get(_objv_classs, className);
-        
-        objv_mutex_unlock(& _objv_classs_mutex);
-     
-        return clazz;
-    }
-    
-    return NULL;
-}
-
-static void objv_class_reg(objv_class_t * clazz){
+void objv_class_reg(objv_class_t * clazz){
     
     if(clazz){
         
@@ -233,14 +159,43 @@ static void objv_class_reg(objv_class_t * clazz){
         
         objv_mutex_lock(& _objv_classs_mutex);
         
-        if(! objv_hash_map_get(_objv_classs, clazz->name)){
-            objv_hash_map_put(_objv_classs, clazz->name, clazz);
+        if(! objv_hash_map_get(_objv_classs, (void *) clazz->name)){
+            objv_hash_map_put(_objv_classs, (void *) clazz->name, clazz);
         }
         
         objv_mutex_unlock(& _objv_classs_mutex);
         
     }
 }
+
+
+static void objv_object_class_initialize(objv_class_t * clazz){
+    objv_class_reg(clazz);
+}
+
+objv_class_t objv_Object_class = {OBJV_KEY(Object),NULL
+    ,objv_Object_methods,sizeof(objv_Object_methods) / sizeof(objv_method_t)
+    ,NULL,0
+    ,sizeof(objv_object_t)
+    ,objv_object_class_initialize,0};
+
+
+objv_class_t * objv_class(objv_key_t * className){
+    
+    if(className && _objv_classs){
+        
+        objv_mutex_lock(& _objv_classs_mutex);
+        
+        objv_class_t * clazz = (objv_class_t *) objv_hash_map_get(_objv_classs, (void *) className);
+        
+        objv_mutex_unlock(& _objv_classs_mutex);
+     
+        return clazz;
+    }
+    
+    return NULL;
+}
+
 
 void objv_class_initialize(objv_class_t * clazz){
    
@@ -260,7 +215,7 @@ void objv_class_initialize(objv_class_t * clazz){
                 
                 while (c > 0 && prop) {
                     
-                    objv_hash_map_put(clazz->propertysMap, prop->name, prop);
+                    objv_hash_map_put(clazz->propertysMap, (void *) prop->name, prop);
                     
                     c --;
                     prop ++;
@@ -279,7 +234,7 @@ void objv_class_initialize(objv_class_t * clazz){
                 
                 while (c > 0 && method) {
                     
-                    objv_hash_map_put(clazz->methodsMap, method->name, method);
+                    objv_hash_map_put(clazz->methodsMap, (void *) method->name, method);
                     
                     c --;
                     method ++;
@@ -287,13 +242,12 @@ void objv_class_initialize(objv_class_t * clazz){
             }
             
         }
-        
-        if(clazz->name->type == objv_key_type_static){
-            objv_class_reg(clazz);
-        }
     
         if(clazz->initialize){
             (* clazz->initialize)(clazz);
+        }
+        else {
+            objv_object_class_initialize(clazz);
         }
         
         clazz->initialized = objv_true;
@@ -303,7 +257,7 @@ void objv_class_initialize(objv_class_t * clazz){
 objv_method_t * objv_class_getMethod(objv_class_t * clazz,objv_key_t * name){
     
     if(clazz && name){
-        return objv_hash_map_get(clazz->methodsMap, name);
+        return objv_hash_map_get(clazz->methodsMap, (void *) name);
     }
     
     return NULL;
@@ -331,7 +285,7 @@ objv_property_t * objv_class_getProperty(objv_class_t * clazz,objv_key_t * name)
     
     if(clazz && name){
         
-        return objv_hash_map_get(clazz->propertysMap, name);
+        return objv_hash_map_get(clazz->propertysMap, (void *) name);
         
     }
     

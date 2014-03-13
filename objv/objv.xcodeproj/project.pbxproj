@@ -30,7 +30,6 @@
 		11A03AB718CECF2D006F047E /* libmysqlclient.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 11A03AB618CECF2D006F047E /* libmysqlclient.a */; };
 		11A03ABE18CF01C8006F047E /* CLMessageObject.c in Sources */ = {isa = PBXBuildFile; fileRef = 11A03ABD18CF01C8006F047E /* CLMessageObject.c */; };
 		11A03AC018CF10F0006F047E /* libmysqlclient.18.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 11A03ABF18CF10F0006F047E /* libmysqlclient.18.dylib */; };
-		11A03AC218CF177B006F047E /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 11A03AC118CF177B006F047E /* Makefile */; };
 		11BB350F18BAF55100BF0C4F /* objv_server_posix.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BB350E18BAF55100BF0C4F /* objv_server_posix.c */; };
 		11BD79191899427E00F028AC /* objv.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD79181899427E00F028AC /* objv.c */; };
 		11BD791E189953EB00F028AC /* objv_zone.c in Sources */ = {isa = PBXBuildFile; fileRef = 11BD791D189953EB00F028AC /* objv_zone.c */; };
@@ -75,7 +74,6 @@
 		11D0BAE118A8D1A9009761A8 /* objv_clcontext.c in Sources */ = {isa = PBXBuildFile; fileRef = 11D0BADF18A8AEC3009761A8 /* objv_clcontext.c */; };
 		11E94A8018CDF19F00497593 /* CLMonitorService.c in Sources */ = {isa = PBXBuildFile; fileRef = 11E94A7F18CDF19F00497593 /* CLMonitorService.c */; };
 		11F23C9F18CDFBA600C76F70 /* CLLoader.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F23C9E18CDFBA600C76F70 /* CLLoader.c */; };
-		11F23CA118CF528A00C76F70 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 11F23CA018CF528A00C76F70 /* Makefile */; };
 		11F67EB118A4B00F006E4EC1 /* objv_vmcompiler_expression.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EB018A4B00F006E4EC1 /* objv_vmcompiler_expression.c */; };
 		11F67EB418A4B266006E4EC1 /* objv_vmcompiler_invokes.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EB318A4B266006E4EC1 /* objv_vmcompiler_invokes.c */; };
 		11F67EB718A4B3FF006E4EC1 /* objv_vmcompiler_class.c in Sources */ = {isa = PBXBuildFile; fileRef = 11F67EB618A4B3FF006E4EC1 /* objv_vmcompiler_class.c */; };
@@ -635,7 +633,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				11F23CA118CF528A00C76F70 /* Makefile in Sources */,
 				1114061F18C4751C00C03FFA /* CLSRVProcess.c in Sources */,
 				11F23C9F18CDFBA600C76F70 /* CLLoader.c in Sources */,
 				1153BAF018C08AB9009EF09A /* CLAccept.c in Sources */,
@@ -661,7 +658,6 @@
 				11BD797818A0DE0300F028AC /* objv_zombie.c in Sources */,
 				11F67EC818A4C746006E4EC1 /* md5.c in Sources */,
 				1121043118A4AC27009A81E1 /* objv_vmcompiler_tokenizer.c in Sources */,
-				11A03AC218CF177B006F047E /* Makefile in Sources */,
 				119EBDBA18A65A9400B745D7 /* objv_inifile.c in Sources */,
 				11BD793A189A00EE00F028AC /* objv_autorelease.c in Sources */,
 				11BD791E189953EB00F028AC /* objv_zone.c in Sources */,

@@ -183,7 +183,7 @@ static OBJVDBStatus objv_db_mysql_method_object_regClass (objv_class_t * clazz,o
     objv_boolean_t isExists = objv_false;
     objv_mbuf_init(& mbuf, 128);
     
-    objv_mbuf_format(& mbuf, "SELECT COUNT(*) FROM `INFORMATION_SCHEMA`.`TABLES` WHERE `TABLE_SCHEMA`='%s' and `TABLE_NAME`='%s';",db->db->UTF8String,dbObjectClass->name->name);
+    objv_mbuf_format(& mbuf, "SELECT COUNT(*) FROM `INFORMATION_SCHEMA`.`TABLES` WHERE `TABLE_SCHEMA`='%s' and `TABLE_NAME`='%s';",db->db->UTF8String,dbObjectClass->name);
     
     cursor = objv_db_query(clazz, (objv_db_t *) db, objv_mbuf_str(& mbuf), NULL);
     
@@ -198,7 +198,7 @@ static OBJVDBStatus objv_db_mysql_method_object_regClass (objv_class_t * clazz,o
         fields = objv_dictionary_alloc(zone, 4);
         
         objv_mbuf_clear(& mbuf);
-        objv_mbuf_format(& mbuf, "SELECT COLUMN_NAME FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE `TABLE_SCHEMA`='%s' AND `TABLE_TABLE`='%s';",db->db->UTF8String,dbObjectClass->name->name);
+        objv_mbuf_format(& mbuf, "SELECT COLUMN_NAME FROM `INFORMATION_SCHEMA`.`COLUMNS` WHERE `TABLE_SCHEMA`='%s' AND `TABLE_TABLE`='%s';",db->db->UTF8String,dbObjectClass->name);
         
         cursor = objv_db_query(clazz, (objv_db_t *) db, objv_mbuf_str(& mbuf), NULL);
         
@@ -216,7 +216,7 @@ static OBJVDBStatus objv_db_mysql_method_object_regClass (objv_class_t * clazz,o
             
         }
         
-        rowid = objv_class_getPropertyOfClass(tableClass, objv_key("rowid"),NULL);
+        rowid = objv_class_getPropertyOfClass(tableClass, ("rowid"),NULL);
         
         while(tableClass){
             
@@ -227,13 +227,13 @@ static OBJVDBStatus objv_db_mysql_method_object_regClass (objv_class_t * clazz,o
                 
                 if(rowid != prop && prop->serialization){
                     
-                    key = (objv_object_t *) objv_string_new_nocopy(zone, prop->name->name);
+                    key = (objv_object_t *) objv_string_new_nocopy(zone, prop->name);
                     
                     if(objv_dictionary_value(fields, key) == NULL){
                         
                         objv_mbuf_clear(& mbuf);
                         
-                        objv_mbuf_format(& mbuf, "ALTER TABLE `%s` ADD COLUMN `%s` ",dbObjectClass->name->name,prop->name->name);
+                        objv_mbuf_format(& mbuf, "ALTER TABLE `%s` ADD COLUMN `%s` ",dbObjectClass->name,prop->name);
                         
                         objv_db_mysql_sql_propertyType(zone,db,prop,& mbuf);
                         

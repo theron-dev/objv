@@ -745,7 +745,7 @@ static void _objv_tokenizer_log(objv_tokenizer_t * tokenizer,int level,int maxLe
     char *p;
     _objv_tokenizer_log_level(level);
     
-    objv_log("%s %d:%d~%d:%d ",tokenizer->base.isa->name->name,tokenizer->range.begin.line,tokenizer->range.begin.index,tokenizer->range.end.line,tokenizer->range.end.index);
+    objv_log("%s %d:%d~%d:%d ",tokenizer->base.isa->name,tokenizer->range.begin.line,tokenizer->range.begin.index,tokenizer->range.end.line,tokenizer->range.end.index);
     
     if(tokenizer->base.isa != & objv_tokenizer_class){
         if(objv_object_isKindOfClass((objv_object_t *) tokenizer , & objv_tokenizer_group_class) && * tokenizer->range.begin.p == '{'){

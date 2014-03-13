@@ -113,8 +113,8 @@ static objv_object_t * ObjectIteratorMethodInit(objv_class_t * clazz,objv_object
             
             while(propCount >0 && prop){
                 
-                if(objv_hash_map_get(iterator->keys, prop->name) == NULL){
-                    objv_hash_map_put(iterator->keys, prop->name, prop);
+                if(objv_hash_map_get(iterator->keys, (void *) prop->name) == NULL){
+                    objv_hash_map_put(iterator->keys, (void *) prop->name, prop);
                 }
                 
                 propCount --;
@@ -134,7 +134,7 @@ static objv_object_t * ObjectIteratorMethodNext(objv_class_t * clazz,objv_object
     objv_key_t * key = objv_hash_map_keyAt(object->keys, object->index ++);
     
     if(key){
-        return (objv_object_t *) objv_string_new_nocopy(object->base.base.zone, key->name);
+        return (objv_object_t *) objv_string_new_nocopy(object->base.base.zone, key);
     }
     
     return  NULL;

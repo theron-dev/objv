@@ -87,6 +87,9 @@ static objv_boolean_t CLMessageServicetHandleTask (objv_class_t * clazz,CLServic
 }
 
 static void CLMessageServicetInitialize (struct _objv_class_t * clazz){
+    
+    objv_class_reg(clazz);
+    
     objv_class_initialize(OBJV_CLASS(CLMessageImageTask));
     objv_class_initialize(OBJV_CLASS(CLMessageAudioTask));
     objv_class_initialize(OBJV_CLASS(CLMessageVideoTask));

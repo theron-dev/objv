@@ -76,6 +76,9 @@ static objv_boolean_t CLMonitorServicetHandleTask (objv_class_t * clazz,CLServic
 }
 
 static void CLMonitorServicetInitialize (struct _objv_class_t * clazz){
+    
+    objv_class_reg(clazz);
+    
     objv_class_initialize(OBJV_CLASS(CLContextChildChangedTask));
 }
 

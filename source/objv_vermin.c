@@ -96,15 +96,15 @@ static objv_object_t * vmObjectIteratorMethodsInit (objv_class_t * clazz, objv_o
                 
                 key = vmContextKey(ctx, binary + op->uniqueKey);
                 
-                if(objv_hash_map_get(keys, key) == NULL){
+                if(objv_hash_map_get(keys, (void *) key) == NULL){
                     
-                    skey = objv_string_alloc_nocopy(object->zone, key->name);
+                    skey = objv_string_alloc_nocopy(object->zone, key);
                     
                     objv_array_add(iterator->keys, (objv_object_t *) skey);
                     
                     objv_object_release((objv_object_t *) skey);
                     
-                    objv_hash_map_put(keys, key, key);
+                    objv_hash_map_put(keys, (void *) key, (void *) key);
                 }
             }
         }
@@ -245,7 +245,7 @@ static void vmContextMethodDealloc(objv_class_t * clazz, objv_object_t * obj){
         
         key = (objv_key_t *) objv_hash_map_valueAt(ctx->keyMap, i);
         
-        objv_zone_free(obj->zone, key);
+        objv_zone_free(obj->zone, (void *) key);
         
     }
     
@@ -375,7 +375,7 @@ void vmContextSetVariant(vmContext * ctx,objv_key_t * key, vmVariant variant){
         
         vmContextScope * scope = ctx->scopes.scope + ctx->scopes.length -1;
         
-        vmVariant * v = (vmVariant *) objv_hash_map_get(scope->variants, key);
+        vmVariant * v = (vmVariant *) objv_hash_map_get(scope->variants, (void *) key);
         
         vmVariantRetain(variant);
         
@@ -385,7 +385,7 @@ void vmContextSetVariant(vmContext * ctx,objv_key_t * key, vmVariant variant){
             vmVariantRelease(* v);
         
             if(variant.type == vmVariantTypeVoid){
-                objv_hash_map_remove(scope->variants, key);
+                objv_hash_map_remove(scope->variants, (void *) key);
                 objv_zone_free(ctx->base.zone, v);
             }
             else{
@@ -403,7 +403,7 @@ void vmContextSetVariant(vmContext * ctx,objv_key_t * key, vmVariant variant){
                     scope->variants = objv_hash_map_alloc(16, objv_hash_map_hash_code_ptr, objv_map_compare_any);
                 }
                 
-                objv_hash_map_put(scope->variants, key, v);
+                objv_hash_map_put(scope->variants, (void *) key, v);
             }
             
         }
@@ -425,7 +425,7 @@ vmVariant vmContextVariant(vmContext * ctx,objv_key_t * key){
             
             scope = ctx->scopes.scope + index;
             
-            p = (vmVariant *) objv_hash_map_get(scope->variants, key);
+            p = (vmVariant *) objv_hash_map_get(scope->variants, (void *) key);
             
             if(p){
                 
@@ -521,7 +521,7 @@ static vmVariant vmObjectClassInvoke (struct _objv_class_t * clazz, objv_object_
     
     vmClass * vmclass = (vmClass *) clazz;
     vmMetaOperator * op;
-    vmMetaOffset * offset = (vmMetaOffset *) objv_hash_map_get(vmclass->functions, key);
+    vmMetaOffset * offset = (vmMetaOffset *) objv_hash_map_get(vmclass->functions, (void *) key);
     char * binary = (char *) vmclass->vmClass - vmclass->vmClass->offset;
     vmContext * ctx = vmContextWithObject(object);
     
@@ -535,7 +535,7 @@ static vmVariant vmObjectClassInvoke (struct _objv_class_t * clazz, objv_object_
     }
     else if(key == ctx->keys.toString){
         v.type = vmVariantTypeObject;
-        v.objectValue = (objv_object_t *) objv_string_new_format(object->zone, "<%s 0x%x>",object->isa->name->name,(unsigned long) object);
+        v.objectValue = (objv_object_t *) objv_string_new_format(object->zone, "<%s 0x%x>",object->isa->name,(unsigned long) object);
     }
     else if(key == ctx->keys.encodeString){
         v.type = vmVariantTypeObject;
@@ -566,7 +566,7 @@ static vmVariant vmObjectClassProperty (struct _objv_class_t * clazz, objv_objec
     
     vmClass * vmclass = (vmClass *) clazz;
     vmMetaOffset * bof = (vmMetaOffset *) (vmclass->vmClass + 1);
-    vmMetaOffset * of = objv_hash_map_get(vmclass->propertys, key);
+    vmMetaOffset * of = objv_hash_map_get(vmclass->propertys, (void *) key);
     vmVariant * p = (vmVariant *) ((char *) object + clazz->superClass->size);
     
     if(of){
@@ -581,7 +581,7 @@ static vmVariant vmObjectClassSetProperty (struct _objv_class_t * clazz, objv_ob
     
     vmClass * vmclass = (vmClass *) clazz;
     vmMetaOffset * bof = (vmMetaOffset *) (vmclass->vmClass + 1);
-    vmMetaOffset * of = objv_hash_map_get(vmclass->propertys, key);
+    vmMetaOffset * of = objv_hash_map_get(vmclass->propertys,(void *) key);
     vmVariant v = {vmVariantTypeVoid,0};
     vmVariant * p = (vmVariant *) ((char *) object + clazz->superClass->size);
     vmMetaOperator * op;
@@ -638,7 +638,7 @@ static void vmClassInitialize (struct _objv_class_t * clazz){
             
             key = vmContextKey(vmclass->ctx, pKey);
             
-            objv_hash_map_put(vmclass->propertys, key, offset);
+            objv_hash_map_put(vmclass->propertys, (void *) key, offset);
             
             c --;
             offset ++;
@@ -662,7 +662,7 @@ static void vmClassInitialize (struct _objv_class_t * clazz){
             
             key = vmContextKey(vmclass->ctx, pKey);
             
-            objv_hash_map_put(vmclass->functions, key, offset);
+            objv_hash_map_put(vmclass->functions, (void *) key, offset);
             
             c --;
             offset ++;
@@ -694,7 +694,7 @@ static objv_method_t vmClassMethods[] = {
 };
 
 static objv_property_t vmClassPropertys[] = {
-    {OBJV_KEY(stringValue),& objv_type_object,(objv_method_impl_t) vmObjectClassStringValue,NULL,vm_false}
+    {OBJV_KEY(stringValue),objv_type_object,(objv_method_impl_t) vmObjectClassStringValue,NULL,vm_false}
 };
 
 objv_boolean_t vmContextLoadBinary(vmContext * ctx,vmMetaBinary * binary,objv_boolean_t copy){
@@ -741,7 +741,7 @@ objv_boolean_t vmContextLoadBinary(vmContext * ctx,vmMetaBinary * binary,objv_bo
             
             key = vmContextKey(ctx, pKey);
             
-            if(objv_hash_map_get(ctx->classMap, key) == NULL){
+            if(objv_hash_map_get(ctx->classMap, (void *) key) == NULL){
             
                 mClass = (vmMetaClass *) ((char *) b->binary + classBinary->metaOffset);
                 
@@ -762,7 +762,7 @@ objv_boolean_t vmContextLoadBinary(vmContext * ctx,vmMetaBinary * binary,objv_bo
                     
                     pKey = ((char *) b->binary + mClass->superClass);
                     superKey = vmContextKey(ctx, pKey);
-                    superClass = (vmClass *) objv_hash_map_get(ctx->classMap, superKey);
+                    superClass = (vmClass *) objv_hash_map_get(ctx->classMap, (void *) superKey);
                     
                     if(superClass){
                         clazz->base.superClass = (objv_class_t *) superClass;
@@ -783,7 +783,7 @@ objv_boolean_t vmContextLoadBinary(vmContext * ctx,vmMetaBinary * binary,objv_bo
             
                 clazz->base.size = clazz->base.superClass->size + mClass->propertyCount * sizeof(vmVariant);
                 
-                objv_hash_map_put(ctx->classMap, key, clazz);
+                objv_hash_map_put(ctx->classMap, (void *) key, clazz);
             }
             else{
                 objv_log("\nRepeat Class %s\n",pKey);
@@ -802,7 +802,7 @@ objv_boolean_t vmContextLoadBinary(vmContext * ctx,vmMetaBinary * binary,objv_bo
 
 objv_class_t * vmContextGetClass(vmContext * ctx, objv_key_t * key){
     if(ctx && key){
-        objv_class_t * clazz = (objv_class_t *) objv_hash_map_get(ctx->classMap, key);
+        objv_class_t * clazz = (objv_class_t *) objv_hash_map_get(ctx->classMap,(void *) key);
         if(clazz == NULL){
             clazz = objv_class(key);
         }
@@ -816,10 +816,9 @@ objv_key_t * vmContextKey(vmContext * ctx, const char * key){
     if(ctx && key){
         objv_key_t * k = (objv_key_t *) objv_hash_map_get(ctx->keyMap, (void * ) key);
         if(k == NULL){
-            k = (objv_key_t *) objv_zone_malloc(ctx->base.zone, sizeof(objv_key_t));
-            k->name = key;
-            k->type = (unsigned long) ctx;
-            objv_hash_map_put(ctx->keyMap, (void *) k->name, k);
+            k = (objv_key_t *) objv_zone_malloc(ctx->base.zone, strlen(key) + 1);
+            strcpy((void *)k, key);
+            objv_hash_map_put(ctx->keyMap, (void *) k, (void *) k);
         }
         return k;
     }
@@ -919,49 +918,49 @@ vmVariant vmObjectGetProperty(objv_class_t * clazz,objv_object_t * object, objv_
             }
             
             if(prop){
-                if(prop->type == & objv_type_int){
+                if(prop->type == objv_type_int){
                     v.type = vmVariantTypeInt32;
                     v.int32Value = objv_property_intValue(c, object, prop, 0);
                 }
-                else if(prop->type == & objv_type_uint){
+                else if(prop->type == objv_type_uint){
                     v.type = vmVariantTypeInt32;
                     v.int32Value = objv_property_uintValue(c, object, prop, 0);
                 }
-                else if(prop->type == & objv_type_long){
+                else if(prop->type == objv_type_long){
                     v.type = vmVariantTypeInt64;
                     v.int64Value = objv_property_longValue(c, object, prop, 0);
                 }
-                else if(prop->type == & objv_type_ulong){
+                else if(prop->type == objv_type_ulong){
                     v.type = vmVariantTypeInt64;
                     v.int64Value = objv_property_ulongValue(c, object, prop, 0);
                 }
-                else if(prop->type == & objv_type_longLong){
+                else if(prop->type == objv_type_longLong){
                     v.type = vmVariantTypeInt64;
                     v.int64Value = objv_property_longLongValue(c, object, prop, 0);
                 }
-                else if(prop->type == & objv_type_ulongLong){
+                else if(prop->type == objv_type_ulongLong){
                     v.type = vmVariantTypeInt64;
                     v.int64Value = objv_property_ulongLongValue(c, object, prop, 0);
                 }
-                else if(prop->type == & objv_type_float){
+                else if(prop->type == objv_type_float){
                     v.type = vmVariantTypeDouble;
                     v.doubleValue = objv_property_floatValue(c, object, prop, 0);
                 }
-                else if(prop->type == & objv_type_double){
+                else if(prop->type == objv_type_double){
                     v.type = vmVariantTypeDouble;
                     v.doubleValue = objv_property_doubleValue(c, object, prop, 0);
                 }
-                else if(prop->type == & objv_type_boolean){
+                else if(prop->type == objv_type_boolean){
                     v.type = vmVariantTypeBoolean;
                     v.booleanValue = objv_property_booleanValue(c, object, prop, 0);
                 }
-                else if(prop->type == & objv_type_object){
+                else if(prop->type == objv_type_object){
                     v.type = vmVariantTypeObject;
                     v.objectValue = objv_property_objectValue(c, object, prop, NULL);
                 }
             }
             else{
-                objv_string_t * skey = objv_string_new(object->zone, key->name);
+                objv_string_t * skey = objv_string_new(object->zone, key);
                 v = vmObjectToVariant( objv_object_objectForKey(object->isa, object, (objv_object_t *) skey));
             }
         }
@@ -1002,39 +1001,39 @@ vmVariant vmObjectSetProperty(objv_class_t * clazz,objv_object_t * object, objv_
             }
             
             if(prop){
-                if(prop->type == & objv_type_int){
+                if(prop->type == objv_type_int){
                     objv_property_setIntValue(c, object, prop, vmVariantToInt32(value));
                 }
-                else if(prop->type == & objv_type_uint){
+                else if(prop->type == objv_type_uint){
                     objv_property_setUintValue(c, object, prop, vmVariantToInt32(value));
                 }
-                else if(prop->type == & objv_type_long){
+                else if(prop->type == objv_type_long){
                     objv_property_setLongValue(c, object, prop, vmVariantToInt32(value));
                 }
-                else if(prop->type == & objv_type_ulong){
+                else if(prop->type == objv_type_ulong){
                     objv_property_setUlongValue(c, object, prop, vmVariantToInt32(value));
                 }
-                else if(prop->type == & objv_type_longLong){
+                else if(prop->type == objv_type_longLong){
                     objv_property_setLongLongValue(c, object, prop, vmVariantToInt64(value));
                 }
-                else if(prop->type == & objv_type_ulongLong){
+                else if(prop->type == objv_type_ulongLong){
                     objv_property_setUlongLongValue(c, object, prop, vmVariantToInt64(value));
                 }
-                else if(prop->type == & objv_type_float){
+                else if(prop->type == objv_type_float){
                     objv_property_setFloatValue(c, object, prop, vmVariantToDouble(value));
                 }
-                else if(prop->type == & objv_type_double){
+                else if(prop->type == objv_type_double){
                     objv_property_setDoubleValue(c, object, prop, vmVariantToDouble(value));
                 }
-                else if(prop->type == & objv_type_boolean){
+                else if(prop->type == objv_type_boolean){
                     objv_property_setBooleanValue(c, object, prop, vmVariantToBoolean(value));
                 }
-                else if(prop->type == & objv_type_object){
+                else if(prop->type == objv_type_object){
                     objv_property_setObjectValue(c, object, prop, vmVariantToObject(object->zone, value).objectValue);
                 }
             }
             else{
-                objv_string_t * skey = objv_string_new(object->zone, key->name);
+                objv_string_t * skey = objv_string_new(object->zone, key);
                 objv_object_t * ovalue = vmVariantToObject(object->zone, value).objectValue;
                 objv_object_setObjectForKey(object->isa, object, (objv_object_t *) skey,ovalue);
             }
@@ -1235,39 +1234,39 @@ vmVariant vmObjectToVariant(objv_object_t * object){
     if(objv_object_isKindOfClass(object, OBJV_CLASS(Value))){
         {
             objv_value_t * vv = (objv_value_t *) object;
-            if(vv->type == & objv_type_int){
+            if(vv->type == objv_type_int){
                 v.type = vmVariantTypeInt32;
                 v.int32Value = vv->intValue;
             }
-            else if(vv->type == & objv_type_uint){
+            else if(vv->type == objv_type_uint){
                 v.type = vmVariantTypeInt32;
                 v.int32Value = vv->uintValue;
             }
-            else if(vv->type == & objv_type_long){
+            else if(vv->type == objv_type_long){
                 v.type = vmVariantTypeInt64;
                 v.int64Value = vv->longValue;
             }
-            else if(vv->type == & objv_type_ulong){
+            else if(vv->type == objv_type_ulong){
                 v.type = vmVariantTypeInt64;
                 v.int64Value = vv->ulongValue;
             }
-            else if(vv->type == & objv_type_longLong){
+            else if(vv->type == objv_type_longLong){
                 v.type = vmVariantTypeInt64;
                 v.int64Value = vv->longLongValue;
             }
-            else if(vv->type == & objv_type_ulongLong){
+            else if(vv->type == objv_type_ulongLong){
                 v.type = vmVariantTypeInt64;
                 v.int64Value = vv->ulongLongValue;
             }
-            else if(vv->type == & objv_type_boolean){
+            else if(vv->type == objv_type_boolean){
                 v.type = vmVariantTypeBoolean;
                 v.booleanValue = vv->booleanValue;
             }
-            else if(vv->type == & objv_type_float){
+            else if(vv->type == objv_type_float){
                 v.type = vmVariantTypeDouble;
                 v.doubleValue = vv->floatValue;
             }
-            else if(vv->type == & objv_type_double){
+            else if(vv->type == objv_type_double){
                 v.type = vmVariantTypeDouble;
                 v.doubleValue = vv->doubleValue;
             }

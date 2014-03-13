@@ -673,7 +673,7 @@ void CLServiceSetConfig(CLService * service, objv_object_t * config){
             for(int i=0;i<taskTypes->length;i++){
                 string = objv_object_stringValue(objv_array_objectAt(taskTypes, i), NULL);
                 if(string){
-                    taskType = objv_class(objv_key( string->UTF8String ));
+                    taskType = objv_class(( string->UTF8String ));
                     if(taskType){
                         objv_hash_map_put(service->taskTypes, taskType, taskType);
                     }
@@ -813,7 +813,7 @@ void CLServiceContainerSetConfig(CLServiceContainer * container,objv_object_t * 
                 string = objv_object_stringValueForKey(cfg, (objv_object_t *) objv_string_new_nocopy(zone, "class"), NULL);
                 
                 if(string){
-                    clazz = objv_class(objv_key(string->UTF8String));
+                    clazz = objv_class((string->UTF8String));
                     if(clazz){
                         
                         service = (CLService *) objv_object_alloc(zone, clazz,NULL);
