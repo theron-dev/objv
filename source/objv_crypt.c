@@ -10,6 +10,7 @@
 
 #include "objv_os.h"
 #include "objv_crypt.h"
+#include "objv_log.h"
 
 #include <zlib.h>
 
@@ -264,11 +265,39 @@ objv_boolean_t objv_gzip_encode(void * data,size_t length,objv_mbuf_t * mbuf){
         stream.total_out = 0;
         stream.avail_out = 0;
 
-        int ret = deflateInit2(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 15, 8, Z_DEFAULT_STRATEGY);
+        int ret = deflateInit2(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 31, 8, Z_DEFAULT_STRATEGY);
         
         if(ret != Z_OK){
             
-            ret = deflateInit(&stream, Z_DEFAULT_COMPRESSION);
+            switch (ret)
+            
+            {
+                    
+                case Z_STREAM_ERROR:
+                    
+                    objv_log("\nInvalid parameter passed in to function.\n");
+                    
+                    break;
+                    
+                case Z_MEM_ERROR:
+                    
+                    objv_log("\nInsufficient memory.\n");
+                    
+                    break;
+                    
+                case Z_VERSION_ERROR:
+                    
+                    objv_log("\nThe version of zlib.h and the version of the library linked do not match.\n");
+                    
+                    break;
+                    
+                default:  
+                    
+                    objv_log("\nUnknown error code.\n");
+                    
+                    break;  
+                    
+            }
 
         }
         
@@ -313,8 +342,38 @@ objv_boolean_t objv_gzip_decode(void * data,size_t length,objv_mbuf_t * mbuf){
 
         int ret = inflateInit2( & stream , 47);
         
-        if(ret != Z_OK) {
-            ret = inflateInit( & stream );
+        if(ret != Z_OK){
+            
+            switch (ret)
+            
+            {
+                    
+                case Z_STREAM_ERROR:
+                    
+                    objv_log("\nInvalid parameter passed in to function.\n");
+                    
+                    break;
+                    
+                case Z_MEM_ERROR:
+                    
+                    objv_log("\nInsufficient memory.\n");
+                    
+                    break;
+                    
+                case Z_VERSION_ERROR:
+                    
+                    objv_log("\nThe version of zlib.h and the version of the library linked do not match.\n");
+                    
+                    break;
+                    
+                default:
+                    
+                    objv_log("\nUnknown error code.\n");
+                    
+                    break;
+                    
+            }
+            
         }
         
         if (ret == Z_OK)
