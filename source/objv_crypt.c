@@ -269,6 +269,8 @@ objv_boolean_t objv_gzip_encode(void * data,size_t length,objv_mbuf_t * mbuf){
         
         if(ret != Z_OK){
             
+            const char * version = ZLIB_VERSION;
+            
             switch (ret)
             
             {
@@ -287,7 +289,7 @@ objv_boolean_t objv_gzip_encode(void * data,size_t length,objv_mbuf_t * mbuf){
                     
                 case Z_VERSION_ERROR:
                     
-                    objv_log("\nThe version of zlib.h and the version of the library linked do not match.\n");
+                    objv_log("\nThe version %s of zlib.h and the version of the library linked do not match.\n",version);
                     
                     break;
                     
