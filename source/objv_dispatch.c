@@ -258,7 +258,7 @@ int objv_dispatch_tasks_count(objv_dispatch_t * dispatch){
 }
 
 static objv_dispatch_t * main_dispatch = NULL;
-static objv_thread_key_t dispatch_key = 0;
+static objv_thread_key_t dispatch_key = OBJV_THREAD_KEY_NONE;
 
 static void dispatch_key_dealloc(void * dispatch){
     
@@ -268,7 +268,7 @@ static void dispatch_key_dealloc(void * dispatch){
 
 objv_dispatch_t * objv_dispatch_get_current(){
     
-    if(dispatch_key == 0){
+    if(dispatch_key == OBJV_THREAD_KEY_NONE){
         objv_thread_key_create(& dispatch_key, dispatch_key_dealloc);
     }
     

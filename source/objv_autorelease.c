@@ -28,7 +28,7 @@ typedef struct _objv_autorelease_pool_t {
 OBJV_KEY_IMP(AutoreleaseTask)
 OBJV_KEY_IMP(AutoreleasePool)
 
-static objv_thread_key_t autorelease_pool_key = 0;
+static objv_thread_key_t autorelease_pool_key = OBJV_THREAD_KEY_NONE;
 
 static void objv_autorelease_pool_methods_dealloc(objv_class_t * clazz, objv_object_t * obj){
     
@@ -100,7 +100,7 @@ static void autorelease_pool_key_dealloc(void * pool){
 
 objv_autorelease_pool_t * objv_autorelease_pool_get_current(){
     
-    if(autorelease_pool_key == 0){
+    if(autorelease_pool_key == OBJV_THREAD_KEY_NONE){
         
         objv_thread_key_create(& autorelease_pool_key, autorelease_pool_key_dealloc);
         

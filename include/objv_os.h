@@ -147,6 +147,8 @@ extern "C" {
         return pthread_mutex_unlock(m);
     }
 
+#define OBJV_THREAD_KEY_NONE    0xffffffff
+    
     typedef pthread_key_t objv_thread_key_t;
     
     static inline int objv_thread_key_create(objv_thread_key_t * key, void (* dealloc)(void *)){
