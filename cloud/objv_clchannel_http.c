@@ -261,7 +261,7 @@ OBJVChannelStatus CLHttpChannelUnpackageTask(objv_zone_t * zone, CLTask ** task,
                 
                 p[h->value.location + h->value.length] = 0;
                 
-                tType = objv_class(objv_key( p + h->value.location));
+                tType = objv_class(( p + h->value.location));
             
                 if(!tType){
                     objv_log("\nNot Found taskType %s\n",p + h->value.location);
@@ -269,7 +269,7 @@ OBJVChannelStatus CLHttpChannelUnpackageTask(objv_zone_t * zone, CLTask ** task,
                 }
                 
                 if(!objv_class_isKindOfClass(tType, OBJV_CLASS(CLTask))){
-                    objv_log("\ntaskType %s not implements CLTask\n",tType->name->name);
+                    objv_log("\ntaskType %s not implements CLTask\n",tType->name);
                     break;
                 }
                 
@@ -281,7 +281,7 @@ OBJVChannelStatus CLHttpChannelUnpackageTask(objv_zone_t * zone, CLTask ** task,
                 
                 p[h->value.location + h->value.length] = 0;
                 
-                tClass = objv_class(objv_key( p + h->value.location));
+                tClass = objv_class(( p + h->value.location));
                 
                 if(!tClass){
                     objv_log("\nNot Found taskClass %s\n",p + h->value.location);
@@ -289,7 +289,7 @@ OBJVChannelStatus CLHttpChannelUnpackageTask(objv_zone_t * zone, CLTask ** task,
                 }
                 
                 if(!objv_class_isKindOfClass(tClass, OBJV_CLASS(CLTask))){
-                    objv_log("\ntaskClass %s not implements CLTask\n",tClass->name->name);
+                    objv_log("\ntaskClass %s not implements CLTask\n",tClass->name);
                     break;
                 }
                 
@@ -374,7 +374,7 @@ OBJVChannelStatus CLHttpChannelUnpackageTask(objv_zone_t * zone, CLTask ** task,
                         p[h->key.location + h->key.length] = 0;
                         p[h->value.location + h->value.length] = 0;
                         
-                        key = objv_key(p + h->key.location);
+                        key = (p + h->key.location);
                         
                         prop = objv_class_getPropertyOfClass(tClass, key, & ofClass);
                         
@@ -428,8 +428,8 @@ OBJVChannelStatus CLHttpChannelPackageTask(objv_zone_t * zone, CLTask * task,obj
         
         objv_mbuf_clear(encode);
         
-        objv_mbuf_format(encode, "taskType: %s\r\n",taskType->name->name);
-        objv_mbuf_format(encode, "taskClass: %s\r\n",task->base.isa->name->name);
+        objv_mbuf_format(encode, "taskType: %s\r\n",taskType->name);
+        objv_mbuf_format(encode, "taskClass: %s\r\n",task->base.isa->name);
         objv_mbuf_format(encode, "identifier: %lld\r\n",task->identifier);
         objv_mbuf_format(encode, "replyIdentifier: %lld\r\n",task->replyIdentifier);
         objv_mbuf_format(encode, "source: %s\r\n",task->source->UTF8String);
@@ -454,7 +454,7 @@ OBJVChannelStatus CLHttpChannelPackageTask(objv_zone_t * zone, CLTask * task,obj
                     v = objv_property_stringValue(clazz, (objv_object_t *) task, prop, NULL);
                     
                     if(v){
-                        objv_mbuf_format(encode, "%s: ",prop->name->name);
+                        objv_mbuf_format(encode, "%s: ",prop->name);
                         objv_url_encode_mbuf(zone, v->UTF8String, encode);
                         objv_mbuf_append(encode, "\r\n", 2);
                     }
