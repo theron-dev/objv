@@ -234,6 +234,20 @@ static void CLSRVProcessClose (OBJVSRVServer * server,OBJVSRVProcess * process){
     
 }
 
+#ifdef DEBUG
+
+OBJVSRVProcessClass CLSRVProcessClass = {
+    CLSRVProcessOpen,
+    CLSRVProcessExit,
+    CLSRVProcessCreate,
+    CLSRVProcessTick,
+    CLSRVProcessClose,
+    CLSRVProcessKill,
+    0
+};
+
+#else
+
 OBJVSRVProcessClass CLSRVProcessClass = {
     CLSRVProcessCreate,
     CLSRVProcessExit,
@@ -244,3 +258,4 @@ OBJVSRVProcessClass CLSRVProcessClass = {
     0
 };
 
+#endif
