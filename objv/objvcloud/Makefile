@@ -29,6 +29,6 @@ install:
 uninstall:
 	rm -f /usr/bin/$(EXECNAME)
 
-
-
+clean:
+	rm -rf $(TARGET)
 
