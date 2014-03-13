@@ -251,7 +251,8 @@ objv_boolean_t objv_base64_decode(const char * text,objv_mbuf_t * mbuf){
 objv_boolean_t objv_gzip_encode(void * data,size_t length,objv_mbuf_t * mbuf){
     if(data && length > 0 && mbuf){
         
-        z_stream stream;
+        z_stream stream = {0};
+        
         stream.zalloc = Z_NULL;
         stream.zfree = Z_NULL;
         stream.opaque = Z_NULL;
@@ -289,7 +290,8 @@ objv_boolean_t objv_gzip_decode(void * data,size_t length,objv_mbuf_t * mbuf){
    
     if(data && length > 0 && mbuf){
         
-        z_stream stream;
+        z_stream stream = {0};
+        
         stream.zalloc = Z_NULL;
         stream.zfree = Z_NULL;
         stream.avail_in = (uInt)length;
