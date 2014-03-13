@@ -21,7 +21,7 @@ TARGET = $(OUTPUT)/$(EXECNAME)
 SOURCE      = main.c CLAccept.c CLSRVProcess.c CLLoader.c
 
 $(TARGET):
-	cc $(CFLAGS) $(INCLUDE) $(SOURCE) -o $(TARGET) $(LIBRARY)
+	cc $(CFLAGS) $(INCLUDE) $(LIBRARY) $(SOURCE) -o $(TARGET)
 
 install:
 	cp $(TARGET) /usr/bin/$(EXECNAME)
