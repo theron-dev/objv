@@ -759,6 +759,9 @@ static OBJVChannelStatus CLHttpChannelMethodTick(objv_class_t * clazz,CLChannel 
                 
                 if(httpChannel->write.mbuf.length - httpChannel->write.off == 0){
                     httpChannel->write.state = 0;
+#ifdef DEBUG    
+                    objv_log("\n%s\n",objv_mbuf_str(& httpChannel->write.mbuf));
+#endif
                     break;
                 }
                 
