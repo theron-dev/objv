@@ -113,6 +113,8 @@ static OBJVChannelStatus CLHttpChannelMethodConnect(objv_class_t * clazz,CLChann
     
     OBJVChannelStatus status = OBJVChannelStatusError;
     
+    ssize_t len;
+    
     if(channel->oChannel){
         status = objv_channel_connect(channel->oChannel->base.isa, channel->oChannel, timeout);
     }
@@ -137,22 +139,45 @@ static OBJVChannelStatus CLHttpChannelMethodConnect(objv_class_t * clazz,CLChann
             
             objv_mbuf_format(& httpChannel->write.mbuf, "Content-Type: text/task\r\nTransfer-Encoding: chunked\r\nAccept-Encoding: gzip\r\n\r\n");
             
-            if(httpChannel->write.mbuf.length == objv_channel_write(channel->oChannel->base.isa, channel->oChannel
-                                                                    , httpChannel->write.mbuf.data,httpChannel->write.mbuf.length)){
+            while(1){
                 
-                objv_log("\n%s\n",objv_mbuf_str(& httpChannel->write.mbuf));
+                status = objv_channel_canWrite(channel->oChannel->base.isa, channel->oChannel, timeout);
                 
-                httpChannel->contentType = CLHttpChannelContentTypeChunked | CLHttpChannelContentTypeGzip;
-                httpChannel->read.state = -1;
-                channel->mode = CLChannelModeRead | CLChannelModeWrite;
+                if(status == OBJVChannelStatusError){
+                    break;
+                }
+                else if(status == OBJVChannelStatusOK){
+                    
+                    len = objv_channel_write(channel->oChannel->base.isa, channel->oChannel
+                                             , (char *) httpChannel->write.mbuf.data + httpChannel->write.off ,httpChannel->write.mbuf.length - httpChannel->write.off);
+                    
+                    if(len == 0){
+                        continue;
+                    }
+                    else if(len < 0){
+                        status = OBJVChannelStatusError;
+                        break;
+                    }
+                    
+                    httpChannel->write.off += len;
+                    
+                    if(httpChannel->write.off == httpChannel->write.mbuf.length){
+                        
+                        objv_log("\n%s\n",objv_mbuf_str(& httpChannel->write.mbuf));
+                        
+                        httpChannel->contentType = CLHttpChannelContentTypeChunked | CLHttpChannelContentTypeGzip;
+                        httpChannel->read.state = -1;
+                        channel->mode = CLChannelModeRead | CLChannelModeWrite;
+                        
+                        objv_mbuf_clear(& httpChannel->write.mbuf);
+                        httpChannel->write.off = 0;
+                        
+                        status = OBJVChannelStatusOK;
+                        
+                        break;
+                    }
+                }
                 
-                objv_mbuf_clear(& httpChannel->write.mbuf);
-                
-                status = OBJVChannelStatusOK;
-            }
-            else{
-                objv_mbuf_clear(& httpChannel->write.mbuf);
-                status = OBJVChannelStatusError;
             }
             
         }
