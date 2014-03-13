@@ -251,7 +251,8 @@ objv_boolean_t objv_base64_decode(const char * text,objv_mbuf_t * mbuf){
 objv_boolean_t objv_gzip_encode(void * data,size_t length,objv_mbuf_t * mbuf){
     if(data && length > 0 && mbuf){
         
-        z_stream stream = {0};
+        size_t off = mbuf->length;
+        z_stream stream ;
         
         stream.zalloc = Z_NULL;
         stream.zfree = Z_NULL;
@@ -261,7 +262,7 @@ objv_boolean_t objv_gzip_encode(void * data,size_t length,objv_mbuf_t * mbuf){
         stream.total_out = 0;
         stream.avail_out = 0;
         
-        size_t off = mbuf->length;
+        memset(& stream, 0, sizeof(z_stream));
         
         if (deflateInit2(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 31, 8, Z_DEFAULT_STRATEGY) == Z_OK)
         {
@@ -290,6 +291,7 @@ objv_boolean_t objv_gzip_decode(void * data,size_t length,objv_mbuf_t * mbuf){
    
     if(data && length > 0 && mbuf){
         
+        size_t off = mbuf->length;
         z_stream stream = {0};
         
         stream.zalloc = Z_NULL;
@@ -299,8 +301,8 @@ objv_boolean_t objv_gzip_decode(void * data,size_t length,objv_mbuf_t * mbuf){
         stream.total_out = 0;
         stream.avail_out = 0;
         
-        size_t off = mbuf->length;
-        
+        memset(& stream, 0, sizeof(z_stream));
+
         if (inflateInit2(&stream, 47) == Z_OK)
         {
             int status = Z_OK;
