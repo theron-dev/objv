@@ -88,19 +88,11 @@
 
 #define closesocket(a) close(a)
 
-#define EXPORT
-
-#define HAS_PTHREAD
-
 #define BITS_LOW
 //#define BITS_HIGH
 
 #ifndef PATH_MAX
 #define PATH_MAX    1024
-#endif
-
-#ifndef PATH_SPLIT
-#define PATH_SPLIT  '/'
 #endif
 
 #ifndef MIN
@@ -110,6 +102,9 @@
 #define	MAX(a,b) (((a)>(b))?(a):(b))
 #endif	/* MAX */
 
+#ifndef _POSIX_THREADS
+#define _POSIX_THREADS
+#endif
 
 #endif
 
