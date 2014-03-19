@@ -222,17 +222,18 @@ static void CLChannelContextTaskRun(objv_class_t * clazz, CLChannelContextTask *
             }
             
         }
-        
+    
         if(status != OBJVChannelStatusError && (task->channel->mode & CLChannelModeWrite)){
             status = CLChannelTick(task->channel->base.isa,task->channel, 0.02);
         }
-     
-        if(status == OBJVChannelStatusError){
-            status = CLChannelDisconnect(task->channel->base.isa, task->channel);
-        }
-        else if(status == OBJVChannelStatusOK){
+        
+        if(status == OBJVChannelStatusOK){
             task->idleTimeinval = 0;
         }
+    }
+    
+    if(status == OBJVChannelStatusError){
+        status = CLChannelDisconnect(task->channel->base.isa, task->channel);
     }
     
     if(status != OBJVChannelStatusError && task->keepAlive < 0 && task->idleTimeinval >= - task->keepAlive){
