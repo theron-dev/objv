@@ -9,6 +9,7 @@
 #include "objv_os.h"
 #include "objv.h"
 #include "objv_server.h"
+#include "objv_log.h"
 
 #include <execinfo.h>
 
@@ -60,7 +61,7 @@ int OBJVSRVServerRun(OBJVSRVServer * server){
     
     objv_mutex_init(&server->run.stdoutMutex);
     
-    OBJVSRVServerLog("OBJVSRVServerRun(%d) begin\n",server->run.mainpid);
+    objv_log("OBJVSRVServerRun(%d) begin",server->run.mainpid);
     
     
     server->run.listenSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -91,7 +92,7 @@ int OBJVSRVServerRun(OBJVSRVServer * server){
         
         server->run.port = ntohs(addr.sin_port);
         
-        OBJVSRVServerLog("bind %d\n",server->run.port);
+        objv_log("bind %d\n",server->run.port);
         
         res = listen(server->run.listenSocket, SOMAXCONN);
         
@@ -209,7 +210,7 @@ int OBJVSRVServerRun(OBJVSRVServer * server){
     close(server->run.listenSocket);
     objv_mutex_destroy(&server->run.listenMutex);
 
-    OBJVSRVServerLog("main end\n");
+    objv_log("main end");
     
     objv_mutex_destroy(&server->run.stdoutMutex);
     
@@ -221,13 +222,13 @@ int OBJVSRVServerRun(OBJVSRVServer * server){
 
 static void OBJVSRVServerSIGNAN(int signo){
     
-    OBJVSRVServerLog("NAN sig:%d errno:%d\n",signo,errno);
+    objv_log("NAN sig:%d errno:%d",signo,errno);
     
     void * array[30];
     int size = backtrace( array, 30);
     char ** symbols = backtrace_symbols( array, size);
     for(int i=0;i<size;i++){
-        OBJVSRVServerLog("%s\n",symbols[i]);
+        objv_log("%s",symbols[i]);
     }
     free(symbols);
 }
@@ -277,7 +278,7 @@ static void OBJVSRVServerSIGProcessQuit(int signo)
             exit(EXIT_FAILURE);
         }
         else {
-            OBJVSRVServerLog("process(%d) exit\n",getpid());
+            objv_log("process(%d) exit",getpid());
             processExit = 1;
         }
     }
@@ -402,79 +403,4 @@ int OBJVSRVServerAccept(OBJVSRVServer * server,double timeout,struct sockaddr * 
     pthread_mutex_unlock(&server->run.listenMutex);
     
     return client;
-}
-
-void OBJVSRVServerLog(const char * format,...){
-    
-    va_list va;
-    
-    va_start(va, format);
-    
-    if(gServer && gServer->logCallback){
-        
-        (*gServer->logCallback)(gServer,format,va);
-        
-        va_end(va);
-        
-        return;
-    }
-    
-#ifdef DEBUG
-    
-    if(gServer){
-        objv_mutex_lock( & gServer->run.stdoutMutex );
-    }
-    
-    vprintf(format, va);
-    
-    if(gServer){
-        objv_mutex_unlock( & gServer->run.stdoutMutex );
-    }
-    
-#else
-    
-    if(gServer){
-        objv_mutex_lock( & gServer->run.stdoutMutex );
-    }
-    
-    {
-        fd_set rds;
-        int res;
-        
-        struct timeval timeo = {0, 0.1 * 1000000};
-        
-        FD_ZERO(&rds);
-        
-        FD_SET(STDOUT_FILENO, &rds);
-        
-        res = select(STDOUT_FILENO + 1, &rds, NULL, NULL, &timeo);
-        
-        if(res == 0){
-            
-        }
-        else if(res == -1){
-            if(errno == EINTR){
-                
-            }
-            else{
-                
-            }
-        }
-        else{
-            if(FD_ISSET(STDOUT_FILENO, &rds)){
-                vprintf(format, va);
-            }
-        }
-        
-    }
-    
-    if(gServer){
-        objv_mutex_unlock( & gServer->run.stdoutMutex );
-    }
-    
-#endif
-    
-    
-    va_end(va);
-    
 }

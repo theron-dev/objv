@@ -12,6 +12,8 @@
 #include "objv_log.h"
 #include "objv_mbuf.h"
 
+static int _objv_log_stdout = STDOUT_FILENO;
+
 void objv_log(const char * format,...){
     
     va_list va;
@@ -41,8 +43,12 @@ void objv_vlog(const char * format,va_list va){
     
     objv_mbuf_append(& mbuf, "\n",2);
     
-    write(STDOUT_FILENO, mbuf.data, mbuf.length);
+    write(_objv_log_stdout, mbuf.data, mbuf.length);
     
     objv_mbuf_destroy(& mbuf);
     
+}
+
+void objv_log_stdout(int fno){
+    _objv_log_stdout = fno;
 }

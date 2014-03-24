@@ -43,23 +43,23 @@ static int CLSRVProcessCreate (OBJVSRVServer * server,OBJVSRVProcess * process){
 }
 
 static void CLSRVProcessExit (OBJVSRVServer * server,OBJVSRVProcess * process,int signo){
-    OBJVSRVServerLog("\nCLSRVProcessExit pid: %d errno:%d signo:%d\n",process->pid, errno,signo);
+    objv_log("\nCLSRVProcessExit pid: %d errno:%d signo:%d\n",process->pid, errno,signo);
     void * array[30];
     int size = backtrace( array, 30);
     char ** symbols = backtrace_symbols( array, size);
     for(int i=0;i<size;i++){
-        OBJVSRVServerLog("%s\n",symbols[i]);
+        objv_log("%s\n",symbols[i]);
     }
     free(symbols);
 }
 
 static void CLSRVProcessKill (OBJVSRVServer * server,OBJVSRVProcess * process,int signo){
-    OBJVSRVServerLog("\nCLSRVProcessKill pid: %d errno:%d signo:%d\n",process->pid, errno,signo);
+    objv_log("\nCLSRVProcessKill pid: %d errno:%d signo:%d\n",process->pid, errno,signo);
     void * array[30];
     int size = backtrace( array, 30);
     char ** symbols = backtrace_symbols( array, size);
     for(int i=0;i<size;i++){
-        OBJVSRVServerLog("%s\n",symbols[i]);
+        objv_log("%s\n",symbols[i]);
     }
     free(symbols);
 }
@@ -93,7 +93,7 @@ static void CLSRVProcessOpen (OBJVSRVServer * server,OBJVSRVProcess * process){
         
         if(f) {
             
-            OBJVSRVServerLog("\nOpen Config File %s\n",config);
+            objv_log("\nOpen Config File %s\n",config);
             
             objv_mbuf_init(& mbuf, 1024);
             
@@ -109,7 +109,7 @@ static void CLSRVProcessOpen (OBJVSRVServer * server,OBJVSRVProcess * process){
             
             objv_json_encode_mbuf(zone, cfg, & mbuf, objv_true);
             
-            OBJVSRVServerLog("\n%s\n",objv_mbuf_str(& mbuf));
+            objv_log("\n%s\n",objv_mbuf_str(& mbuf));
             
             objv_mbuf_destroy(& mbuf);
             

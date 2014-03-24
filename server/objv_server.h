@@ -20,8 +20,6 @@ extern "C" {
     struct _OBJVSRVProcess;
     struct _OBJVSRVServer;
     
-    typedef void (* OBJVSRVServerLogCallback)(struct _OBJVSRVServer * srv,const char * format,va_list va);
-    
     typedef struct _OBJVSRVServer {
         struct {
             struct {
@@ -44,7 +42,6 @@ extern "C" {
             objv_mutex_t listenMutex;
             objv_mutex_t stdoutMutex;
         } run;
-        OBJVSRVServerLogCallback logCallback;
     } OBJVSRVServer;
     
     int OBJVSRVServerRun(OBJVSRVServer * server);
@@ -81,8 +78,6 @@ extern "C" {
         int exit;
         void * userInfo;
     } OBJVSRVProcess;
-    
-    void OBJVSRVServerLog(const char * format,...);
     
 #ifdef __cplusplus
 }

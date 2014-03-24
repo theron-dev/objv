@@ -18,6 +18,8 @@ extern "C" {
     
     void objv_vlog(const char * format,va_list va);
     
+    void objv_log_stdout(int fno);
+    
 #ifdef __cplusplus
 }
 #endif

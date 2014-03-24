@@ -17,37 +17,10 @@
 #include "objv_zombie.h"
 #include "CLSRVProcess.h"
 #include "CLLoader.h"
+#include "objv_log.h"
 
 #define DEFAULT_PROCESS_COUNT   1
 
-static void OBJVSRVServerLogMSG(OBJVSRVServer * srv,const char * format,va_list va){
-    
-    char sbuf[PATH_MAX];
-    int fno;
-    int len;
-    
-    snprintf(sbuf, sizeof(sbuf),"/var/log/objvcloud.log");
-    
-    fno = open(sbuf, O_WRONLY | O_APPEND);
-    
-    if(fno == -1){
-        fno = open(sbuf, O_WRONLY | O_CREAT);
-        if(fno != -1){
-            fchmod(fno, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-            close(fno);
-        }
-        fno = open(sbuf, O_WRONLY | O_APPEND);
-    }
-    
-    if(fno != -1){
-        
-        len = vsnprintf(sbuf, sizeof(sbuf), format, va);
-        
-        write(fno, sbuf, len);
-        
-        close(fno);
-    }
-}
 
 int main(int argc, char ** argv)
 {
@@ -55,13 +28,23 @@ int main(int argc, char ** argv)
     OBJVSRVProcess processs[DEFAULT_PROCESS_COUNT] = {0};
     
     OBJVSRVServer srv = {
-        {{argc,argv},{processs,DEFAULT_PROCESS_COUNT},{0},0},{0},OBJVSRVServerLogMSG
+        {{argc,argv},{processs,DEFAULT_PROCESS_COUNT},{0},0},{0}
     };
     
-#ifdef DEBUG
-    srv.logCallback = NULL;
+#ifndef DEBUG
+    {
+        int fno = open("/var/log/objvcloud.log", O_WRONLY | O_CREAT);
+        
+        if(fno != -1){
+            
+            fchmod(fno, 0777);
+            
+            objv_log_stdout(fno);
+            
+        }
+        
+    }
 #endif
-    
     {
         int i;
         for(i=0;i<srv.config.process.length;i++){
