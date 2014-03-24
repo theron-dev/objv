@@ -41,7 +41,7 @@ void objv_vlog(const char * format,va_list va){
     
     objv_mbuf_formatv(& mbuf, format, va);
     
-    objv_mbuf_append(& mbuf, "\n",2);
+    objv_mbuf_append(& mbuf, "\n",1);
     
     write(_objv_log_stdout, mbuf.data, mbuf.length);
     
