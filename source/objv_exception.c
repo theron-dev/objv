@@ -13,6 +13,7 @@
 #include "objv_autorelease.h"
 #include "objv_value.h"
 
+
 OBJV_KEY_IMP(Exception)
 
 static void objv_exception_methods_dealloc(objv_class_t * clazz, objv_object_t * obj){
@@ -20,6 +21,8 @@ static void objv_exception_methods_dealloc(objv_class_t * clazz, objv_object_t *
     objv_exception_t * ex = (objv_exception_t *) obj;
     
     objv_object_release((objv_object_t *) ex->message);
+    
+    objv_object_release((objv_object_t *) ex->callSymbols);
     
     if(clazz->superClass){
         objv_object_dealloc(clazz->superClass,obj);
@@ -33,6 +36,28 @@ static objv_object_t * objv_exception_methods_init(objv_class_t * clazz, objv_ob
     ex->code = va_arg(ap, int);
     ex->message = (objv_string_t *) objv_object_retain(va_arg(ap, objv_object_t *));
  
+    {
+        void * array[30];
+        int backtrace_size = backtrace(array,30);
+        int i;
+        char ** symbols = backtrace_symbols(array,backtrace_size);
+        objv_mbuf_t mbuf;
+        
+        objv_mbuf_init(& mbuf, 128);
+        
+        for(i=0;i<backtrace_size;i++){
+            if(i != 0){
+                objv_mbuf_append(& mbuf, "\n",1);
+            }
+            objv_mbuf_format(& mbuf, "%s",symbols[i]);
+        }
+        
+        ex->callSymbols = objv_string_alloc(obj->zone, objv_mbuf_str( & mbuf));
+        
+        objv_mbuf_destroy(& mbuf);
+        
+    }
+    
     return obj;
 }
 

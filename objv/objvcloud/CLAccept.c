@@ -586,6 +586,27 @@ static void CLAcceptContextInfoTaskRunContextInfo(CLContext * ctx, objv_mbuf_t *
         
         objv_mbuf_format(mbuf, "parent: %s\r\n",ctx->parent->domain ? ctx->parent->domain->UTF8String : "");
         
+        if(objv_object_isKindOfClass((objv_object_t *) ctx->parent, OBJV_CLASS(CLChannelContext))){
+            
+            channelContext = (CLChannelContext *) ctx->parent;
+            
+            objv_mutex_lock(& channelContext->channels_mutex);
+            
+            if(channelContext->channels){
+                
+                objv_mbuf_format(mbuf, "channels: \r\n");
+                
+                for(i=0;i<channelContext->channels->length;i++){
+                    channel = (CLChannel *) objv_array_objectAt(channelContext->channels, i);
+                    objv_mbuf_format(mbuf, "url: %s\r\n", channel->url && channel->url->absoluteString ? channel->url->absoluteString->UTF8String : "");
+                }
+                
+                objv_mbuf_append(mbuf, "\r\n", 2);
+            }
+            
+            objv_mutex_unlock(& channelContext->channels_mutex);
+            
+        }
     }
     
     if(objv_object_isKindOfClass((objv_object_t *) ctx, OBJV_CLASS(CLChannelContext))){

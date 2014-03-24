@@ -41,6 +41,7 @@
 #include <net/ethernet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <execinfo.h>
 
 #define closesocket(c) close(c)
 
@@ -85,6 +86,7 @@
 #include <arpa/inet.h>
 #include <sys/file.h>
 #include <sys/stat.h>
+#include <execinfo.h>
 
 #define closesocket(a) close(a)
 

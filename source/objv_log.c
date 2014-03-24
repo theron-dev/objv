@@ -10,6 +10,7 @@
 
 #include "objv_os.h"
 #include "objv_log.h"
+#include "objv_mbuf.h"
 
 void objv_log(const char * format,...){
     
@@ -24,5 +25,24 @@ void objv_log(const char * format,...){
 }
 
 void objv_vlog(const char * format,va_list va){
-    vprintf(format, va);
+    objv_mbuf_t mbuf;
+    time_t now = time(NULL);
+    struct tm * nowmt = gmtime(& now);
+    
+    objv_mbuf_init(& mbuf, 128);
+    
+    objv_mbuf_append(& mbuf, "[",1);
+    
+    mbuf.length += strftime((char *) mbuf.data + mbuf.length,mbuf.size - mbuf.length,"%x %X",nowmt);
+    
+    objv_mbuf_append(& mbuf, "] ",2);
+    
+    objv_mbuf_formatv(& mbuf, format, va);
+    
+    objv_mbuf_append(& mbuf, "\n",2);
+    
+    write(STDOUT_FILENO, mbuf.data, mbuf.length);
+    
+    objv_mbuf_destroy(& mbuf);
+    
 }

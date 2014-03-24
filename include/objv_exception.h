@@ -22,6 +22,7 @@ extern "C" {
         objv_object_t base;
         int READONLY code;
         objv_string_t * READONLY message;
+        objv_string_t * READONLY callSymbols;
     } objv_exception_t;
    
     OBJV_CLASS_DEC(Exception)
